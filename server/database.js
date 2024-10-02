@@ -196,6 +196,74 @@ export async function deleteCustomer(id) {
   return result.affectedRows > 0
 }
 
+// SALES functions
+export async function createSale(price, saleDate, paymentDetails) {
+  const sql = `INSERT INTO SALES (PRICE, SALEDATE, PAYMENTDETAILS) VALUES (?, ?, ?)`
+  const [result] = await pool.query(sql, [price, saleDate, paymentDetails])
+  return getSaleById(result.insertId)
+}
+
+export async function getSales() {
+  const [rows] = await pool.query('SELECT * FROM SALES')
+  return rows
+}
+
+export async function getSaleById(id) {
+  const [rows] = await pool.query('SELECT * FROM SALES WHERE ID = ?', [id])
+  return rows[0]
+}
+
+// SALES_PRODUCTS functions
+export async function createSalesProduct(salesId, productId, quantity, price) {
+  const sql = `INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE) VALUES (?, ?, ?, ?)`
+  const [result] = await pool.query(sql, [salesId, productId, quantity, price])
+  return getSalesProductById(result.insertId)
+}
+
+export async function getSalesProducts() {
+  const [rows] = await pool.query('SELECT * FROM SALES_PRODUCTS')
+  return rows
+}
+
+export async function getSalesProductById(id) {
+  const [rows] = await pool.query('SELECT * FROM SALES_PRODUCTS WHERE ID = ?', [id])
+  return rows[0]
+}
+
+// ORDERS functions
+export async function createOrder(price, orderDate, paymentDetails) {
+  const sql = `INSERT INTO ORDERS (PRICE, ORDERDATE, PAYMENTDETAILS) VALUES (?, ?, ?)`
+  const [result] = await pool.query(sql, [price, orderDate, paymentDetails])
+  return getOrderById(result.insertId)
+}
+
+export async function getOrders() {
+  const [rows] = await pool.query('SELECT * FROM ORDERS')
+  return rows
+}
+
+export async function getOrderById(id) {
+  const [rows] = await pool.query('SELECT * FROM ORDERS WHERE ID = ?', [id])
+  return rows[0]
+}
+
+// ORDERS_PRODUCTS functions
+export async function createOrderProduct(orderId, productId, quantity, price) {
+  const sql = `INSERT INTO ORDERS_PRODUCTS (ORDERID, PRODUCTID, QUANTITY, PRICE) VALUES (?, ?, ?, ?)`
+  const [result] = await pool.query(sql, [orderId, productId, quantity, price])
+  return getOrderProductById(result.insertId)
+}
+
+export async function getOrdersProducts() {
+  const [rows] = await pool.query('SELECT * FROM ORDERS_PRODUCTS')
+  return rows
+}
+
+export async function getOrderProductById(id) {
+  const [rows] = await pool.query('SELECT * FROM ORDERS_PRODUCTS WHERE ID = ?', [id])
+  return rows[0]
+}
+
 // BALANCE functions
 export async function getBalance() {
   const [rows] = await pool.query('SELECT * FROM BALANCE ORDER BY TIMESTAMP DESC LIMIT 1')
@@ -257,5 +325,18 @@ export {
 
   // BALANCE functions
   getBalance,
-  storeBalance
+  storeBalance,
+
+  createSale,
+  getSales,
+  getSaleById,
+  createSalesProduct,
+  getSalesProducts,
+  getSalesProductById,
+  createOrder,
+  getOrders,
+  getOrderById,
+  createOrderProduct,
+  getOrdersProducts,
+  getOrderProductById
 }
