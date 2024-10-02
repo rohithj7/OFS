@@ -411,6 +411,108 @@ app.delete('/customers/:id', async (req, res) => {
   }
 })
 
+// SALES routes
+app.get('/sales', async (req, res) => {
+  try {
+    const sales = await getSales()
+    res.json(sales)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.get('/sales/:id', async (req, res) => {
+  try {
+    const sale = await getSaleById(req.params.id)
+    if (sale) {
+      res.json(sale)
+    } else {
+      res.status(404).send('Sale not found')
+    }
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.post('/sales', async (req, res) => {
+  try {
+    const newSale = await createSale(req.body)
+    res.status(201).json(newSale)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+// SALES_PRODUCTS routes
+app.get('/sales-products', async (req, res) => {
+  try {
+    const salesProducts = await getSalesProducts()
+    res.json(salesProducts)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.post('/sales-products', async (req, res) => {
+  try {
+    const newSalesProduct = await createSalesProduct(req.body)
+    res.status(201).json(newSalesProduct)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+// ORDERS routes
+app.get('/orders', async (req, res) => {
+  try {
+    const orders = await getOrders()
+    res.json(orders)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.get('/orders/:id', async (req, res) => {
+  try {
+    const order = await getOrderById(req.params.id)
+    if (order) {
+      res.json(order)
+    } else {
+      res.status(404).send('Order not found')
+    }
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.post('/orders', async (req, res) => {
+  try {
+    const newOrder = await createOrder(req.body)
+    res.status(201).json(newOrder)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+// ORDERS_PRODUCTS routes
+app.get('/orders-products', async (req, res) => {
+  try {
+    const ordersProducts = await getOrdersProducts()
+    res.json(ordersProducts)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
+app.post('/orders-products', async (req, res) => {
+  try {
+    const newOrderProduct = await createOrderProduct(req.body)
+    res.status(201).json(newOrderProduct)
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+})
+
 // BALANCE routes
 app.get('/balance', async (req, res) => {
   try {
