@@ -285,3 +285,15 @@ export async function deleteCustomer(id) {
     const [result] = await pool.query(sql, [id]);
     return result.affectedRows > 0;
 }
+
+// BALANCE functions
+export async function getBalance() {
+  const [rows] = await pool.query('SELECT * FROM BALANCE ORDER BY TIMESTAMP DESC LIMIT 1')
+  return rows[0]
+}
+
+export async function storeBalance(balance) {
+  const sql = `INSERT INTO BALANCE (BALANCE) VALUES (?)`
+  const [result] = await pool.query(sql, [balance])
+  return result.insertId
+}
