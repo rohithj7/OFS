@@ -10,6 +10,39 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE
 }).promise()
 
+// LOGIN //
+/*
+createLogin
+getLoginById
+getLoginByUsername
+*/
+
+export async function createLogin(username, password, accountCreationDate) {
+    const sql = `
+        INSERT INTO LOGIN (USERNAME, PASSWORD, ACCOUNTCREATIONDATE)
+        VALUES (?, ?, ?)
+    `;
+    const [result] = await pool.query(sql, [username, password, accountCreationDate]);
+    const id = result.insertId;
+    return getLoginById(id);
+}
+
+export async function getLoginById(id) {
+    const sql = `
+        SELECT * FROM LOGIN WHERE ID = ?
+    `;
+    const [result] = await pool.query(sql, [id]);
+    return result.length ? result[0] : null;
+}
+
+export async function getLoginByUsername(username) {
+    const sql = `
+        SELECT * FROM LOGIN WHERE USERNAME = ?
+    `;
+    const [result] = await pool.query(sql, [username]);
+    return result.length ? result[0] : null;
+}
+
 // GENERAL INFO //
 /*
 createGeneralInfo
@@ -64,15 +97,44 @@ getEmployeeById
 updateEmployee
 deleteEmployee
 */
-export async function createEmployee(loginId, firstName, lastName, ssn, email, phone, address, salary, startDate, endDate) {
+export async function createEmployee(employeeData) {
     const sql = `
-        INSERT INTO Employees (LOGINID, FIRSTNAME, LASTNAME, SSN, EMAIL, PHONE, ADDRESS, SALARY, STARTDATE, ENDDATE)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO EMPLOYEES (LOGINID, FIRSTNAME, LASTNAME, SSN, EMAIL, PHONE, ADDRESS, SALARY, STARTDATE, ENDDATE)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const [result] = await pool.query(sql, [loginId, firstName, lastName, ssn, email, phone, address, salary, startDate, endDate]);
+  
+    const { 
+      loginId, 
+      firstName, 
+      lastName, 
+      ssn, 
+      email, 
+      phone, 
+      address, 
+      salary, 
+      startDate, 
+      endDate 
+    } = employeeData;
+  
+    // Execute the query
+    const [result] = await pool.query(sql, [
+      loginId, 
+      firstName, 
+      lastName, 
+      ssn, 
+      email, 
+      phone, 
+      address, 
+      salary, 
+      startDate, 
+      endDate
+    ]);
+  
     const id = result.insertId;
+  
+    // Optionally return the newly created employee by ID
     return getEmployeeById(id);
-}
+  } 
 
 export async function getEmployees(){
     const sql = `SELECT * FROM Employees`;

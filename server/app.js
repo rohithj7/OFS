@@ -31,7 +31,9 @@ import {
     updateCustomer,
     deleteCustomer,
     createLogin,
-    getLogin,
+    getSales,
+    getLoginById,
+    getLoginByUsername,
     getBalance,
     storeBalance
 } from './database.js'
@@ -39,29 +41,24 @@ import {
 const app = express()
 app.use(express.json())
 
-// LOGIN routes
 app.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body
-    const loginId = await createLogin(username, password)
-    res.status(201).json({ id: loginId })
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
+    try {
+        const { username, password, accountCreationDate } = req.body;
 
-app.get('/login/:username', async (req, res) => {
-  try {
-    const login = await getLogin(req.params.username)
-    if (login) {
-      res.json(login)
-    } else {
-      res.status(404).send('Login not found')
+        // Check if the required fields are present
+        if (!username || !password || !accountCreationDate) {
+            return res.status(400).json({ error: 'All fields (username, password, accountCreationDate) are required' });
+        }
+
+        // Call the createLogin function
+        const newLogin = await createLogin(username, password, accountCreationDate);
+
+        res.status(201).json(newLogin);
+    } catch (error) {
+        console.error('Error creating login:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
+});
 
 // GENERAL INFO routes
 app.get('/general-info', async (req, res) => {
@@ -145,13 +142,48 @@ app.get('/employees/:id', async (req, res) => {
 })
 
 app.post('/employees', async (req, res) => {
-  try {
-    const newEmployee = await createEmployee(req.body)
-    res.status(201).json(newEmployee)
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
+    try {
+      const {
+        loginId, 
+        firstName, 
+        lastName, 
+        ssn, 
+        email, 
+        phone, 
+        address, 
+        salary, 
+        startDate, 
+        endDate
+      } = req.body;
+  
+      // Validate required fields (adjust validation as necessary)
+      if (!loginId || !ssn || !email || !salary || !startDate) {
+        return res.status(400).json({ 
+          error: 'Required fields: loginId, ssn, email, salary, and startDate' 
+        });
+      }
+  
+      // Call the createEmployee function (pass the extracted fields)
+      const newEmployee = await createEmployee({
+        loginId, 
+        firstName, 
+        lastName, 
+        ssn, 
+        email, 
+        phone, 
+        address, 
+        salary, 
+        startDate, 
+        endDate
+      });
+  
+      // Respond with the newly created employee
+      res.status(201).json(newEmployee);
+    } catch (err) {
+      console.error('Error creating employee:', err);
+      res.status(500).send(err.message);
+    }
+  });  
 
 app.put('/employees/:id', async (req, res) => {
   try {
@@ -541,3 +573,4 @@ app.use((err, req, res, next) => {
 
 app.listen(8080, () => {
   console.log('Server is running on port 8080.')
+})
