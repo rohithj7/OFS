@@ -1,118 +1,189 @@
-import express from 'express'
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 import {
-    getGeneralInfo,
-    getGeneralInfoById,
-    createGeneralInfo,
-    updateGeneralInfo,
-    deleteGeneralInfo,
+    getLoginByUsername,
+    getLoginById,
+
+    getUserInfoByLoginId,
+    updateUserInfo,
+    getUserInfo,
+    // TODO: Add delete function with keeping authentication in mind
+
     getEmployees,
     getEmployeeById,
     createEmployee,
     updateEmployee,
     deleteEmployee,
+
     getEmployeeHours,
     getEmployeeHoursById,
     createEmployeeHours,
     updateEmployeeHours,
     deleteEmployeeHours,
+
     getProducts,
     getProductById,
     createProduct,
     updateProduct,
     deleteProduct,
+
     getSuppliers,
     getSupplierById,
     createSupplier,
     updateSupplier,
     deleteSupplier,
+
     getCustomers,
     getCustomerById,
     createCustomer,
     updateCustomer,
     deleteCustomer,
-    createLogin,
+    
     getSales,
-    getLoginById,
-    getLoginByUsername,
+
     getBalance,
     storeBalance
 } from './database.js'
+import { registerUser } from './userController.js';
 
-const app = express()
-app.use(express.json())
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.post('/login', async (req, res) => {
+// Session configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'secret_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true, // prevent XSS attacks
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
+  })
+);
+
+// Initialize Passport.js
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport.js local strategy
+passport.use(
+  new LocalStrategy(async (username, password, done) => {
     try {
-        const { username, password, accountCreationDate } = req.body;
+      // Get user by username from the database
+      const user = await getLoginByUsername(username);
 
-        // Check if the required fields are present
-        if (!username || !password || !accountCreationDate) {
-            return res.status(400).json({ error: 'All fields (username, password, accountCreationDate) are required' });
-        }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
 
-        // Call the createLogin function
-        const newLogin = await createLogin(username, password, accountCreationDate);
+      // Compare the hashed password
+      const isValid = await bcrypt.compare(password, user.PASSWORD);
+      if (!isValid) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
 
-        res.status(201).json(newLogin);
+      return done(null, user); // Authentication successful
     } catch (error) {
-        console.error('Error creating login:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      return done(error);
     }
+  })
+);
+
+// Serialize and deserialize user (for session handling)
+passport.serializeUser((user, done) => {
+  done(null, user.ID); // Store user ID in the session
 });
 
-// GENERAL INFO routes
-app.get('/general-info', async (req, res) => {
+passport.deserializeUser(async (id, done) => {
   try {
-    const generalInfo = await getGeneralInfo()
+    const user = await getLoginById(id);
+    done(null, user); // Attach user object to req.user
+  } catch (error) {
+    done(error);
+  }
+});
+
+// Middleware to check authentication
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: 'Unauthorized' });
+}
+
+// Registration route
+app.post('/register', registerUser);
+
+// Login route
+app.post('/login', passport.authenticate('local'), (req, res) => {
+  res.json({ message: 'Logged in successfully.' });
+});
+
+// Logout route
+app.get('/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.json({ message: 'Logged out successfully.' });
+  });
+});
+
+// Protected route to get user info
+app.get('/userinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+
+    const userInfo = await getUserInfoByLoginId(loginId);
+
+    if (!userInfo) {
+      return res.status(404).json({ message: 'User info not found.' });
+    }
+
+    res.json(userInfo);
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Protected route to update user info
+app.post('/userinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const { address, latitude, longitude } = req.body;
+
+    // Input validation
+    if (!address || latitude === undefined || longitude === undefined) {
+      return res
+        .status(400)
+        .json({ message: 'Address, latitude, and longitude are required.' });
+    }
+
+    // Update user info
+    await updateUserInfo(loginId, address, latitude, longitude);
+
+    res.json({ message: 'User info updated successfully.' });
+  } catch (error) {
+    console.error('Error updating user info:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+app.get('/userinfo', async (req, res) => {
+  try {
+    const generalInfo = await getUserInfo()
     res.json(generalInfo)
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.get('/general-info/:id', async (req, res) => {
-  try {
-    const info = await getGeneralInfoById(req.params.id)
-    if (info) {
-      res.json(info)
-    } else {
-      res.status(404).send('General info not found')
-    }
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.post('/general-info', async (req, res) => {
-  try {
-    const newInfo = await createGeneralInfo(req.body)
-    res.status(201).json(newInfo)
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.put('/general-info/:id', async (req, res) => {
-  try {
-    const updatedInfo = await updateGeneralInfo(req.params.id, req.body)
-    if (updatedInfo) {
-      res.json(updatedInfo)
-    } else {
-      res.status(404).send('General info not found')
-    }
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.delete('/general-info/:id', async (req, res) => {
-  try {
-    const deletedInfo = await deleteGeneralInfo(req.params.id)
-    if (deletedInfo) {
-      res.json(deletedInfo)
-    } else {
-      res.status(404).send('General info not found')
-    }
   } catch (err) {
     res.status(500).send(err.message)
   }
@@ -571,6 +642,8 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!')
 })
 
-app.listen(8080, () => {
-  console.log('Server is running on port 8080.')
-})
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});

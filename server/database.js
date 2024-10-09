@@ -1,92 +1,92 @@
-import mysql from 'mysql2'
+import mysql from 'mysql2/promise';
 
 import dotenv from 'dotenv'
 dotenv.config()
 
 const pool = mysql.createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE
-}).promise()
+    host: process.env.MYSQL_HOST || 'localhost',
+    user: process.env.MYSQL_USER || 'your_mysql_user',
+    password: process.env.MYSQL_PASSWORD || 'your_mysql_password',
+    database: process.env.MYSQL_DATABASE || 'your_database_name',
+});
 
 // LOGIN //
 /*
-createLogin
 getLoginById
 getLoginByUsername
+createLogin
 */
 
-export async function createLogin(username, password, accountCreationDate) {
-    const sql = `
-        INSERT INTO LOGIN (USERNAME, PASSWORD, ACCOUNTCREATIONDATE)
-        VALUES (?, ?, ?)
-    `;
-    const [result] = await pool.query(sql, [username, password, accountCreationDate]);
-    const id = result.insertId;
-    return getLoginById(id);
-}
-
+// Function to get a user by ID
 export async function getLoginById(id) {
     const sql = `
-        SELECT * FROM LOGIN WHERE ID = ?
+        SELECT * FROM LOGIN
+        WHERE ID = ?
     `;
     const [result] = await pool.query(sql, [id]);
     return result.length ? result[0] : null;
 }
 
+// Function to get a user by username
 export async function getLoginByUsername(username) {
     const sql = `
-        SELECT * FROM LOGIN WHERE USERNAME = ?
+        SELECT * FROM LOGIN
+        WHERE USERNAME = ?
     `;
     const [result] = await pool.query(sql, [username]);
     return result.length ? result[0] : null;
 }
 
+// Function to create a new user in LOGIN table
+export async function createLogin(username, hashedPassword, accountCreationDate) {
+    const sql = `
+        INSERT INTO LOGIN (USERNAME, PASSWORD, ACCOUNTCREATIONDATE)
+        VALUES (?, ?, ?)
+    `;
+    const [result] = await pool.execute(sql, [username, hashedPassword, accountCreationDate]);
+    return result.insertId; // Return the new user's ID
+}
+
 // GENERAL INFO //
 /*
-createGeneralInfo
-getGeneralInfo
-getGeneralInfoById
-updateGeneralInfo
-deleteGeneralInfo
+createUserInfo
+getUserInfo
+getUserInfoByLoginId
+updateUserInfo
 */
-export async function createGeneralInfo(loginId, address, latitude, longitude) {
+// Function to create a new entry in INFO table
+export async function createUserInfo(loginId, address = null, latitude = null, longitude = null) {
     const sql = `
         INSERT INTO INFO (LOGINID, ADDRESS, LATITUDE, LONGITUDE)
         VALUES (?, ?, ?, ?)
     `;
-    const [result] = await pool.query(sql, [loginId, address, latitude, longitude]);
-    const id = result.insertId;
-    return getGeneralInfoById(id);
+    const [result] = await pool.execute(sql, [loginId, address, latitude, longitude]);
+    return result.insertId; // Return the new info ID
 }
 
-export async function getGeneralInfo() {
-    const sql = `SELECT * FROM INFO`;
+export async function getUserInfo() {
+    const sql = `
+        SELECT * FROM INFO
+    `;
     const [result] = await pool.query(sql);
     return result;
 }
 
-export async function getGeneralInfoById(id) {
-    const sql = `SELECT * FROM INFO WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
-    return result[0];
+// Function to get user info by LOGINID
+export async function getUserInfoByLoginId(loginId) {
+    const sql = 'SELECT * FROM INFO WHERE LOGINID = ?';
+    const [result] = await pool.query(sql, [loginId]);
+    return result.length ? result[0] : null;
 }
 
-export async function updateGeneralInfo(id, loginId, address, latitude, longitude) {
+// Function to update user info
+export async function updateUserInfo(loginId, address, latitude, longitude) {
     const sql = `
-        UPDATE INFO
-        SET LOGINID = ?, ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?
-        WHERE ID = ?
+        UPDATE INFO SET ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?
+        WHERE LOGINID = ?
     `;
-    const [result] = await pool.query(sql, [loginId, address, latitude, longitude, id]);
-    return getGeneralInfoById(id);
-}
-
-export async function deleteGeneralInfo(id) {
-    const sql = `DELETE FROM INFO WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
-    return result.affectedRows > 0;
+    const [result] = await pool.execute(sql, [address, latitude, longitude, loginId]);
+    return result;
 }
 
 // EMPLOYEES //
@@ -427,3 +427,6 @@ export async function storeBalance(balance) {
   const [result] = await pool.query(sql, [balance])
   return result.insertId
 }
+
+// Export the pool
+export default pool;
