@@ -1,4 +1,10 @@
-.App {
+.login {
+  background-image: url("images/assortedVegetablesForLogin.jpeg");
+  background-size: cover;
+}
+
+
+/* .App {
   text-align: center;
 }
 
@@ -35,4 +41,4 @@
   to {
     transform: rotate(360deg);
   }
-}
+} */
