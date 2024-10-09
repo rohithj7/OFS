@@ -5,6 +5,8 @@ import Login from './Login.js';
 import Home from './Home.js';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.css';
+// import './App.scss';
+import './main.scss';
 
 
 function App() {
