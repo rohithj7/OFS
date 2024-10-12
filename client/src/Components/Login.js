@@ -19,19 +19,18 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://your-api-url.com/login", {
+      const response = await axios.post("http://localhost:3000/login", {
         email,
         password,
       });
 
-      if (response.data.success) {
+      if (response.status === 200) {
         // Redirect to home page on successful login
         navigate("/Home");
-      } else {
-        setErrorMessage("Invalid credentials");
       }
     } catch (error) {
       setErrorMessage("Login failed, please try again");
+      console.error("Error during login:", error);
     }
   };
 

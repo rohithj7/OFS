@@ -27,20 +27,19 @@ export default function SignUp() {
     }
 
     try {
-      const response = await axios.post("http://your-api-url.com/signup", {
+      const response = await axios.post("http://localhost:3000/register", {
         name,
         email,
         password,
       });
 
-      if (response.data.success) {
+      if (response.status === 200) {
         // Redirect to home page or login after successful signup
         navigate("/Login");
-      } else {
-        setErrorMessage("Sign up failed, please try again");
       }
     } catch (error) {
       setErrorMessage("Error occurred, please try again");
+      console.error("Error during signup:", error);
     }
   };
 
