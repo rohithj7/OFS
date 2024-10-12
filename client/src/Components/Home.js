@@ -24,9 +24,10 @@ export default function Home() {
           </button>
           <div className="collapse navbar-collapse" id="navbarText">
             <ul className="navbar-nav ms-auto">
-              <button className="btn me-2" type="button">
+              {/* Home Button */}
+              <Link to="/Home" className="btn me-2" type="button">
                 Items
-              </button>
+              </Link>
               <button className="btn me-2" type="button">
                 Cart
               </button>
