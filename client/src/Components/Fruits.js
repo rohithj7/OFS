@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function Home() {
+export default function Fruits() {
   return (
     <div>
       {/* Navbar */}
@@ -62,104 +62,86 @@ export default function Home() {
         <div className="row justify-content-center">
           <Link className="col-2" to="/Fruits">
             <img
-              src="Assets/fruits.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Fruits"
-            />
-            <p>Fruits</p>
-          </Link>
-          <Link className="col-2" to="/category/vegetables">
-            <img
-              src="Assets/vegetables.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Vegetables"
-            />
-            <p>Vegetables</p>
-          </Link>
-          <Link className="col-2" to="/category/meats">
-            <img
-              src="Assets/meats.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Meats"
-            />
-            <p>Meats</p>
-          </Link>
-          <Link className="col-2" to="/category/dairy">
-            <img
-              src="Assets/dairy.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Dairy"
-            />
-            <p>Dairy</p>
-          </Link>
-          <Link className="col-2" to="/category/snacks">
-            <img
-              src="Assets/snacks.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Snacks"
-            />
-            <p>Snacks</p>
-          </Link>
-          <Link className="col-2" to="/category/meals">
-            <img
-              src="Assets/meals.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Meals"
-            />
-            <p>Meals</p>
-          </Link>
-        </div>
-
-        {/* Featured Items Section */}
-        <h2 className="my-4">Featured Items</h2>
-        <div className="row justify-content-center">
-          <Link className="col-2" to="/item/apples">
-            <img
               src="Assets/apples.jpeg"
               className="img-fluid rounded-circle"
-              alt="Apples"
+              alt="apples"
             />
             <p>Apples</p>
           </Link>
-          <Link className="col-2" to="/item/bread">
-            <img
-              src="Assets/french loaf bread.jpeg"
-              className="img-fluid rounded-circle"
-              alt="French Loaf Bread"
-            />
-            <p>Bread</p>
-          </Link>
-          <Link className="col-2" to="/item/ribeye-steak">
-            <img
-              src="Assets/ribeye steak.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Raw Ribeye Steak"
-            />
-            <p>Raw Ribeye Steak</p>
-          </Link>
-          <Link className="col-2" to="/item/frozen-peas">
-            <img
-              src="Assets/frozen peas.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Frozen Peas"
-            />
-            <p>Frozen Peas</p>
-          </Link>
-          <Link className="col-2" to="/item/corn">
-            <img
-              src="Assets/corn.jpeg"
-              className="img-fluid rounded-circle"
-              alt="Corn"
-            />
-            <p>Corn</p>
-          </Link>
-          <Link className="col-2" to="/item/raspberries">
+          <Link className="col-2" to="/category/vegetables">
             <img
               src="Assets/raspberries.jpeg"
               className="img-fluid rounded-circle"
               alt="Raspberries"
             />
             <p>Raspberries</p>
+          </Link>
+          <Link className="col-2" to="/category/meats">
+            <img
+              src="Assets/bananas.jpg"
+              className="img-fluid rounded-circle"
+              alt="Bananas"
+            />
+            <p>Bananas</p>
+          </Link>
+          <Link className="col-2" to="/category/dairy">
+            <img
+              src="Assets/pineapples.jpg"
+              className="img-fluid rounded-circle"
+              alt="Pineapples"
+            />
+            <p>Pineapples</p>
+          </Link>
+          <Link className="col-2" to="/category/snacks">
+            <img
+              src="Assets/blueberries.jpg"
+              className="img-fluid rounded-circle"
+              alt="Blueberries"
+            />
+            <p>Blueberries</p>
+          </Link>
+          <Link className="col-2" to="/category/meals">
+            <img
+              src="Assets/blackberries.jpg"
+              className="img-fluid rounded-circle"
+              alt="Blackberries"
+            />
+            <p>Blackberries</p>
+          </Link>
+        </div>
+
+        <div className="row justify-content-center">
+          <Link className="col-2" to="/item/apples">
+            <img
+              src="Assets/grapes.jpg"
+              className="img-fluid rounded-circle"
+              alt="Grapes"
+            />
+            <p>Grapes</p>
+          </Link>
+          <Link className="col-2" to="/item/bread">
+            <img
+              src="Assets/oranges.jpg"
+              className="img-fluid rounded-circle"
+              alt="Oranges"
+            />
+            <p>Oranges</p>
+          </Link>
+          <Link className="col-2" to="/item/ribeye-steak">
+            <img
+              src="Assets/pears.jpg"
+              className="img-fluid rounded-circle"
+              alt="Pears"
+            />
+            <p>Pears</p>
+          </Link>
+          <Link className="col-2" to="/item/frozen-peas">
+            <img
+              src="Assets/strawberries.jpg"
+              className="img-fluid rounded-circle"
+              alt="Strawberries"
+            />
+            <p>Strawberries</p>
           </Link>
         </div>
       </div>
