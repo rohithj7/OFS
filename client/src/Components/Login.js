@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
 
 export default function Login() {
   const backgroundStyle = {
@@ -26,9 +26,9 @@ export default function Login() {
       });
 
       if (response.status === 200) {
-        const { token } = response.data; // Extract the token from the response
+        /* const { token } = response.data; // Extract the token from the response
         // Store the token in cookies (expires in 7 days)
-        Cookies.set("token", token, { expires: 7, path: "/" });
+        Cookies.set("token", token, { expires: 7, path: "/" }); */
         // Redirect to home page on successful login
         navigate("/Home");
       }

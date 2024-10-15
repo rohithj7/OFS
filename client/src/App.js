@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import Home from "./Components/Home";
+import Account from "./Components/Account";
 import Fruits from "./Components/Products/Fruits";
 import Vegetables from "./Components/Products/Vegetables";
 import Meats from "./Components/Products/Meats";
@@ -23,6 +24,7 @@ function App() {
           <Route path="/Login" element={<Login />}></Route>
           <Route path="/Signup" element={<Signup />}></Route>
           <Route path="/Home" element={<Home />}></Route>
+          <Route path="/Account" element={<Account />}></Route>
           <Route path="/Products/Fruits" element={<Fruits />}></Route>
           <Route path="/Products/Vegetables" element={<Vegetables />}></Route>
           <Route path="/Products/Meats" element={<Meats />}></Route>
