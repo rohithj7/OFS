@@ -10,7 +10,7 @@ export default function SignUp() {
     height: "100vh",
     width: "100vw",
   };
-  const [name, setName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,18 +27,32 @@ export default function SignUp() {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/register", {
-        name,
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/registerCustomer",
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // If your backend uses cookies for sessions
+        }
+      );
 
-      if (response.status === 200) {
-        // Redirect to home page or login after successful signup
+      if (response.status === 201) {
+        // Redirect to login page after successful signup
         navigate("/Login");
+      } else {
+        setErrorMessage(response.data.message || "Registration failed");
       }
     } catch (error) {
-      setErrorMessage("Error occurred, please try again");
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("Error occurred, please try again");
+      }
       console.error("Error during signup:", error);
     }
   };
@@ -49,20 +63,6 @@ export default function SignUp() {
         <div className="bg-white p-4 rounded-4 w-25">
           <h2 className="text-center">Sign Up</h2>
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="name">
-                <strong>Name</strong>
-              </label>
-              <input
-                type="text"
-                placeholder="Name"
-                name="name"
-                className="form-control form-control-md rounded-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
             <div className="mb-3">
               <label htmlFor="email">
                 <strong>Email</strong>
