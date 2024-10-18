@@ -11,6 +11,7 @@ import Meats from "./Components/Products/Meats";
 import Dairy from "./Components/Products/Dairy";
 import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
+import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 // import './App.scss';
