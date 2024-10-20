@@ -3,54 +3,6 @@ import { Link } from "react-router-dom";
 export default function Meals() {
   return (
     <div>
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg bg-green">
-        {/* bg-green makes the background of the navbar a greenish color */}
-        <div className="container">
-          <a className="navbar-brand fw-bold" href="#">
-            GroceryGo
-          </a>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarText"
-            aria-controls="navbarText"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarText">
-            <ul className="navbar-nav ms-auto">
-              {/* Home Button */}
-              <Link to="/Home" className="btn me-2" type="button">
-                Items
-              </Link>
-              <button className="btn me-2" type="button">
-                Cart
-              </button>
-              <button className="btn me-2" type="button">
-                Checkout
-              </button>
-              <button className="btn me-2" type="button">
-                Orders
-              </button>
-              <button className="btn me-2" type="button">
-                My Account
-              </button>
-              {/* Login Button */}
-              <Link to="/Login" className="btn me-2" type="button">
-                Login
-              </Link>
-              {/* Sign Up Button */}
-              <Link to="/Signup" className="btn me-2" type="button">
-                Sign Up
-              </Link>
-            </ul>
-          </div>
-        </div>
-      </nav>
       {/* Welcome Section */}
       <div className="container text-center my-5">
         <h1>Welcome!</h1>
