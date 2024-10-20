@@ -1,0 +1,14 @@
+@import "../node_modules/bootstrap/scss/functions";
+
+@import "../node_modules/bootstrap/scss/variables";
+
+$custom-colors: (
+    "green": #99D98C,
+    "mint": #52B69A,
+    "pastelblue": #168AAD
+
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+@import "../node_modules/bootstrap/scss/bootstrap";

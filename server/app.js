@@ -4,56 +4,72 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
 import {
-    getLoginByUsername,
-    getLoginById,
+  getLoginByEmail,
+  getLoginById,
 
-    getUserInfoByLoginId,
-    updateUserInfo,
-    getUserInfo,
-    // TODO: Add delete function with keeping authentication in mind
+  getUserInfoByLoginId,
+  updateUserInfo,
+  getUserInfo,
+  // TODO: Add delete function with keeping authentication in mind
 
-    getEmployees,
-    getEmployeeById,
-    createEmployee,
-    updateEmployee,
-    deleteEmployee,
+  getEmployees,
+  getEmployeeById,
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
 
-    getEmployeeHours,
-    getEmployeeHoursById,
-    createEmployeeHours,
-    updateEmployeeHours,
-    deleteEmployeeHours,
+  getEmployeeHours,
+  getEmployeeHoursById,
+  createEmployeeHours,
+  updateEmployeeHours,
+  deleteEmployeeHours,
 
-    getProducts,
-    getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct,
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
 
-    getSuppliers,
-    getSupplierById,
-    createSupplier,
-    updateSupplier,
-    deleteSupplier,
+  getSuppliers,
+  getSupplierById,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
 
-    getCustomers,
-    getCustomerById,
-    createCustomer,
-    updateCustomer,
-    deleteCustomer,
-    
-    getSales,
+  getCustomers,
+  getCustomerById,
+  createCustomer,
+  deleteCustomer,
 
-    getBalance,
-    storeBalance
+  getSales,
+
+  getBalance,
+  storeBalance,
+
+  checkProductAvailability,
+  placeSale,
+  getOrdersByLoginId,
+  updateCustomerInfo,
+  searchProductsByName,
+  getProductsByCategory
 } from './database.js'
-import { registerUser } from './userController.js';
+import { registerAdmin, registerCustomer } from './userController.js';
 
 const app = express();
+
+// Configure CORS
+app.use(
+  cors({
+    origin: 'http://localhost:3000', // Allow requests from this origin
+    credentials: true, // Allow cookies and other credentials to be sent
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -77,26 +93,29 @@ app.use(passport.session());
 
 // Passport.js local strategy
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      // Get user by username from the database
-      const user = await getLoginByUsername(username);
+  new LocalStrategy(
+    { usernameField: 'email' }, // Specify that 'email' is the username field
+    async (email, password, done) => {
+      try {
+        // Get user by email from the database
+        const user = await getLoginByEmail(email);
 
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
+        if (!user) {
+          return done(null, false, { message: 'Incorrect email.' });
+        }
+
+        // Compare the hashed password
+        const isValid = await bcrypt.compare(password, user.PASSWORD);
+        if (!isValid) {
+          return done(null, false, { message: 'Incorrect password.' });
+        }
+
+        return done(null, user); // Authentication successful
+      } catch (error) {
+        return done(error);
       }
-
-      // Compare the hashed password
-      const isValid = await bcrypt.compare(password, user.PASSWORD);
-      if (!isValid) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-
-      return done(null, user); // Authentication successful
-    } catch (error) {
-      return done(error);
     }
-  })
+  )
 );
 
 // Serialize and deserialize user (for session handling)
@@ -121,8 +140,11 @@ function isAuthenticated(req, res, next) {
   res.status(401).json({ message: 'Unauthorized' });
 }
 
-// Registration route
-app.post('/register', registerUser);
+// Admin registration route
+app.post('/registerAdmin', registerAdmin);
+
+// Customer registration route
+app.post('/registerCustomer', registerCustomer);
 
 // Login route
 app.post('/login', passport.authenticate('local'), (req, res) => {
@@ -488,18 +510,18 @@ app.post('/customers', async (req, res) => {
   }
 })
 
-app.put('/customers/:id', async (req, res) => {
-  try {
-    const updatedCustomer = await updateCustomer(req.params.id, req.body)
-    if (updatedCustomer) {
-      res.json(updatedCustomer)
-    } else {
-      res.status(404).send('Customer not found')
-    }
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
+// app.put('/customers/:id', async (req, res) => {
+//   try {
+//     const updatedCustomer = await updateCustomer(req.params.id, req.body)
+//     if (updatedCustomer) {
+//       res.json(updatedCustomer)
+//     } else {
+//       res.status(404).send('Customer not found')
+//     }
+//   } catch (err) {
+//     res.status(500).send(err.message)
+//   }
+// })
 
 app.delete('/customers/:id', async (req, res) => {
   try {
@@ -635,6 +657,128 @@ app.post('/balance', async (req, res) => {
     res.status(500).send(err.message)
   }
 })
+
+// Protected route to check product availability (Checkout)
+app.post('/checkout', isAuthenticated, async (req, res) => {
+  try {
+    const products = req.body.products; // [{ productId, quantity }, ...]
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({ message: 'Invalid products data.' });
+    }
+
+    // Check product availability
+    const unavailableProducts = await checkProductAvailability(products);
+
+    if (unavailableProducts.length > 0) {
+      return res.status(400).json({
+        message: 'Some products are unavailable or insufficient quantity.',
+        unavailableProducts,
+      });
+    }
+
+    // All products are available
+    res.json({ message: 'All products are available.' });
+  } catch (error) {
+    console.error('Error during checkout:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Protected route to place a sale
+app.post('/place-sale', isAuthenticated, async (req, res) => {
+  try {
+    const products = req.body.products; // [{ productId, quantity }, ...]
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({ message: 'Invalid products data.' });
+    }
+
+    // Check product availability
+    const unavailableProducts = await checkProductAvailability(products);
+
+    if (unavailableProducts.length > 0) {
+      return res.status(400).json({
+        message: 'Some products are unavailable or insufficient quantity.',
+        unavailableProducts,
+      });
+    }
+
+    // Get customer ID
+    const loginId = req.user.ID;
+    const customer = await getCustomerByLoginId(loginId);
+
+    // Place the sale
+    const saleResult = await placeSale(customer.ID, products);
+
+    res.json({
+      message: 'Sale placed successfully.',
+      saleId: saleResult.saleId,
+      totalPrice: saleResult.totalPrice,
+    });
+  } catch (error) {
+    console.error('Error placing sale:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Get all orders by login ID
+app.get('/orders', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const orders = await getOrdersByLoginId(loginId);
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Update customer info
+app.put('/customerinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const customerInfo = req.body;
+
+    // Input validation
+    const { firstName, lastName, phone, address } = customerInfo;
+    if (!firstName || !lastName || !phone || !address) {
+      return res.status(400).json({ message: 'Missing required fields.' });
+    }
+
+    await updateCustomerInfo(loginId, customerInfo);
+    res.json({ message: 'Customer info updated successfully.' });
+  } catch (error) {
+    console.error('Error updating customer info:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Product search by name
+app.get('/products/search', async (req, res) => {
+  try {
+    const searchTerm = req.query.q;
+    if (!searchTerm) {
+      return res.status(400).json({ message: 'Search term is required.' });
+    }
+
+    const products = await searchProductsByName(searchTerm);
+    res.json(products);
+  } catch (error) {
+    console.error('Error searching products:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// Get all products by category
+app.get('/products/category/:categoryId', async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+    const products = await getProductsByCategory(categoryId);
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
