@@ -59,7 +59,21 @@ const [theData, setData] = useState([]);
           {/* Product Section */}
           <div class="mb-4 bg-light border-0 card">
             <div class="p-9 card-body">
-              <h2 class="mb-0 fs-1">Fruits</h2>
+              <h2 class="mb-0 fs-1 mb-2">Fruits</h2>
+              {/* search bar */}
+              <form class="">
+                <div class="input-group">
+                  <input placeholder="Search for products" class="rounded form-control product-search" type="search"></input>
+                  <span class="input-group-append">
+                    <button type="button" class="border border-start-0 ms-n10 rounded-0 rounded-end btn btn-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </button>
+                  </span>
+                </div>
+              </form>
             </div>
           </div>
 
@@ -668,7 +682,7 @@ const [theData, setData] = useState([]);
               <div className="modal-content">
                 <div className="modal-content-dialog">
                   <div className="modal-content-content">
-                    <div className="p-8 modal-body">
+                    <div className="p-5 modal-body">
                       <div className="position-absolute top-0 end-0 me-3 mt-3">
                         <button
                           type="button"
@@ -677,28 +691,73 @@ const [theData, setData] = useState([]);
                         ></button>
                       </div>
 
+                      {/* things to include in product description: PRODUCTNAME, PRODUCTDESCRIPTION, QUANTITY, REORDERLEVEL, REORDERQUANTITY, PRICE, WEIGHT */}
                       <div className="row">
                         <div className="col-lg-6">
-                          <p>
-                            {" "}
-                            hih hihihisdhfisdfshfosifsdjofjsofsfsdsdfdsfdsfdssf
-                          </p>
-                          <p>
-                            {" "}
-                            hih hihihisdhfisdfshfosifsdjofjsofsfsdsdfdsfdsfdssf
-                          </p>
-                          <p>
-                            {" "}
-                            hih hihihisdhfisdfshfosifsdjofjsofsfsdsdfdsfdsfdssf
-                          </p>
-                          <p>
-                            {" "}
-                            hih hihihisdhfisdfshfosifsdjofjsofsfsdsdfdsfdsfdssf
-                          </p>
-                          <p>
-                            {" "}
-                            hih hihihisdhfisdfshfosifsdjofjsofsfsdsdfdsfdsfdssf
-                          </p>
+                            <img
+                          src="/Assets/apples.jpeg"
+                          className="img-fluid"
+                          alt="Apples"
+                        />
+                        </div>
+                        <div className="col-lg-6">
+                          <div class="ps-lg-8 mt-6 mt-lg-0">
+                            {/* ps => padding start (I think) */}
+                            <h2 class="mb-4 h1">Apples</h2> {/* Product Name */}
+                            <hr class="my-6 mt-4"></hr> {/* horizontal line */}
+                            <span class="fs-4 text-dark">$1 per unit</span> {/* Product Price */}
+                            <div class="fs-5 text-dark mt-2">1 ounce per unit</div> {/* Product Weight */}
+                            <div class="w-25 mt-4"> {/* Product Quantity */}
+                              <div class="input-spinner input-group">
+                                {/* plus button */}
+                                <button type="button" class="button-minus btn btn-sm text-dark border">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"/>
+                                  </svg>
+                                </button>
+                                {/* <input type="text" class="form-control form-control-sm text-center" value="1"></input> */}
+                                <input type="number" class="form-control text-center" min="1" name="quantity"></input>
+                                {/* minus button */}
+                                <button type="button" class="button-plus btn btn-sm text-dark border">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            <div class="mt-4 justify-content-start g-2 align-items-center row">
+                              <div class="d-grid col-lg-4 col-md-5 col-6">
+                                {/* Add to cart button */}
+                                <button type="button" class="btn btn-green">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart-plus me-2" viewBox="0 0 16 16">
+                                    <path d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z"/>
+                                    <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                  </svg>
+                                  Add to cart
+                                  </button>
+                                </div>
+                              </div>
+                            <hr class="my-6 mt-4"></hr>
+                            <div>
+                              <table class="table table-borderless">
+                                <tbody>
+                                  <tr>
+                                    <td class="text-secondary">Product ID:</td>
+                                    <td class="text-secondary">1</td>
+                                  </tr>
+                                  <tr>
+                                    <td class="text-secondary">Availability:</td>
+                                    <td class="text-secondary">In Stock</td>
+                                  </tr>
+                                  <tr>
+                                    <td class="text-secondary">Type:</td>
+                                    <td class="text-secondary">Fruits</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          
                         </div>
                       </div>
                     </div>
