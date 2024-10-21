@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // import Cookies from "js-cookie";
 
-export default function Login() {
+export default function Login({ setIsAuthenticated }) {
   const backgroundStyle = {
     backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`, // Relative to public folder
     backgroundSize: "cover",
@@ -26,9 +26,7 @@ export default function Login() {
       });
 
       if (response.status === 200) {
-        /* const { token } = response.data; // Extract the token from the response
-        // Store the token in cookies (expires in 7 days)
-        Cookies.set("token", token, { expires: 7, path: "/" }); */
+        setIsAuthenticated(true); // Update authentication state
         // Redirect to home page on successful login
         navigate("/Home");
       }
@@ -79,6 +77,15 @@ export default function Login() {
               <strong>Login</strong>
             </button>
           </form>
+          {/* Add a message and link to the signup page */}
+          <div className="mt-3 text-center">
+            <p>
+              Don't have an account?{" "}
+              <Link to="/Signup" className="text-primary">
+                Sign Up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

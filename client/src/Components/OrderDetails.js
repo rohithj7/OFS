@@ -139,6 +139,7 @@ function OrderDetails() {
     };
     simulateShippingAddress();
 
+    // Uncomment the below code when the backend API route fully set up
     /*
     const fetchOrderProducts = async () => {
       setLoading(true);

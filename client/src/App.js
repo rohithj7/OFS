@@ -1,8 +1,9 @@
-import logo from "./logo.svg";
-import "./App.css";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
+
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import Home from "./Components/Home";
@@ -15,38 +16,62 @@ import Meats from "./Components/Products/Meats";
 import Dairy from "./Components/Products/Dairy";
 import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
-import './App.css';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Add this line for Bootstrap JS
-// import './App.scss';
-import "./main.scss";
+
+import "./main.scss"; // Custom styles
 
 function App() {
-  // will uncomment this when the api is ready to connect
-  /*
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    localStorage.getItem("token") ? true : false
-  );
-  */
-  // Simulate the user being logged in by setting this to true
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // State for managing loading spinner
+
+  // Check authentication using the /userinfo backend route
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/userinfo", {
+          withCredentials: true, // Sends the session cookie to the backend
+        });
+
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.log("User not authenticated", error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false); // Once the check is done, stop loading
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   // Handle logout action
   const handleLogout = async () => {
     try {
-      // Call the backend logout route
-      /*
-      await axios.get("http://localhost:8080/logout");
-      */
-
-      // After successful logout, reset authentication state
+      await axios.get("http://localhost:8080/logout", {
+        withCredentials: true,
+      });
       setIsAuthenticated(false);
-      localStorage.removeItem("token"); // Remove auth token from localStorage
       alert("Logged out successfully");
     } catch (err) {
       console.error("Error during logout:", err);
     }
+  };
+
+  // If loading, show a loading spinner
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // ProtectedRoute component
+  const ProtectedRoute = ({ isAuthenticated, children }) => {
+    if (!isAuthenticated) {
+      return <Navigate to="/Login" replace />; // Redirect to login if not authenticated
+    }
+
+    return children; // Render the protected component
   };
 
   return (
@@ -71,7 +96,6 @@ function App() {
             </button>
             <div className="collapse navbar-collapse" id="navbarText">
               <ul className="navbar-nav ms-auto">
-                {/* Conditional buttons based on user authentication status */}
                 {isAuthenticated ? (
                   <>
                     <button className="btn me-2" type="button">
@@ -95,7 +119,7 @@ function App() {
                       >
                         <li>
                           <Link className="dropdown-item" to="/Account">
-                            Account Setting
+                            Account Settings
                           </Link>
                         </li>
                         <li>
@@ -136,7 +160,7 @@ function App() {
                       >
                         <li>
                           <Link className="dropdown-item" to="/Account">
-                            Account Setting
+                            Account Settings
                           </Link>
                         </li>
                         <li>
@@ -158,52 +182,52 @@ function App() {
             </div>
           </div>
         </nav>
+
         <Routes>
           <Route
             path="/Login"
             element={<Login setIsAuthenticated={setIsAuthenticated} />}
-          ></Route>
-          <Route path="/Signup" element={<Signup />}></Route>
+          />
+
+          {/* Public Routes */}
           <Route
-            path="/Home"
-            element={<Home isAuthenticated={isAuthenticated} />}
-          ></Route>
+            path="/Login"
+            element={<Login setIsAuthenticated={setIsAuthenticated} />}
+          />
+          <Route path="/Signup" element={<Signup />} />
+          <Route path="/Home" element={<Home />} />
+          <Route path="/Products/Fruits" element={<Fruits />} />
+          <Route path="/Products/Vegetables" element={<Vegetables />} />
+          <Route path="/Products/Meats" element={<Meats />} />
+          <Route path="/Products/Dairy" element={<Dairy />} />
+          <Route path="/Products/Snacks" element={<Snacks />} />
+          <Route path="/Products/Meals" element={<Meals />} />
+
+          {/* Protected Routes */}
           <Route
             path="/Account"
-            element={<Account isAuthenticated={isAuthenticated} />}
-          ></Route>
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Account />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/Orders"
-            element={<Orders isAuthenticated={isAuthenticated} />}
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Orders />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/OrderDetails/:id"
-            element={<OrderDetails isAuthenticated={isAuthenticated} />}
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
           />
-          <Route
-            path="/Products/Fruits"
-            element={<Fruits isAuthenticated={isAuthenticated} />}
-          ></Route>
-          <Route
-            path="/Products/Vegetables"
-            element={<Vegetables isAuthenticated={isAuthenticated} />}
-          ></Route>
-          <Route
-            path="/Products/Meats"
-            element={<Meats isAuthenticated={isAuthenticated} />}
-          ></Route>
-          <Route
-            path="/Products/Dairy"
-            element={<Dairy isAuthenticated={isAuthenticated} />}
-          ></Route>
-          <Route
-            path="/Products/Snacks"
-            element={<Snacks isAuthenticated={isAuthenticated} />}
-          ></Route>
-          <Route
-            path="/Products/Meals"
-            element={<Meals isAuthenticated={isAuthenticated} />}
-          ></Route>
         </Routes>
       </div>
     </BrowserRouter>

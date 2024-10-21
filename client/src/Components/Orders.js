@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 function Orders() {
-  const [orders] = useState([
+  const [orders, setOrders] = useState([
     // Placeholder data simulating fetched orders
     {
       ID: 101,
@@ -24,6 +24,7 @@ function Orders() {
       ORDER_STATUS: "COMPLETED",
     },
   ]);
+
   const [loading, setLoading] = useState(false);
   const [showPreviousOrders, setShowPreviousOrders] = useState(false);
   const [shippingAddress, setShippingAddress] = useState(null); // State to store shipping address
@@ -59,33 +60,41 @@ function Orders() {
       }, 1000);
     };
     simulateShippingAddress();
-    // Uncomment the below code when the API is ready to connect
-    /*
-    axios.get("http://localhost:8080/orders", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    })
-      .then(response => {
-        setOrders(response.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        setLoading(false);
-      });
 
-    // Fetch shipping address from backend
+    // Uncomment the below code when the backend API route fully set up
+    /*
+  useEffect(() => {
+    // Fetch orders and shipping address from backend
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const ordersResponse = await axios.get("http://localhost:8080/orders", {
+          withCredentials: true,
+        });
+        setOrders(ordersResponse.data);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setLoading(false);
+        setError("Could not fetch orders.");
+      }
+    };
+
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("/userinfo");
-        setShippingAddress(response.data.ADDRESS); // Save the shipping address
+        const response = await axios.get("http://localhost:8080/userinfo", {
+          withCredentials: true,
+        });
+        setShippingAddress(response.data.ADDRESS);
       } catch (err) {
         console.error("Error fetching shipping address:", err);
         setError("Could not fetch shipping address.");
       }
     };
 
+    fetchOrders();
     fetchShippingAddress();
-    */
+*/
   }, []);
 
   // Function to filter current vs. previous orders
