@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 export default function Fruits() {
   /* const itemToDisplay = document.querySelectorAll('.product');
   const category = document.getElementById("category");
@@ -9,6 +10,8 @@ export default function Fruits() {
     document.querySelector('.product')?.classList.remove(product);
     // itemToDisplay.classList.add('active');
   }); */
+
+
 
   const [modal, setModal] = useState(false);
   // if the state is false it will go to true, and if it is true it will go to false
@@ -24,6 +27,29 @@ export default function Fruits() {
     document.body.classList.remove("active-modl");
   }
 
+  
+const [theData, setData] = useState([]);
+  useEffect(() => {
+    
+      axios.get(`http://localhost:8080/products`)
+        .then( res => 
+          {
+            console.log(res)
+            setData(res.data.data)
+          })
+          
+        .catch(err => {console.log(err)});
+      }, [])
+
+      // if (response.status === 200) {
+        /* const { token } = response.data; // Extract the token from the response
+        // Store the token in cookies (expires in 7 days)
+        Cookies.set("token", token, { expires: 7, path: "/" }); */
+        // Redirect to home page on successful login
+        // navigate("/Home"); 
+      // }
+    // console.log(data === Object(data));
+    // onsole.log(theData);
   return (
     <>
       <div>
@@ -39,6 +65,77 @@ export default function Fruits() {
 
           <div className="row row-cols-xl-6 row-cols-lg-4 row-cols-md-3 row-cols-sm-2 row-cols-xs-2 row-cols-12 justify-content-center g-6 mt-2 undefined">
             {/* rows-col-xl-6 => there should be six columns when the user's screen size is xl (≥1200px); rows-col-lg-4 => there should be four columns when the user's screen size is l (≥992px) */}
+            <div className="col mb-4">
+              <div className="card-product card border-2">
+                
+                <div className="card-body">
+                  <Link
+                    className="text-decoration-none text-center"
+                    onClick={toggleModal}
+                    to="">
+                    <img
+                      src="/Assets/apples.jpeg"
+                      className="img-fluid rounded-circle"
+                      style={{
+                        width: "150px",
+                        height: "150px",
+                        objectFit: "cover",
+                      }}
+                      alt="apples"
+                    />
+
+                    {/* {data.map((product) => {
+                      return(
+                      <h5 key={product.id} class="text-dark">{product.PRODUCTNAME}</h5>)
+                    })} */}
+
+                    {/* {Array.isArray(data) && data?.map(product => {
+                            return (
+                              <h5 key={product.id} class="text-dark">{product.PRODUCTNAME}</h5>
+                            );
+                          })} */}
+
+                    {/* {Array.isArray(data) && data?.map((product, index) => {
+                            return (
+                              <h5 key={index} class="text-dark">{product.PRODUCTNAME}</h5>
+                            );
+                          })}
+                     */}
+
+                     {
+                      theData?.map((d, i) => {
+                        return <p key={i}>{d.BRAND}</p>
+                      })
+                     }
+                     {/* {data && <h5 class="text-dark">{data.PRODUCTNAME}</h5>} */}
+                   
+                  </Link>
+                  <div class="text-small mb-1 text-muted text-center">$1 per unit</div>
+                  <div className="d-flex justify-content-center mt-3">
+                    <div>
+                      <Link className="btn btn-sm btn bg-green text-light fw-bolder">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          class="bi bi-plus-lg"
+                          viewBox="0 0 16 16"
+                          className="me-1"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"
+                          />
+                        </svg>
+                        Add
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="col mb-4">
               <div className="card-product card border-2">
                 
