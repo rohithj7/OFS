@@ -21,6 +21,13 @@ export default function Fruits() {
       .get(`http://localhost:8080/products`)
       .then((res) => {
         console.log(res.data);
+        // Check if res.data is an array, if not assign the correct value
+        /*
+        The setData line checks whether res.data is already an array (Array.isArray(res.data)). 
+        If it is, it sets theData to res.data. 
+        If it’s not an array (i.e., it’s an object containing an array under data), 
+        it sets theData to res.data.data.
+        */
         setData(Array.isArray(res.data) ? res.data : res.data.data || []);
         setLoading(false);
       })
