@@ -18,6 +18,7 @@ import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
 
 import "./main.scss"; // Custom styles
+import "./App.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

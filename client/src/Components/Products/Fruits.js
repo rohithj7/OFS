@@ -51,29 +51,6 @@ export default function Fruits() {
     return <div>No products available</div>;
   }
 
-  
-const [theData, setData] = useState([]);
-  useEffect(() => {
-    
-      axios.get(`http://localhost:8080/products`)
-        .then( res => 
-          {
-            console.log(res)
-            setData(res.data.data)
-          })
-          
-        .catch(err => {console.log(err)});
-      }, [])
-
-      // if (response.status === 200) {
-        /* const { token } = response.data; // Extract the token from the response
-        // Store the token in cookies (expires in 7 days)
-        Cookies.set("token", token, { expires: 7, path: "/" }); */
-        // Redirect to home page on successful login
-        // navigate("/Home"); 
-      // }
-    // console.log(data === Object(data));
-    // onsole.log(theData);
   return (
     <div>
       <div className="container my-5">
@@ -146,6 +123,20 @@ const [theData, setData] = useState([]);
                   </div>
                   <div className="d-flex justify-content-center mt-3">
                     <Link className="btn btn-sm btn bg-green text-light fw-bolder">
+                    <svg
+                         xmlns="http://www.w3.org/2000/svg"
+                         width="16"
+                         height="16"
+                         fill="currentColor"
+                         class="bi bi-plus-lg"
+                         viewBox="0 0 16 16"
+                         className="me-1"
+                       >
+                         <path
+                           fill-rule="evenodd"
+                           d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"
+                         />
+                       </svg>
                       Add
                     </Link>
                   </div>
