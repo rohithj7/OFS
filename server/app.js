@@ -217,16 +217,18 @@ app.post('/userinfo', isAuthenticated, async (req, res) => {
 // EMPLOYEES routes
 app.get('/employees', async (req, res) => {
   try {
-    const employees = await getEmployees()
+    const loginId = req.user.ID;
+    const employees = await getEmployees([loginId])
     res.json(employees)
   } catch (err) {
     res.status(500).send(err.message)
   }
 })
 
-app.get('/employees/:id', async (req, res) => {
+app.get('/employeeinfo', isAuthenticated, async (req, res) => {
   try {
-    const employee = await getEmployeeById(req.params.id)
+    const loginId = req.user.ID;
+    const employee = await getEmployeeById(loginId)
     if (employee) {
       res.json(employee)
     } else {
@@ -237,66 +239,71 @@ app.get('/employees/:id', async (req, res) => {
   }
 })
 
-app.post('/employees', async (req, res) => {
-    try {
-      const {
-        loginId, 
-        firstName, 
-        lastName, 
-        ssn, 
-        email, 
-        phone, 
-        address, 
-        salary, 
-        startDate, 
-        endDate
-      } = req.body;
-  
-      // Validate required fields (adjust validation as necessary)
-      if (!loginId || !ssn || !email || !salary || !startDate) {
-        return res.status(400).json({ 
-          error: 'Required fields: loginId, ssn, email, salary, and startDate' 
-        });
-      }
-  
-      // Call the createEmployee function (pass the extracted fields)
-      const newEmployee = await createEmployee({
-        loginId, 
-        firstName, 
-        lastName, 
-        ssn, 
-        email, 
-        phone, 
-        address, 
-        salary, 
-        startDate, 
-        endDate
+app.post('/employeeinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const employeeInfo = req.body;
+
+    const { 
+      firstName, 
+      lastName, 
+      ssn, 
+      email, 
+      phone, 
+      address, 
+      salary, 
+      startDate, 
+      endDate
+    } = employeeInfo;
+
+    // Validate required fields (adjust validation as necessary)
+    if (!ssn || !email || !salary || !startDate) {
+      return res.status(400).json({ 
+        error: 'Required fields: loginId, ssn, email, salary, and startDate' 
       });
-  
-      // Respond with the newly created employee
-      res.status(201).json(newEmployee);
-    } catch (err) {
-      console.error('Error creating employee:', err);
-      res.status(500).send(err.message);
     }
-  });  
 
-app.put('/employees/:id', async (req, res) => {
-  try {
-    const updatedEmployee = await updateEmployee(req.params.id, req.body)
-    if (updatedEmployee) {
-      res.json(updatedEmployee)
-    } else {
-      res.status(404).send('Employee not found')
-    }
+    // Call the createEmployee function (pass the extracted fields)
+    const newEmployee = await createEmployee({
+      loginId, 
+      firstName, 
+      lastName, 
+      ssn, 
+      email, 
+      phone, 
+      address, 
+      salary, 
+      startDate, 
+      endDate
+    });
+
+    // Respond with the newly created employee
+    res.status(201).json(newEmployee);
   } catch (err) {
-    res.status(500).send(err.message)
+    console.error('Error creating employee:', err);
+    res.status(500).send(err.message);
   }
-})
+});
+      
 
-app.delete('/employees/:id', async (req, res) => {
+app.put('/employeeinfo', isAuthenticated, async (req, res) => {
   try {
-    const deletedEmployee = await deleteEmployee(req.params.id)
+     const loginId = req.user.ID;
+     const updatedEmployee = await updateEmployee(loginId, req.body);
+     if (updatedEmployee) {
+       res.json(updatedEmployee);
+     } else {
+       res.status(404).send('Employee not found');
+     }
+   } catch (err) {
+     res.status(500).send(err.message);
+   }
+});
+
+app.delete('/employeeinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const deletedEmployee = await deleteEmployee(loginId)
     if (deletedEmployee) {
       res.json(deletedEmployee)
     } else {
@@ -526,33 +533,12 @@ app.delete('/suppliers/:id', async (req, res) => {
 
 // -------------------------------------------------------------- CUSTOMERS -----------------------------------------------------------------------//
 
-// CUSTOMERS routes
-app.get('/customers', async (req, res) => {
+// list all the customers in the database
+app.get('/customers', isAuthenticated, async (req, res) => {
   try {
-    const customers = await getCustomers()
+    const loginId = req.user.iD;
+    const customers = await getCustomers([loginId])
     res.json(customers)
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.get('/customers/:id', async (req, res) => {
-  try {
-    const customer = await getCustomerById(req.params.id)
-    if (customer) {
-      res.json(customer)
-    } else {
-      res.status(404).send('Customer not found')
-    }
-  } catch (err) {
-    res.status(500).send(err.message)
-  }
-})
-
-app.post('/customers', async (req, res) => {
-  try {
-    const newCustomer = await createCustomer(req.body)
-    res.status(201).json(newCustomer)
   } catch (err) {
     res.status(500).send(err.message)
   }
@@ -578,11 +564,29 @@ app.put('/customerinfo', isAuthenticated, async (req, res) => {
   }
 });
 
-app.delete('/customers/:id', async (req, res) => {
+//get cusotmer info
+app.get('/customerinfo', isAuthenticated, async (req, res) => {
   try {
-    const deletedCustomer = await deleteCustomer(req.params.id)
+    const loginId = req.user.ID;
+    const customer = await getCustomerById(loginId);
+    if (customer) {
+      res.json(customer);
+    } else {
+      res.status(404).json({ message: 'Customer not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching customer info:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+//delete customer by id
+app.delete('/customerinfo', isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const deletedCustomer = await deleteCustomer(loginId)
     if (deletedCustomer) {
-      res.json(deletedCustomer)
+      res.json({message: 'User deleted successfully!', user: deletedCustomer})
     } else {
       res.status(404).send('Customer not found')
     }
@@ -590,6 +594,8 @@ app.delete('/customers/:id', async (req, res) => {
     res.status(500).send(err.message)
   }
 })
+
+
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 

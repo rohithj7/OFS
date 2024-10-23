@@ -138,9 +138,9 @@ export async function getEmployees() {
     return result;
 }
 
-export async function getEmployeeById(id) {
+export async function getEmployeeById(loginId) {
     const sql = `SELECT * FROM Employees WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
+    const [result] = await pool.query(sql, [loginId]);
     return result[0];
 }
 
@@ -432,15 +432,23 @@ export async function createCustomer(
     return result.insertId;
 }  
 
-export async function getCustomers() {
+export async function getCustomers(loginId) {
+    // Authenticate the loginId
+    const user = await getLoginById(loginId);
+    if (!user) {
+        throw new Error('Authentication failed');
+    }
+
     const sql = `SELECT * FROM Customers`;
     const [result] = await pool.query(sql);
     return result;
 }
 
-export async function getCustomerById(id) {
-    const sql = `SELECT * FROM Customers WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
+
+//get customer by login id
+export async function getCustomerById(loginId) {
+    const sql = `SELECT * FROM CUSTOMERS WHERE LOGINID = ?`;
+    const [result] = await pool.query(sql, [loginId]);
     return result[0];
 }
 
@@ -464,9 +472,9 @@ export async function updateCustomerInfo(loginId, customerInfo) {
     ]);
 }
 
-export async function deleteCustomer(id) {
+export async function deleteCustomer(loginId) {
     const sql = `DELETE FROM Customers WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
+    const [result] = await pool.query(sql, [loginId]);
     return result.affectedRows > 0;
 }
 
