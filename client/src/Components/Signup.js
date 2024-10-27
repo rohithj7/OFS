@@ -20,14 +20,14 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simple validation for matching passwords
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match");
       return;
     }
 
     try {
-      const response = await axios.post(
+      // First register
+      const registerResponse = await axios.post(
         "http://localhost:8080/registerCustomer",
         {
           email,
@@ -37,18 +37,30 @@ export default function SignUp() {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true, // If your backend uses cookies for sessions
+          withCredentials: true,
         }
       );
 
-      if (response.status === 201) {
-        // Redirect to login page after successful signup
-        navigate("/Login");
-      } else {
-        setErrorMessage(response.data.message || "Registration failed");
+      if (registerResponse.status === 201) {
+        // Automatically log the user in after successful registration
+        const loginResponse = await axios.post(
+          "http://localhost:8080/login",
+          { email, password },
+          { withCredentials: true }
+        );
+
+        if (loginResponse.status === 200) {
+          // Get the login ID from the register response
+          const loginId = loginResponse.data.loginId;
+          console.log("Storing loginId in localStorage:", loginId); // Debug line
+          // Store loginId in local storage
+          localStorage.setItem("loginId", loginId);
+          // Redirect to PersonalInfo page, passing loginId as state
+          navigate("/personal-info", { state: { loginId } });
+        }
       }
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (error.response?.data?.message) {
         setErrorMessage(error.response.data.message);
       } else {
         setErrorMessage("Error occurred, please try again");
