@@ -20,7 +20,7 @@ export default function Account() {
       const fetchCustomerInfo = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:8080/customers/${loginId}`,
+            "http://localhost:8080/customerinfo",
             { withCredentials: true }
           );
 

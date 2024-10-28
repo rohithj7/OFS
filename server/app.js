@@ -2,7 +2,7 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -530,16 +530,19 @@ app.get("/customers", async (req, res) => {
   }
 });
 
-app.get("/customers/:id", async (req, res) => {
+//get cusotmer info
+app.get('/customerinfo', isAuthenticated, async (req, res) => {
   try {
-    const customer = await getCustomerById(req.params.id);
+    const loginId = req.user.ID;
+    const customer = await getCustomerById(loginId);
     if (customer) {
       res.json(customer);
     } else {
-      res.status(404).send("Customer not found");
+      res.status(404).json({ message: 'Customer not found' });
     }
-  } catch (err) {
-    res.status(500).send(err.message);
+  } catch (error) {
+    console.error('Error fetching customer info:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
