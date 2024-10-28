@@ -41,13 +41,13 @@ export default function Login({ setIsAuthenticated }) {
         }
       );
 
-      console.log("Response:", response); // Add this to debug
+      // console.log("Response:", response); // Add this to debug
 
       if (response.status === 200) {
         setIsAuthenticated(true);
         // Get the login ID from the register response
         const loginId = response.data.loginId;
-        console.log("Storing loginId in localStorage:", loginId); // Debug line
+        // console.log("Storing loginId in localStorage:", loginId); // Debug line
         // Store loginId in local storage
         localStorage.setItem("loginId", loginId);
         navigate("/Home");
