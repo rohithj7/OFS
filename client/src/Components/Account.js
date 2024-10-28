@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default function Account() {
   const loginId = localStorage.getItem("loginId"); // Retrieve loginId from localStorage
-  console.log("loginId from localStorage:", loginId); // Debug line
+  // console.log("loginId from localStorage:", loginId); // Debug line
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -20,11 +20,11 @@ export default function Account() {
       const fetchCustomerInfo = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:8080/customers/${loginId}`,
+            "http://localhost:8080/customerinfo",
             { withCredentials: true }
           );
 
-          console.log("Fetched data:", response.data); // Debug line
+          // console.log("Fetched data:", response.data); // Debug line
 
           setFormData({
             firstName: response.data.FIRSTNAME || "",
@@ -67,7 +67,7 @@ export default function Account() {
         longitude: null,
       };
 
-      console.log("Sending data to server:", requestData);
+      // console.log("Sending data to server:", requestData);
 
       const response = await axios.put(
         "http://localhost:8080/customerinfo",

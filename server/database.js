@@ -4,10 +4,10 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const pool = mysql.createPool({
-    host: process.env.MYSQL_HOST || 'localhost',
-    user: process.env.MYSQL_USER || 'your_mysql_user',
-    password: process.env.MYSQL_PASSWORD || 'your_mysql_password',
-    database: process.env.MYSQL_DATABASE || 'your_database_name',
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
 });
 
 // Helper function to execute queries
@@ -438,9 +438,10 @@ export async function getCustomers() {
     return result;
 }
 
-export async function getCustomerById(id) {
-    const sql = `SELECT * FROM Customers WHERE ID = ?`;
-    const [result] = await pool.query(sql, [id]);
+//get customer by login id
+export async function getCustomerById(loginId) {
+    const sql = `SELECT * FROM CUSTOMERS WHERE LOGINID = ?`;
+    const [result] = await pool.query(sql, [loginId]);
     return result[0];
 }
 
