@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import PropTypes from "prop-types";
 import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
@@ -7,6 +8,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is lo
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import Home from "./Components/Home";
+import PersonalInfo from "./Components/PersonalInfo";
 import Account from "./Components/Account";
 import Orders from "./Components/Orders";
 import OrderDetails from "./Components/OrderDetails";
@@ -24,30 +26,6 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
 
-  // Check authentication using the /userinfo backend route
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/userinfo", {
-          withCredentials: true, // Sends the session cookie to the backend
-        });
-
-        if (response.status === 200) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.log("User not authenticated", error);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false); // Once the check is done, stop loading
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
-
   // Handle logout action
   const handleLogout = async () => {
     try {
@@ -55,16 +33,12 @@ function App() {
         withCredentials: true,
       });
       setIsAuthenticated(false);
+      localStorage.removeItem("loginId");
       alert("Logged out successfully");
     } catch (err) {
       console.error("Error during logout:", err);
     }
   };
-
-  // If loading, show a loading spinner
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   // ProtectedRoute component
   const ProtectedRoute = ({ isAuthenticated, children }) => {
@@ -75,27 +49,33 @@ function App() {
     return children; // Render the protected component
   };
 
-// const minusButton = document.getElementsByClassName('button-minus');
-// const plusButton = document.getElementsByClassName('button-plus');
-const inputField = document.getElementsByClassName('quantity-input');
+  // Add PropTypes validation
+  ProtectedRoute.propTypes = {
+    isAuthenticated: PropTypes.bool.isRequired,
+    children: PropTypes.node.isRequired,
+  };
 
-// when the minus button or the plus button is clicked, the input field with the number (quantity of a certain product) should be incremented
-// does not work properly yet
-const handleMinus = async (e) => {
-  e.preventDefault();
-  const currentValue = Number(inputField.value) || 0;
-  // console.log(currentValue);
-  inputField.value = currentValue - 1;
-  console.log(inputField.value);
-};
+  // const minusButton = document.getElementsByClassName('button-minus');
+  // const plusButton = document.getElementsByClassName('button-plus');
+  const inputField = document.getElementsByClassName("quantity-input");
 
-const handlePlus = async (e) => {
-  e.preventDefault();
-  const currentValue = Number(inputField.value) || 0;
-  // console.log(currentValue);
-  inputField.value = currentValue + 1;
-  console.log(inputField.value);
-};
+  // when the minus button or the plus button is clicked, the input field with the number (quantity of a certain product) should be incremented
+  // does not work properly yet
+  const handleMinus = async (e) => {
+    e.preventDefault();
+    const currentValue = Number(inputField.value) || 0;
+    // console.log(currentValue);
+    inputField.value = currentValue - 1;
+    console.log(inputField.value);
+  };
+
+  const handlePlus = async (e) => {
+    e.preventDefault();
+    const currentValue = Number(inputField.value) || 0;
+    // console.log(currentValue);
+    inputField.value = currentValue + 1;
+    console.log(inputField.value);
+  };
 
   return (
     <BrowserRouter>
@@ -121,7 +101,14 @@ const handlePlus = async (e) => {
               <ul className="navbar-nav ms-auto">
                 {isAuthenticated ? (
                   <>
-                    <button className="btn me-2" type="button" data-bs-toggle="offcanvas" href="#offcanvasShoppingCart" role="button" aria-controls="offcanvasShoppingCart">
+                    <button
+                      className="btn me-2"
+                      type="button"
+                      data-bs-toggle="offcanvas"
+                      href="#offcanvasShoppingCart"
+                      role="button"
+                      aria-controls="offcanvasShoppingCart"
+                    >
                       Cart
                     </button>
                     {/* Dropdown menu for My Account */}
@@ -213,20 +200,35 @@ const handlePlus = async (e) => {
           />
 
           {/* Public Routes */}
-          <Route
-            path="/Login"
-            element={<Login setIsAuthenticated={setIsAuthenticated} />}
-          />
           <Route path="/Signup" element={<Signup />} />
           <Route path="/Home" element={<Home />} />
-          <Route path="/Products/Fruits" element={<Fruits />} />
-          <Route path="/Products/Vegetables" element={<Vegetables />} />
-          <Route path="/Products/Meats" element={<Meats />} />
-          <Route path="/Products/Dairy" element={<Dairy />} />
-          <Route path="/Products/Snacks" element={<Snacks />} />
-          <Route path="/Products/Meals" element={<Meals />} />
+          <Route path="/personal-info" element={<PersonalInfo />} />
 
           {/* Protected Routes */}
+          <Route
+            path="/Products/Fruits"
+            element={<Fruits isAuthenticated={isAuthenticated} />}
+          />
+          <Route
+            path="/Products/Vegetables"
+            element={<Vegetables isAuthenticated={isAuthenticated} />}
+          />
+          <Route
+            path="/Products/Meats"
+            element={<Meats isAuthenticated={isAuthenticated} />}
+          />
+          <Route
+            path="/Products/Dairy"
+            element={<Dairy isAuthenticated={isAuthenticated} />}
+          />
+          <Route
+            path="/Products/Snacks"
+            element={<Snacks isAuthenticated={isAuthenticated} />}
+          />
+          <Route
+            path="/Products/Meals"
+            element={<Meals isAuthenticated={isAuthenticated} />}
+          />
           <Route
             path="/Account"
             element={
@@ -255,36 +257,62 @@ const handlePlus = async (e) => {
 
         {/* Shopping cart sidebar  */}
         {/* when the Cart button is selected, this will open up (this is done through these specifications for the cart button: data-bs-toggle="offcanvas" href="#offcanvasShoppingCart") */}
-        <div class="offcanvas offcanvas-end w-50 border-box" tabindex="-1" id="offcanvasShoppingCart" aria-labelledby="offcanvasShoppingCartLabel">
+        <div
+          class="offcanvas offcanvas-end w-50 border-box"
+          tabindex="-1"
+          id="offcanvasShoppingCart"
+          aria-labelledby="offcanvasShoppingCartLabel"
+        >
           {/* offcanvas => gives the darkened background when the sidebar is opened; offcanvas-end => the sidebar opens up on the right side */}
           {/* w-50 => sidebar will at all times be 50% of the screen size */}
-          <div class="border-bottom offcanvas-header"> {/* border-bottom => there will be a border (gray line) underneath the header */}
-            <div class="text-start"> {/* text-start => any text begins at the left */}
-              <h5 class="mb-0 fs-4">Shopping Cart</h5> {/* mb-0 => no margin bottom; fs-4 => font size for text */}
+          <div class="border-bottom offcanvas-header">
+            {" "}
+            {/* border-bottom => there will be a border (gray line) underneath the header */}
+            <div class="text-start">
+              {" "}
+              {/* text-start => any text begins at the left */}
+              <h5 class="mb-0 fs-4">Shopping Cart</h5>{" "}
+              {/* mb-0 => no margin bottom; fs-4 => font size for text */}
               {/* <small>Location in 382480</small> */}
             </div>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button> {/* X button (close button) on top right corner that closes the sidebar */}
+            <button
+              type="button"
+              class="btn-close text-reset"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"
+            ></button>{" "}
+            {/* X button (close button) on top right corner that closes the sidebar */}
           </div>
           <div class="offcanvas-body">
-            
             {/* alert banner for free delivery alert if customer is eligible */}
-            <div role="alert" class="p-2 alert alert-custom border-green">You’ve got FREE delivery. Start <a class="alert-link" href="#!">checkout now!</a></div>
+            <div role="alert" class="p-2 alert alert-custom border-green">
+              You’ve got FREE delivery. Start{" "}
+              <a class="alert-link" href="#!">
+                checkout now!
+              </a>
+            </div>
             {/* p-2 => padding size; alert-custom => css specifications are in App.css file */}
-            
+
             {/* list for products in shoping cart */}
-            <ul class="list-group list-group-flush"> {/* list-group-flush => remove some borders and rounded corners to render list group items: https://getbootstrap.com/docs/5.3/components/list-group/#flush */}
+            <ul class="list-group list-group-flush">
+              {" "}
+              {/* list-group-flush => remove some borders and rounded corners to render list group items: https://getbootstrap.com/docs/5.3/components/list-group/#flush */}
               <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
-              {/* justify-content-between => gives space in between each of the following direct child elements (in this case the div elements that are immediate children) */}
-              {/* border-bottom => gray border underneath/after each list-item (after each product) */}
-                
+                {/* justify-content-between => gives space in between each of the following direct child elements (in this case the div elements that are immediate children) */}
+                {/* border-bottom => gray border underneath/after each list-item (after each product) */}
+
                 {/* product image */}
                 <div class="col-md-2 col-lg-2 col-4">
-                  <img src="/Assets/cheddar cheese.jpeg" class="img-fluid rounded-3"></img> {/* img-fluid => this is what allows the image to be much smaller than it's actual dimensions */}
+                  <img
+                    src="/Assets/cheddar cheese.jpeg"
+                    class="img-fluid rounded-3"
+                  ></img>{" "}
+                  {/* img-fluid => this is what allows the image to be much smaller than it's actual dimensions */}
                 </div>
 
                 {/* simple product description (name, etc.) */}
-                <div class="col-md-3 col-lg-3 col-xl-3"> 
-                {/* (column) size of this production description section based on the screen size (md => medium-sized screen, lg => large-sized screen) */}
+                <div class="col-md-3 col-lg-3 col-xl-3">
+                  {/* (column) size of this production description section based on the screen size (md => medium-sized screen, lg => large-sized screen) */}
                   <h6 class="text-muted">Dairy</h6>
                   <h6 class="mb-0">Cheddar Cheese</h6>
 
@@ -293,9 +321,24 @@ const handlePlus = async (e) => {
                     <a class="text-decoration-none text-inherit" href="#!">
                       <span class="me-1 align-text-bottom">
                         {/* trash can icon */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger"> {/* text-danger => gives the icon a red color */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-danger"
+                        >
+                          {" "}
+                          {/* text-danger => gives the icon a red color */}
                           <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
                         </svg>
                       </span>
                       <span class="text-muted">Remove</span>
@@ -306,19 +349,39 @@ const handlePlus = async (e) => {
                 {/* plus minus button (for changing the quantity of a product) */}
                 <div class="col-lg-3 col-md-4 col-4">
                   <div class="input-spinner input-group input-group-sm">
-                      <input class="button-minus btn btn-sm btn-number border" type="button" value="-"></input> {/* minus */}
-                      <input class="form-control form-control-sm form-input border" type="number" min="1" name="quantity"></input> {/* input field for quantity */}
-                      <input class="button-plus btn btn-sm btn-number border" type="button" value="+"></input> {/* plus */}
+                    <input
+                      class="button-minus btn btn-sm btn-number border"
+                      type="button"
+                      value="-"
+                    ></input>{" "}
+                    {/* minus */}
+                    <input
+                      class="form-control form-control-sm form-input border"
+                      type="number"
+                      min="1"
+                      name="quantity"
+                    ></input>{" "}
+                    {/* input field for quantity */}
+                    <input
+                      class="button-plus btn btn-sm btn-number border"
+                      type="button"
+                      value="+"
+                    ></input>{" "}
+                    {/* plus */}
                   </div>
                 </div>
 
                 {/* total cost for current product */}
-                <div class="text-center col-md-2 col-2"><span class="fw-bold">$86.40</span></div> 
+                <div class="text-center col-md-2 col-2">
+                  <span class="fw-bold">$86.40</span>
+                </div>
               </li>
-
               <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
                 <div class="col-md-2 col-lg-2 col-4">
-                  <img src="/Assets/bananas.jpg" class="img-fluid rounded-3"></img>
+                  <img
+                    src="/Assets/bananas.jpg"
+                    class="img-fluid rounded-3"
+                  ></img>
                 </div>
                 <div class="col-md-3 col-lg-3 col-xl-3">
                   <h6 class="text-muted">Fruits</h6>
@@ -326,9 +389,22 @@ const handlePlus = async (e) => {
                   <div class="mt-2 small lh-1">
                     <a class="text-decoration-none text-inherit" href="#!">
                       <span class="me-1 align-text-bottom">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-danger"
+                        >
                           <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
                         </svg>
                       </span>
                       <span class="text-muted">Remove</span>
@@ -337,16 +413,34 @@ const handlePlus = async (e) => {
                 </div>
                 <div class="col-lg-3 col-md-4 col-4">
                   <div class="input-spinner input-group input-group-sm">
-                      <input class="button-minus btn btn-sm border" type="button" value="-"></input>
-                      <input class="form-control form-control-sm form-input border" type="number" min="1" name="quantity"></input>
-                      <input class="button-plus btn btn-sm border" type="button" value="+"></input>
+                    <input
+                      class="button-minus btn btn-sm border"
+                      type="button"
+                      value="-"
+                    ></input>
+                    <input
+                      class="form-control form-control-sm form-input border"
+                      type="number"
+                      min="1"
+                      name="quantity"
+                    ></input>
+                    <input
+                      class="button-plus btn btn-sm border"
+                      type="button"
+                      value="+"
+                    ></input>
                   </div>
                 </div>
-                <div class="text-center col-md-2 col-2"><span class="fw-bold">$86.40</span></div> 
+                <div class="text-center col-md-2 col-2">
+                  <span class="fw-bold">$86.40</span>
+                </div>
               </li>
               <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
                 <div class="col-md-2 col-lg-2 col-4">
-                  <img src="/Assets/carrots.jpeg" class="img-fluid rounded-3"></img>
+                  <img
+                    src="/Assets/carrots.jpeg"
+                    class="img-fluid rounded-3"
+                  ></img>
                 </div>
                 <div class="col-md-3 col-lg-3 col-xl-3">
                   <h6 class="text-muted">Vegetables</h6>
@@ -354,9 +448,22 @@ const handlePlus = async (e) => {
                   <div class="mt-2 small lh-1">
                     <a class="text-decoration-none text-inherit" href="#!">
                       <span class="me-1 align-text-bottom">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-danger"
+                        >
                           <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
                         </svg>
                       </span>
                       <span class="text-muted">Remove</span>
@@ -365,16 +472,34 @@ const handlePlus = async (e) => {
                 </div>
                 <div class="col-lg-3 col-md-4 col-4">
                   <div class="input-spinner input-group input-group-sm">
-                      <input class="button-minus btn btn-sm border" type="button" value="-"></input>
-                      <input class="form-control form-control-sm form-input border" type="number" min="1" name="quantity"></input>
-                      <input class="button-plus btn btn-sm border" type="button" value="+"></input>
+                    <input
+                      class="button-minus btn btn-sm border"
+                      type="button"
+                      value="-"
+                    ></input>
+                    <input
+                      class="form-control form-control-sm form-input border"
+                      type="number"
+                      min="1"
+                      name="quantity"
+                    ></input>
+                    <input
+                      class="button-plus btn btn-sm border"
+                      type="button"
+                      value="+"
+                    ></input>
                   </div>
                 </div>
-                <div class="text-center col-md-2 col-2"><span class="fw-bold">$86.40</span></div> 
+                <div class="text-center col-md-2 col-2">
+                  <span class="fw-bold">$86.40</span>
+                </div>
               </li>
               <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
                 <div class="col-md-2 col-lg-2 col-4">
-                  <img src="/Assets/whole milk.jpeg" class="img-fluid rounded-3"></img>
+                  <img
+                    src="/Assets/whole milk.jpeg"
+                    class="img-fluid rounded-3"
+                  ></img>
                 </div>
                 <div class="col-md-3 col-lg-3 col-xl-3">
                   <h6 class="text-muted">Dairy</h6>
@@ -382,9 +507,22 @@ const handlePlus = async (e) => {
                   <div class="mt-2 small lh-1">
                     <a class="text-decoration-none text-inherit" href="#!">
                       <span class="me-1 align-text-bottom">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-danger"
+                        >
                           <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
                         </svg>
                       </span>
                       <span class="text-muted">Remove</span>
@@ -393,22 +531,43 @@ const handlePlus = async (e) => {
                 </div>
                 <div class="col-lg-3 col-md-4 col-4">
                   <div class="input-spinner input-group input-group-sm">
-                      <input class="button-minus btn btn-sm border" onClick={handleMinus} type="button" value="-"></input>
-                      <input class="form-control form-control-sm form-input border quantity-input" type="number" min="1" name="quantity"></input>
-                      <input class="button-plus btn btn-sm border" onClick={handlePlus} type="button" value="+"></input>
+                    <input
+                      class="button-minus btn btn-sm border"
+                      onClick={handleMinus}
+                      type="button"
+                      value="-"
+                    ></input>
+                    <input
+                      class="form-control form-control-sm form-input border quantity-input"
+                      type="number"
+                      min="1"
+                      name="quantity"
+                    ></input>
+                    <input
+                      class="button-plus btn btn-sm border"
+                      onClick={handlePlus}
+                      type="button"
+                      value="+"
+                    ></input>
                   </div>
                 </div>
-                <div class="text-center col-md-2 col-2"><span class="fw-bold">$86.40</span></div> 
+                <div class="text-center col-md-2 col-2">
+                  <span class="fw-bold">$86.40</span>
+                </div>
               </li>
             </ul>
-            
+
             {/* option to remove all items from shopping cart */}
             <div className="d-grid gap-2 mt-2">
-              <button type="button" class="btn btn-green fw-bold">Remove All</button>
+              <button type="button" class="btn btn-green fw-bold">
+                Remove All
+              </button>
             </div>
-           
+
             <h2 class="h5 mt-3 mb-3">Summary</h2>
-            <div class="mb-3 card"> {/* card=> a flexible and extensible content container (more information: https://getbootstrap.com/docs/5.3/components/card) */}
+            <div class="mb-3 card">
+              {" "}
+              {/* card=> a flexible and extensible content container (more information: https://getbootstrap.com/docs/5.3/components/card) */}
               <div class="list-group list-group-flush">
                 <div class="d-flex justify-content-between align-items-start list-group-item">
                   <div class="me-auto">
@@ -416,43 +575,51 @@ const handlePlus = async (e) => {
                   </div>
                   <span class="">$179.95</span>
                 </div>
-              <div class="d-flex justify-content-between align-items-start list-group-item">
-                <div class="me-auto">
-                  <div class="">Total Weight</div>
+                <div class="d-flex justify-content-between align-items-start list-group-item">
+                  <div class="me-auto">
+                    <div class="">Total Weight</div>
+                  </div>
+                  <span class="">12 pounds</span>
                 </div>
-                <span class="">12 pounds</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-start list-group-item">
-                <div class="me-auto">
-                  <div class="">Cart Size</div>
+                <div class="d-flex justify-content-between align-items-start list-group-item">
+                  <div class="me-auto">
+                    <div class="">Cart Size</div>
+                  </div>
+                  <span class="">10</span>
                 </div>
-                <span class="">10</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-start list-group-item">
-                <div class="me-auto">
-                  <div class="">Shipping Fee</div>
+                <div class="d-flex justify-content-between align-items-start list-group-item">
+                  <div class="me-auto">
+                    <div class="">Shipping Fee</div>
+                  </div>
+                  <span class="">$0.00</span>
                 </div>
-                <span class="">$0.00</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-start list-group-item">
-                <div class="me-auto">
-                  <div class="fw-bold">Subtotal</div>
-                </div>
-                <span class="fw-bold">$212.34</span>
+                <div class="d-flex justify-content-between align-items-start list-group-item">
+                  <div class="me-auto">
+                    <div class="fw-bold">Subtotal</div>
+                  </div>
+                  <span class="fw-bold">$212.34</span>
                 </div>
               </div>
             </div>
-            
+
             {/* option to remove all items from shopping cart */}
-            <div class="d-flex justify-content-between mt-4"> {/* more information on flex behavior => https://getbootstrap.com/docs/5.3/utilities/flex/#enable-flex-behaviors */}
-              <button type="button" class="btn btn-mint" data-bs-dismiss="offcanvas" aria-label="Close">Continue Shopping</button>
-              <button type="button" class="btn btn-pastelblue">Proceed To Checkout</button>
+            <div class="d-flex justify-content-between mt-4">
+              {" "}
+              {/* more information on flex behavior => https://getbootstrap.com/docs/5.3/utilities/flex/#enable-flex-behaviors */}
+              <button
+                type="button"
+                class="btn btn-mint"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+              >
+                Continue Shopping
+              </button>
+              <button type="button" class="btn btn-pastelblue">
+                Proceed To Checkout
+              </button>
             </div>
           </div>
-
-          
         </div>
-
       </div>
 
     </BrowserRouter>

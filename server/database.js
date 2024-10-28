@@ -16,12 +16,9 @@ async function query(sql, params) {
     return rows;
 }
 
-// LOGIN //
-/*
-getLoginById
-getLoginByUsername
-createLogin
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// -------------------------------------------------------- REGISTER AND LOGIN --------------------------------------------------------------------//
 
 // Function to get a user by ID
 export async function getLoginById(id) {
@@ -53,13 +50,10 @@ export async function createLogin(email, hashedPassword, accountCreationDate) {
     return result.insertId; // Return the new user's ID
 }
 
-// GENERAL INFO //
-/*
-createUserInfo
-getUserInfo
-getUserInfoByLoginId
-updateUserInfo
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ------------------------------------------------------------- ADMIN INFO -----------------------------------------------------------------------//
+
 // Function to create a new entry in INFO table
 export async function createUserInfo(loginId, address = null, latitude = null, longitude = null) {
     const sql = `
@@ -95,14 +89,10 @@ export async function updateUserInfo(loginId, address, latitude, longitude) {
     return result;
 }
 
-// EMPLOYEES //
-/*
-createEmployee()
-getEmployees
-getEmployeeById
-updateEmployee
-deleteEmployee
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// -------------------------------------------------------------- EMPLOYEES -----------------------------------------------------------------------//
+
 export async function createEmployee(employeeData) {
     const sql = `
       INSERT INTO EMPLOYEES (LOGINID, FIRSTNAME, LASTNAME, SSN, EMAIL, PHONE, ADDRESS, SALARY, STARTDATE, ENDDATE)
@@ -170,14 +160,10 @@ export async function deleteEmployee(id) {
     return result.affectedRows > 0;
 }
 
-//EMPLOYEE_HOURS//
-/*
-createEmployeeHours
-getEmployeeHours
-getEmployeeHoursById
-updateEmployeeHours
-deleteEmployeeHours
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ----------------------------------------------------------- EMPLOYEE HOURS ---------------------------------------------------------------------//
+
 export async function createEmployeeHours(employeeId, hoursWorked) {
     const sql = `
         INSERT INTO Employee_Hours (EMPLOYEEID, HOURSWORKED)
@@ -216,14 +202,10 @@ export async function deleteEmployeeHours(id) {
     return result.affectedRows > 0;
 }
 
-//PRODUCTS//
-/*
-createProduct
-getProducts
-getProductById
-updateProduct
-deleteProduct
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// --------------------------------------------------------------- PRODUCTS -----------------------------------------------------------------------//
+
 export async function createProduct(productName, productDescription, quantity, reorderLevel, reorderQuantity, price, weight) {
     const sql = `
         INSERT INTO PRODUCTS (PRODUCTNAME, PRODUCTDESCRIPTION, QUANTITY, REORDERLEVEL, REORDERQUANTITY, PRICE, WEIGHT)
@@ -262,7 +244,10 @@ export async function updateProduct(id, productName, productDescription, quantit
 }
 
 export async function deleteProduct(id) {
-    const sql = `DELETE FROM Products WHERE ID = ?`;
+    const sql = `
+        DELETE FROM PRODUCTS
+        WHERE ID = ?
+    `;
     const [result] = await pool.query(sql, [id]);
     return result.affectedRows > 0;
 }
@@ -272,7 +257,10 @@ export async function checkProductAvailability(products) {
     const unavailableProducts = [];
 
     for (const { productId, quantity } of products) {
-        const sql = 'SELECT QUANTITY FROM PRODUCTS WHERE ID = ?';
+        const sql = `
+            SELECT QUANTITY FROM PRODUCTS
+            WHERE ID = ?
+        `;
         const [product] = await query(sql, [productId]);
 
         if (!product || product.QUANTITY < quantity) {
@@ -290,8 +278,10 @@ export async function placeSale(customerId, products) {
         await connection.beginTransaction();
 
         // Insert into SALES table
-        const saleSql =
-            'INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS) VALUES (?, ?, ?, ?, ?)';
+        const saleSql = `
+            INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
+            VALUES (?, ?, ?, ?, ?)
+        `;
         const totalPrice = await calculateTotalPrice(products);
         const saleDate = new Date().toISOString().slice(0, 10);
         const paymentDetails = 'Paid via Stripe'; // Placeholder
@@ -308,8 +298,10 @@ export async function placeSale(customerId, products) {
         const saleId = saleResult.insertId;
 
         // Insert into SALES_PRODUCTS table
-        const saleProductSql =
-            'INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE) VALUES (?, ?, ?, ?)';
+        const saleProductSql = `
+            INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
+            VALUES (?, ?, ?, ?)
+        `;
 
         for (const { productId, quantity } of products) {
             const productPrice = await getProductPrice(productId);
@@ -339,7 +331,10 @@ async function calculateTotalPrice(products) {
 
 // Helper function to get product price
 async function getProductPrice(productId) {
-    const sql = 'SELECT PRICE FROM PRODUCTS WHERE ID = ?';
+    const sql = `
+        SELECT PRICE FROM PRODUCTS
+        WHERE ID = ?
+    `;
     const [product] = await query(sql, [productId]);
     return product ? product.PRICE : 0;
 }
@@ -366,14 +361,10 @@ export async function getProductsByCategory(categoryId) {
     return products;
 }
 
-//SUPPLIERS//
-/*
-createSupplier
-getSuppliers
-getSupplierById
-updateSupplier
-deleteSupplier
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// -------------------------------------------------------------- SUPPLIERS -----------------------------------------------------------------------//
+
 export async function createSupplier(loginId, supplierName, email, phone, address) {
     const sql = `
         INSERT INTO Suppliers (LOGINID, SUPPLIERNAME, EMAIL, PHONE, ADDRESS)
@@ -412,14 +403,10 @@ export async function deleteSupplier(id) {
     return result.affectedRows > 0;
 }
 
-//CUSTOMERS//
-/*
-createCustomer
-getCustomers
-getCustomerById
-updateCustomer
-deleteCustomer
-*/
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// -------------------------------------------------------------- CUSTOMERS -----------------------------------------------------------------------//
+
 export async function createCustomer(
         loginId,
         firstName = null,
@@ -483,7 +470,10 @@ export async function deleteCustomer(id) {
     return result.affectedRows > 0;
 }
 
-// SALES functions
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- SALES -------------------------------------------------------------------------//
+
 export async function createSale(price, saleDate, paymentDetails) {
     const sql = `INSERT INTO SALES (PRICE, SALEDATE, PAYMENTDETAILS) VALUES (?, ?, ?)`
     const [result] = await pool.query(sql, [price, saleDate, paymentDetails])
@@ -500,7 +490,10 @@ export async function getSaleById(id) {
     return rows[0]
 }
 
-// SALES_PRODUCTS functions
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ------------------------------------------------------------ SALES PRODUCTS --------------------------------------------------------------------//
+
 export async function createSalesProduct(salesId, productId, quantity, price) {
     const sql = `INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE) VALUES (?, ?, ?, ?)`
     const [result] = await pool.query(sql, [salesId, productId, quantity, price])
@@ -517,7 +510,9 @@ export async function getSalesProductById(id) {
     return rows[0]
 }
 
-// ORDERS functions
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- ORDERS ------------------------------------------------------------------------//
 
 // Get Orders by Login ID
 export async function getOrdersByLoginId(loginId) {
@@ -552,7 +547,10 @@ export async function getOrderById(id) {
     return rows[0]
 }
 
-// ORDERS_PRODUCTS functions
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ------------------------------------------------------------ ORDERS PORODUCTS ------------------------------------------------------------------//
+
 export async function createOrderProduct(orderId, productId, quantity, price) {
     const sql = `INSERT INTO ORDERS_PRODUCTS (ORDERID, PRODUCTID, QUANTITY, PRICE) VALUES (?, ?, ?, ?)`
     const [result] = await pool.query(sql, [orderId, productId, quantity, price])
@@ -569,7 +567,10 @@ export async function getOrderProductById(id) {
     return rows[0]
 }
 
-// BALANCE functions
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- BALANCE -----------------------------------------------------------------------//
+
 export async function getBalance() {
     const [rows] = await pool.query('SELECT * FROM BALANCE ORDER BY TIMESTAMP DESC LIMIT 1')
     return rows[0]
@@ -581,5 +582,7 @@ export async function storeBalance(balance) {
     return result.insertId
 }
 
-// Export the pool
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- STUFF -------------------------------------------------------------------------//
 export default pool;
