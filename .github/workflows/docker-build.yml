@@ -1,0 +1,30 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Log in to Docker Hub using secrets for Docker Hub credentials
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Set this secret in your repository settings
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Set this secret in your repository settings
+
+    # Build the Docker image
+    - name: Build the Docker image
+      run: docker build . -t ${{ secrets.DOCKER_USERNAME }}/ofs:latest
+
+    # Push the Docker image to Docker Hub
+    - name: Push Docker image to Docker Hub
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/ofs:latest
