@@ -710,16 +710,6 @@ app.post("/sales-products", async (req, res) => {
 
 // ---------------------------------------------------------------- ORDERS ------------------------------------------------------------------------//
 
-// ORDERS routes
-app.get("/orders", async (req, res) => {
-  try {
-    const orders = await getOrders();
-    res.json(orders);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
 // Get all orders by login ID
 app.get("/orders", isAuthenticated, async (req, res) => {
   try {
