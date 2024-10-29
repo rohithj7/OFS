@@ -25,24 +25,26 @@ import "./App.css";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
+  const [showModal, setShowModal] = useState(false);
 
-  // Handle logout action
   const handleLogout = async () => {
     try {
       await axios.get("http://localhost:8080/logout", {
         withCredentials: true,
       });
       setIsAuthenticated(false);
-      localStorage.removeItem("loginId");
       alert("Logged out successfully");
     } catch (err) {
       console.error("Error during logout:", err);
     }
   };
 
+  console.log("Current isAuthenticated state:", isAuthenticated); // Logs the state on every render
+
   // ProtectedRoute component
   const ProtectedRoute = ({ isAuthenticated, children }) => {
     if (!isAuthenticated) {
+      setShowModal(true); // Show the modal if not authenticated
       return <Navigate to="/Login" replace />; // Redirect to login if not authenticated
     }
 
@@ -717,11 +719,7 @@ function App() {
           </div>
         </div>
       </div>
-
     </BrowserRouter>
-
-    
-  
   );
 }
 
