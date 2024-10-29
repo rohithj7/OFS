@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import { Link, useNavigate } from "react-router-dom";
+// import Cookies from "js-cookie";
 
-export default function Login() {
+Login.propTypes = {
+  setIsAuthenticated: PropTypes.func.isRequired,
+};
+
+export default function Login({ setIsAuthenticated }) {
   const backgroundStyle = {
     backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`, // Relative to public folder
     backgroundSize: "cover",
@@ -15,22 +21,40 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
+  // Login.js
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:3000/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/login", // Verify this port matches your backend
+        {
+          email: email,
+          password: password,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      // console.log("Response:", response); // Add this to debug
 
       if (response.status === 200) {
-        // Redirect to home page on successful login
+        setIsAuthenticated(true);
+        // Get the login ID from the register response
+        const loginId = response.data.loginId;
+        // console.log("Storing loginId in localStorage:", loginId); // Debug line
+        // Store loginId in local storage
+        localStorage.setItem("loginId", loginId);
         navigate("/Home");
       }
     } catch (error) {
+      console.log("Error details:", error.response?.data); // Add this to debug
       setErrorMessage("Login failed, please try again");
-      console.error("Error during login:", error);
     }
   };
 
@@ -75,6 +99,15 @@ export default function Login() {
               <strong>Login</strong>
             </button>
           </form>
+          {/* Add a message and link to the signup page */}
+          <div className="mt-3 text-center">
+            <p>
+              Don't have an account?{" "}
+              <Link to="/Signup" className="text-primary">
+                Sign Up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

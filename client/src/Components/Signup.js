@@ -10,7 +10,7 @@ export default function SignUp() {
     height: "100vh",
     width: "100vw",
   };
-  const [name, setName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,25 +20,51 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simple validation for matching passwords
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match");
       return;
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/register", {
-        name,
-        email,
-        password,
-      });
+      // First register
+      const registerResponse = await axios.post(
+        "http://localhost:8080/registerCustomer",
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
 
-      if (response.status === 200) {
-        // Redirect to home page or login after successful signup
-        navigate("/Login");
+      if (registerResponse.status === 201) {
+        // Automatically log the user in after successful registration
+        const loginResponse = await axios.post(
+          "http://localhost:8080/login",
+          { email, password },
+          { withCredentials: true }
+        );
+
+        if (loginResponse.status === 200) {
+          // Get the login ID from the register response
+          const loginId = loginResponse.data.loginId;
+          console.log("Storing loginId in localStorage:", loginId); // Debug line
+          // Store loginId in local storage
+          localStorage.setItem("loginId", loginId);
+          // Redirect to PersonalInfo page, passing loginId as state
+          navigate("/personal-info", { state: { loginId } });
+        }
       }
     } catch (error) {
-      setErrorMessage("Error occurred, please try again");
+      if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("Error occurred, please try again");
+      }
       console.error("Error during signup:", error);
     }
   };
@@ -49,20 +75,6 @@ export default function SignUp() {
         <div className="bg-white p-4 rounded-4 w-25">
           <h2 className="text-center">Sign Up</h2>
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="name">
-                <strong>Name</strong>
-              </label>
-              <input
-                type="text"
-                placeholder="Name"
-                name="name"
-                className="form-control form-control-md rounded-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
             <div className="mb-3">
               <label htmlFor="email">
                 <strong>Email</strong>
