@@ -10,6 +10,8 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 });
 
+import { geocodeAddress, getOptimizedRoute } from "./route.js";
+
 // Helper function to execute queries
 async function query(sql, params) {
     const [rows] = await pool.execute(sql, params);
@@ -629,6 +631,34 @@ export async function storeBalance(balance) {
     const sql = `INSERT INTO BALANCE (BALANCE) VALUES (?)`
     const [result] = await pool.query(sql, [balance])
     return result.insertId
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
+
+// Starting coordinates locked in for now on school coords
+const START_LAT = 37.337214;
+const START_LNG = -121.882696;
+
+export async function planDeliveryRoute() {
+    const startCoord = { latitude: START_LAT, longitude: START_LNG };
+
+    const deliveryAddresses = [
+        '1016 Johnson Ave, San Jose, CA 95129',
+        '2430 Newhall St, San Jose, CA 95128',
+        // Add more addresses
+    ];
+
+    const deliveryCoords = [];
+    for (const address of deliveryAddresses) {
+        const coord = await geocodeAddress(address);
+        deliveryCoords.push(coord);
+    }
+
+    const routeData = await getOptimizedRoute(startCoord, deliveryCoords);
+
+    return routeData;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//

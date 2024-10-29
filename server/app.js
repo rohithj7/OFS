@@ -48,6 +48,7 @@ import {
   updateCustomerInfo,
   searchProductsByName,
   getProductsByCategory,
+  planDeliveryRoute,
 } from "./database.js";
 import { registerAdmin, registerCustomer } from "./userController.js";
 
@@ -726,6 +727,20 @@ app.post("/balance", async (req, res) => {
   } catch (err) {
     res.status(500).send(err.message);
   }
+});
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
+
+app.get('/route', async (req, res) => {
+    try {
+        const routeData = await planDeliveryRoute();
+        res.json(routeData);
+    } catch (error) {
+        console.error('Error generating route:', error);
+        res.status(500).json({ message: 'Error generating route' });
+    }
 });
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
