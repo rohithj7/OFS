@@ -3,34 +3,14 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 function Orders() {
-  const [orders, setOrders] = useState([
-    // Placeholder data simulating fetched orders
-    {
-      ID: 101,
-      PRICE: 200.0,
-      ORDERDATE: "2024-10-10",
-      ORDER_STATUS: "ONGOING",
-    },
-    {
-      ID: 102,
-      PRICE: 150.0,
-      ORDERDATE: "2024-09-15",
-      ORDER_STATUS: "COMPLETED",
-    },
-    {
-      ID: 103,
-      PRICE: 300.0,
-      ORDERDATE: "2024-08-20",
-      ORDER_STATUS: "COMPLETED",
-    },
-  ]);
-
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showPreviousOrders, setShowPreviousOrders] = useState(false);
-  const [shippingAddress, setShippingAddress] = useState(null); // State to store shipping address
+  const [shippingAddress, setShippingAddress] = useState(null);
+  const [customerInfo, setCustomerInfo] = useState({ id: "" });
   const [error, setError] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Helper function to convert status text
   const renderStatusText = (status) => {
     switch (status) {
       case "NOT STARTED":
@@ -44,48 +24,32 @@ function Orders() {
     }
   };
 
-  const [isHovered, setIsHovered] = useState(false);
-
   useEffect(() => {
-    setLoading(true); // Simulate loading state
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000); // Simulate a delay in fetching the data
-
-    const simulateShippingAddress = () => {
-      setTimeout(() => {
-        // Simulated address data
-        const simulatedAddress = "1234 Main St, San Jose, CA, 95112";
-        setShippingAddress(simulatedAddress);
-      }, 1000);
-    };
-    simulateShippingAddress();
-
-    // Uncomment the below code when the backend API route fully set up
-    /*
-  useEffect(() => {
-    // Fetch orders and shipping address from backend
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const ordersResponse = await axios.get("http://localhost:8080/orders", {
+        const response = await axios.get("http://localhost:8080/sales", {
           withCredentials: true,
         });
-        setOrders(ordersResponse.data);
-        setLoading(false);
+        console.log("Fetched orders:", response.data); // Debug line
+        setOrders(response.data);
       } catch (err) {
         console.error("Error fetching orders:", err);
-        setLoading(false);
         setError("Could not fetch orders.");
+      } finally {
+        setLoading(false);
       }
     };
 
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/userinfo", {
+        const response = await axios.get("http://localhost:8080/customerinfo", {
           withCredentials: true,
         });
         setShippingAddress(response.data.ADDRESS);
+        setCustomerInfo({
+          id: response.data.ID || "N/A",
+        });
       } catch (err) {
         console.error("Error fetching shipping address:", err);
         setError("Could not fetch shipping address.");
@@ -94,20 +58,18 @@ function Orders() {
 
     fetchOrders();
     fetchShippingAddress();
-*/
   }, []);
 
-  // Function to filter current vs. previous orders
-  const currentOrder = orders.filter(
-    (order) => order.ORDER_STATUS === "ONGOING"
-  )[0];
+  // Filter the current and previous orders based on saleStatus
+  const currentOrder = orders.find((order) => order.saleStatus === "ONGOING");
   const previousOrders = orders.filter(
-    (order) => order.ORDER_STATUS !== "ONGOING"
+    (order) => order.saleStatus === "COMPLETED"
   );
 
   return (
     <div>
       <div className="container text-left my-5">
+        {/* Display Current Order */}
         {!showPreviousOrders && (
           <div className="d-flex justify-content-between text-left">
             <div className="flex-grow-1 pe-2">
@@ -116,16 +78,21 @@ function Orders() {
               ) : currentOrder ? (
                 <>
                   <h3 style={{ marginBottom: "40px" }}>Current Order</h3>
-                  <p>Order ID: {currentOrder.ID}</p>
-                  <p>Order Total: ${currentOrder.PRICE.toFixed(2)}</p>
-                  <p>Date: {currentOrder.ORDERDATE}</p>
+                  <p>Customer ID: {customerInfo.id}</p>
+                  <p>Order ID: {currentOrder.saleId}</p>
+                  <p>
+                    Order Total: ${Number(currentOrder.totalPrice).toFixed(2)}
+                  </p>
+                  <p>
+                    Date: {new Date(currentOrder.saleDate).toLocaleDateString()}
+                  </p>
                   <p>
                     <Link
-                      to={`/OrderDetails/${currentOrder.ID}`}
+                      to={`/OrderDetails/${currentOrder.saleId}`}
                       state={{
-                        orderDate: currentOrder.ORDERDATE,
-                        orderStatus: currentOrder.ORDER_STATUS,
-                        orderAmount: currentOrder.PRICE,
+                        orderDate: currentOrder.saleDate,
+                        orderStatus: currentOrder.saleStatus,
+                        orderAmount: currentOrder.totalPrice,
                         shippingAddress: shippingAddress,
                       }}
                     >
@@ -142,13 +109,19 @@ function Orders() {
                 Map Placeholder
               </div>
               <div style={{ marginTop: "20px" }}>
-                <p>Status: {renderStatusText(currentOrder.ORDER_STATUS)}</p>
+                <p>
+                  Status:{" "}
+                  {currentOrder
+                    ? renderStatusText(currentOrder.saleStatus)
+                    : "N/A"}
+                </p>
                 <p>Shipping Address: {shippingAddress || "Loading..."}</p>
               </div>
             </div>
           </div>
         )}
 
+        {/* Button to Toggle between Current and Previous Orders */}
         <button
           className="btn btn-lg bg-mint text-light fw-bold"
           onClick={() => setShowPreviousOrders(!showPreviousOrders)}
@@ -168,43 +141,49 @@ function Orders() {
           {showPreviousOrders ? "Back" : "Order History"}
         </button>
 
+        {/* Display Previous Orders */}
         {showPreviousOrders && (
           <div
             className="previous-orders text-left"
             style={{ textAlign: "left" }}
           >
             <h3 style={{ marginBottom: "40px" }}>Order History</h3>
-            {previousOrders.map((order, index) => (
-              <div
-                key={order.saleId}
-                className="mt-3"
-                style={{
-                  borderBottom:
-                    index !== previousOrders.length - 1
-                      ? "1px solid #ccc"
-                      : "none",
-                }}
-              >
-                <p>Order ID: {order.ID}</p>
-                <p>Order Total: ${order.PRICE.toFixed(2)}</p>
-                <p>Date: {order.ORDERDATE}</p>
-                <p>Status: {renderStatusText(order.ORDER_STATUS)}</p>
-                <p>Shipping Address: {shippingAddress || "Loading..."}</p>
-                <p>
-                  <Link
-                    to={`/OrderDetails/${order.ID}`}
-                    state={{
-                      orderDate: order.ORDERDATE,
-                      orderStatus: order.ORDER_STATUS,
-                      orderAmount: order.PRICE,
-                      shippingAddress: shippingAddress,
-                    }}
-                  >
-                    View Order
-                  </Link>
-                </p>
-              </div>
-            ))}
+            {previousOrders.length > 0 ? (
+              previousOrders.map((order, index) => (
+                <div
+                  key={order.saleId}
+                  className="mt-3"
+                  style={{
+                    borderBottom:
+                      index !== previousOrders.length - 1
+                        ? "1px solid #ccc"
+                        : "none",
+                  }}
+                >
+                  <p>Customer ID: {customerInfo.id}</p>
+                  <p>Order ID: {order.saleId}</p>
+                  <p>Order Total: ${Number(order.totalPrice).toFixed(2)}</p>
+                  <p>Date: {new Date(order.saleDate).toLocaleDateString()}</p>
+                  <p>Status: {renderStatusText(order.saleStatus)}</p>
+                  <p>Shipping Address: {shippingAddress || "Loading..."}</p>
+                  <p>
+                    <Link
+                      to={`/OrderDetails/${order.saleId}`}
+                      state={{
+                        orderDate: order.saleDate,
+                        orderStatus: order.saleStatus,
+                        orderAmount: order.totalPrice,
+                        shippingAddress: shippingAddress,
+                      }}
+                    >
+                      View Order
+                    </Link>
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p>No previous orders</p>
+            )}
           </div>
         )}
       </div>
