@@ -252,93 +252,6 @@ export async function deleteProduct(id) {
     return result.affectedRows > 0;
 }
 
-// Check Product Availability
-export async function checkProductAvailability(products) {
-    const unavailableProducts = [];
-
-    for (const { productId, quantity } of products) {
-        const sql = `
-            SELECT QUANTITY FROM PRODUCTS
-            WHERE ID = ?
-        `;
-        const [product] = await query(sql, [productId]);
-
-        if (!product || product.QUANTITY < quantity) {
-            unavailableProducts.push({ productId, availableQuantity: product ? product.QUANTITY : 0 });
-        }
-    }
-
-    return unavailableProducts;
-}
-
-// Place Sale
-export async function placeSale(customerId, products) {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
-
-        // Insert into SALES table
-        const saleSql = `
-            INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        const totalPrice = await calculateTotalPrice(products);
-        const saleDate = new Date().toISOString().slice(0, 10);
-        const paymentDetails = 'Paid via Stripe'; // Placeholder
-        const saleStatus = 'COMPLETED';
-
-        const [saleResult] = await connection.execute(saleSql, [
-            customerId,
-            totalPrice,
-            saleDate,
-            paymentDetails,
-            saleStatus,
-        ]);
-
-        const saleId = saleResult.insertId;
-
-        // Insert into SALES_PRODUCTS table
-        const saleProductSql = `
-            INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
-            VALUES (?, ?, ?, ?)
-        `;
-
-        for (const { productId, quantity } of products) {
-            const productPrice = await getProductPrice(productId);
-            const price = productPrice * quantity;
-            await connection.execute(saleProductSql, [saleId, productId, quantity, price]);
-        }
-
-        await connection.commit();
-        return { saleId, totalPrice };
-    } catch (error) {
-        await connection.rollback();
-        throw error;
-    } finally {
-        connection.release();
-    }
-}
-
-// Helper function to calculate total price
-async function calculateTotalPrice(products) {
-    let totalPrice = 0;
-    for (const { productId, quantity } of products) {
-        const price = await getProductPrice(productId);
-        totalPrice += price * quantity;
-    }
-    return totalPrice;
-}
-
-// Helper function to get product price
-async function getProductPrice(productId) {
-    const sql = `
-        SELECT PRICE FROM PRODUCTS
-        WHERE ID = ?
-    `;
-    const [product] = await query(sql, [productId]);
-    return product ? product.PRICE : 0;
-}
-
 // Search Products by Name
 export async function searchProductsByName(searchTerm) {
     const sql = `
@@ -486,9 +399,144 @@ export async function getSales() {
     return rows
 }
 
-export async function getSaleById(id) {
-    const [rows] = await pool.query('SELECT * FROM SALES WHERE ID = ?', [id])
-    return rows[0]
+// Function to get sales by customer ID
+export async function getSalesByCustomerId(customerId) {
+    const sql = `
+      SELECT 
+        S.ID AS saleId,
+        S.PRICE AS totalPrice,
+        S.SALEDATE AS saleDate,
+        S.PAYMENTDETAILS AS paymentDetails,
+        S.SALE_STATUS AS saleStatus,
+        SP.PRODUCTID AS productId,
+        SP.QUANTITY AS quantity,
+        SP.PRICE AS productPrice,
+        P.PRODUCTNAME AS productName,
+        P.PICTURE_URL AS pictureUrl
+      FROM SALES S
+      INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
+      INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
+      WHERE S.CUSTOMERID = ?
+      ORDER BY S.SALEDATE DESC, S.ID DESC
+    `;
+    const [rows] = await pool.execute(sql, [customerId]);
+
+    // Organize sales and products into a structured format
+    const salesMap = {};
+
+    for (const row of rows) {
+        const saleId = row.saleId;
+
+        if (!salesMap[saleId]) {
+            salesMap[saleId] = {
+                saleId: row.saleId,
+                totalPrice: row.totalPrice,
+                saleDate: row.saleDate,
+                paymentDetails: row.paymentDetails,
+                saleStatus: row.saleStatus,
+                products: [],
+            };
+        }
+
+        salesMap[saleId].products.push({
+            productId: row.productId,
+            quantity: row.quantity,
+            price: row.productPrice,
+            productName: row.productName,
+            pictureUrl: row.pictureUrl,
+        });
+    }
+
+    // Convert the sales map into an array
+    const sales = Object.values(salesMap);
+    return sales;
+}
+
+// Check Product Availability
+export async function checkProductAvailability(products) {
+    const unavailableProducts = [];
+
+    for (const { productId, quantity } of products) {
+        const sql = `
+            SELECT QUANTITY FROM PRODUCTS
+            WHERE ID = ?
+        `;
+        const [product] = await query(sql, [productId]);
+
+        if (!product || product.QUANTITY < quantity) {
+            unavailableProducts.push({ productId, availableQuantity: product ? product.QUANTITY : 0 });
+        }
+    }
+
+    return unavailableProducts;
+}
+
+// Place Sale
+export async function placeSale(customerId, products) {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Insert into SALES table
+        const saleSql = `
+            INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        const totalPrice = await calculateTotalPrice(products);
+        const saleDate = new Date().toISOString().slice(0, 10);
+        const paymentDetails = 'Paid via Stripe'; // Placeholder
+        const saleStatus = 'COMPLETED';
+
+        const [saleResult] = await connection.execute(saleSql, [
+            customerId,
+            totalPrice,
+            saleDate,
+            paymentDetails,
+            saleStatus,
+        ]);
+
+        const saleId = saleResult.insertId;
+
+        // Insert into SALES_PRODUCTS table
+        const saleProductSql = `
+            INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        for (const { productId, quantity } of products) {
+            const productPrice = await getProductPrice(productId);
+            const price = productPrice * quantity;
+            await connection.execute(saleProductSql, [saleId, productId, quantity, price]);
+        }
+
+        await connection.commit();
+        return { saleId, totalPrice };
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
+// Helper function to calculate total price
+async function calculateTotalPrice(products) {
+    let totalPrice = 0;
+    for (const { productId, quantity } of products) {
+        const price = await getProductPrice(productId);
+        totalPrice += price * quantity;
+    }
+    return totalPrice;
+}
+
+// Helper function to get product price
+async function getProductPrice(productId) {
+    const sql = `
+        SELECT PRICE FROM PRODUCTS
+        WHERE ID = ?
+    `;
+    const [product] = await query(sql, [productId]);
+    return product ? product.PRICE : 0;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
