@@ -428,7 +428,7 @@ app.delete("/products/:id", isAuthenticated, async (req, res) => {
 });
 
 // Product search by name
-app.get("/products/search", async (req, res) => {
+app.get("/product-search", async (req, res) => {
   try {
     const searchTerm = req.query.q;
     if (!searchTerm) {
