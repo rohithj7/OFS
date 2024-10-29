@@ -204,9 +204,6 @@ function App() {
           {/* Public Routes */}
           <Route path="/Signup" element={<Signup />} />
           <Route path="/Home" element={<Home />} />
-          <Route path="/personal-info" element={<PersonalInfo />} />
-
-          {/* Protected Routes */}
           <Route
             path="/Products/Fruits"
             element={<Fruits isAuthenticated={isAuthenticated} />}
@@ -231,6 +228,9 @@ function App() {
             path="/Products/Meals"
             element={<Meals isAuthenticated={isAuthenticated} />}
           />
+
+          {/* Protected Routes */}
+          <Route path="/personal-info" element={<PersonalInfo />} />
           <Route
             path="/Account"
             element={
