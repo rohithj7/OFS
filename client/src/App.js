@@ -18,6 +18,7 @@ import Meats from "./Components/Products/Meats";
 import Dairy from "./Components/Products/Dairy";
 import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
+import DeliveryRoutePage from './Components/DeliveryRoutePage';
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -205,6 +206,7 @@ function App() {
           <Route path="/Signup" element={<Signup />} />
           <Route path="/Home" element={<Home />} />
           <Route path="/personal-info" element={<PersonalInfo />} />
+          <Route path="/delivery-route" element={<DeliveryRoutePage />} />
 
           {/* Protected Routes */}
           <Route
