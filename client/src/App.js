@@ -103,6 +103,54 @@ function App() {
               <ul className="navbar-nav ms-auto">
                 {isAuthenticated ? (
                   <>
+                    {/* Dropdown menu for Categories */}
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle btn me-2"
+                        href="#"
+                        id="navbarDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        Categories
+                      </a>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="navbarDropdown"
+                      >
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Fruits">
+                            Fruits
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Vegetables">
+                          Vegetables
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meats">
+                            Meats
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Dairy">
+                            Dairy
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Snacks">
+                            Snacks
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meals">
+                            Meals
+                          </Link>
+                        </li>
+                      </ul>
+                    </li>
                     <button
                       className="btn me-2"
                       type="button"
@@ -151,6 +199,54 @@ function App() {
                   </>
                 ) : (
                   <>
+                    {/* Dropdown menu for Categories */}
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle btn me-2"
+                        href="#"
+                        id="navbarDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        Categories
+                      </a>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="navbarDropdown"
+                      >
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Fruits">
+                            Fruits
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Vegetables">
+                          Vegetables
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meats">
+                            Meats
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Dairy">
+                            Dairy
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Snacks">
+                            Snacks
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meals">
+                            Meals
+                          </Link>
+                        </li>
+                      </ul>
+                    </li>
                     <button className="btn me-2" type="button">
                       Cart
                     </button>
