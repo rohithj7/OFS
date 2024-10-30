@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-export default function Fruits() {
+export default function Fruits({ addToCart }) {
   const [theData, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,9 +80,9 @@ export default function Fruits() {
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
                       <circle cx="11" cy="11" r="8"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -124,7 +124,10 @@ export default function Fruits() {
                       : "Price not available"}
                   </div>
                   <div className="d-flex justify-content-center mt-3">
-                    <Link className="btn btn-sm btn bg-green text-light fw-bolder">
+                    <button
+                      className="btn btn-sm btn bg-green text-light fw-bolder"
+                      onClick={() => addToCart(product)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -140,7 +143,7 @@ export default function Fruits() {
                         />
                       </svg>
                       Add
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -247,7 +250,14 @@ export default function Fruits() {
                             <div class="mt-4 justify-content-start g-2 align-items-center row">
                               <div class="d-grid col-lg-4 col-md-5 col-6">
                                 {/* Add to cart button */}
-                                <button type="button" class="btn btn-green">
+                                <button
+                                  type="button"
+                                  className="btn btn-green"
+                                  onClick={() => {
+                                    addToCart(selectedProduct);
+                                    toggleModal(); // Close the modal after adding to cart
+                                  }}
+                                >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="16"

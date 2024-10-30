@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
 
 const PersonalInfo = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const loginId = location.state?.loginId;
 
   const [formData, setFormData] = useState({
-    loginId: loginId,
     firstName: "",
     lastName: "",
     phone: "",
@@ -16,13 +13,6 @@ const PersonalInfo = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (!loginId) {
-      setErrorMessage("Missing login ID. Please try signing up again.");
-    }
-    console.log("LoginId received:", loginId);
-  }, [loginId]);
 
   const handleChange = (e) => {
     setFormData({
@@ -33,11 +23,6 @@ const PersonalInfo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!loginId) {
-      setErrorMessage("Missing login ID. Please try signing up again.");
-      return;
-    }
 
     try {
       const requestData = {
