@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Account() {
-  const loginId = localStorage.getItem("loginId"); // Retrieve loginId from localStorage
-  // console.log("loginId from localStorage:", loginId); // Debug line
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -16,33 +13,25 @@ export default function Account() {
 
   // Fetch customer info when the component loads
   useEffect(() => {
-    if (loginId) {
-      const fetchCustomerInfo = async () => {
-        try {
-          const response = await axios.get(
-            "http://localhost:8080/customerinfo",
-            { withCredentials: true }
-          );
+    const fetchCustomerInfo = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/customerinfo", {
+          withCredentials: true,
+        });
 
-          // console.log("Fetched data:", response.data); // Debug line
-
-          setFormData({
-            firstName: response.data.FIRSTNAME || "",
-            lastName: response.data.LASTNAME || "",
-            phone: response.data.PHONE || "",
-            address: response.data.ADDRESS || "",
-          });
-        } catch (error) {
-          console.error("Error fetching customer info:", error);
-          setErrorMessage("Failed to load customer information.");
-        }
-      };
-      fetchCustomerInfo();
-    } else {
-      console.error("No loginId found in localStorage.");
-      setErrorMessage("No user logged in. Please log in again.");
-    }
-  }, [loginId]);
+        setFormData({
+          firstName: response.data.FIRSTNAME || "",
+          lastName: response.data.LASTNAME || "",
+          phone: response.data.PHONE || "",
+          address: response.data.ADDRESS || "",
+        });
+      } catch (error) {
+        console.error("Error fetching customer info:", error);
+        setErrorMessage("Failed to load customer information.");
+      }
+    };
+    fetchCustomerInfo();
+  }, []);
 
   // Handle input changes for form
   const handleChange = (e) => {
@@ -55,10 +44,7 @@ export default function Account() {
   // Submit updated info to backend
   const handleSave = async () => {
     try {
-      // Get loginId from localStorage
-      const loginId = localStorage.getItem("loginId");
       const requestData = {
-        loginId: loginId ? parseInt(loginId) : null, // Convert to integer, or set to null if missing
         firstName: formData.firstName || null,
         lastName: formData.lastName || null,
         phone: formData.phone || null,
@@ -66,8 +52,6 @@ export default function Account() {
         latitude: null,
         longitude: null,
       };
-
-      // console.log("Sending data to server:", requestData);
 
       const response = await axios.put(
         "http://localhost:8080/customerinfo",
@@ -90,7 +74,6 @@ export default function Account() {
 
   return (
     <div>
-      {/* Account information Section */}
       <div className="container text-center my-5">
         <div className="card border-0">
           <div className="card-body ms-5">
@@ -170,11 +153,9 @@ export default function Account() {
               </div>
             </form>
 
-            {/* Messages */}
             {errorMessage && <p className="text-danger">{errorMessage}</p>}
             {successMessage && <p className="text-success">{successMessage}</p>}
 
-            {/* Save Button */}
             <div className="d-grid gap-2 d-md-flex justify-content-md-end me-5">
               <button
                 onClick={handleSave}
