@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
-// import Cookies from "js-cookie";
 
 Login.propTypes = {
   setIsAuthenticated: PropTypes.func.isRequired,
@@ -10,7 +9,7 @@ Login.propTypes = {
 
 export default function Login({ setIsAuthenticated }) {
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`, // Relative to public folder
+    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",
@@ -21,17 +20,13 @@ export default function Login({ setIsAuthenticated }) {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  // Login.js
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/login", // Verify this port matches your backend
-        {
-          email: email,
-          password: password,
-        },
+        "http://localhost:8080/login",
+        { email, password },
         {
           withCredentials: true,
           headers: {
@@ -41,19 +36,12 @@ export default function Login({ setIsAuthenticated }) {
         }
       );
 
-      // console.log("Response:", response); // Add this to debug
-
       if (response.status === 200) {
-        setIsAuthenticated(true);
-        // Get the login ID from the register response
-        const loginId = response.data.loginId;
-        // console.log("Storing loginId in localStorage:", loginId); // Debug line
-        // Store loginId in local storage
-        localStorage.setItem("loginId", loginId);
-        navigate("/Home");
+        setIsAuthenticated(true); // Update auth state
+        navigate("/Home"); // Navigate to the home page
       }
     } catch (error) {
-      console.log("Error details:", error.response?.data); // Add this to debug
+      console.log("Error details:", error.response?.data);
       setErrorMessage("Login failed, please try again");
     }
   };
@@ -99,7 +87,6 @@ export default function Login({ setIsAuthenticated }) {
               <strong>Login</strong>
             </button>
           </form>
-          {/* Add a message and link to the signup page */}
           <div className="mt-3 text-center">
             <p>
               Don't have an account?{" "}

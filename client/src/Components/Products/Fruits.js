@@ -315,7 +315,6 @@ export default function Fruits() {
           </div>
         </div>
       )}
-  
     </div>
   );
 }

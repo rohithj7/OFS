@@ -2,7 +2,7 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -37,7 +37,7 @@ import {
   deleteSupplier,
   getCustomers,
   getCustomerById,
-  createCustomer,
+  getSalesByCustomerId,
   deleteCustomer,
   getSales,
   getBalance,
@@ -367,8 +367,8 @@ app.delete("/employee-hours/:id", async (req, res) => {
 
 // --------------------------------------------------------------- PRODUCTS -----------------------------------------------------------------------//
 
-// Get all products (authenticated route)
-app.get("/products", isAuthenticated, async (req, res) => {
+// Get all products
+app.get("/products", async (req, res) => {
   try {
     const products = await getProducts();
     res.json(products);
@@ -391,7 +391,8 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
-app.post("/products", async (req, res) => {
+// Apply authentication middleware to the routes
+app.post("/products", isAuthenticated, async (req, res) => {
   try {
     const newProduct = await createProduct(req.body);
     res.status(201).json(newProduct);
@@ -400,7 +401,7 @@ app.post("/products", async (req, res) => {
   }
 });
 
-app.put("/products/:id", async (req, res) => {
+app.put("/products/:id", isAuthenticated, async (req, res) => {
   try {
     const updatedProduct = await updateProduct(req.params.id, req.body);
     if (updatedProduct) {
@@ -413,7 +414,7 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", isAuthenticated, async (req, res) => {
   try {
     const deletedProduct = await deleteProduct(req.params.id);
     if (deletedProduct) {
@@ -427,7 +428,7 @@ app.delete("/products/:id", async (req, res) => {
 });
 
 // Product search by name
-app.get("/products/search", async (req, res) => {
+app.get("/product-search", async (req, res) => {
   try {
     const searchTerm = req.query.q;
     if (!searchTerm) {
@@ -520,8 +521,8 @@ app.delete("/suppliers/:id", async (req, res) => {
 
 // -------------------------------------------------------------- CUSTOMERS -----------------------------------------------------------------------//
 
-// CUSTOMERS routes
-app.get("/customers", async (req, res) => {
+// Get all customers
+app.get("/customers", isAuthenticated, async (req, res) => {
   try {
     const customers = await getCustomers();
     res.json(customers);
@@ -530,25 +531,19 @@ app.get("/customers", async (req, res) => {
   }
 });
 
-app.get("/customers/:id", async (req, res) => {
+//get cusotmer info
+app.get('/customerinfo', isAuthenticated, async (req, res) => {
   try {
-    const customer = await getCustomerById(req.params.id);
+    const loginId = req.user.ID;
+    const customer = await getCustomerById(loginId);
     if (customer) {
       res.json(customer);
     } else {
-      res.status(404).send("Customer not found");
+      res.status(404).json({ message: 'Customer not found' });
     }
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-app.post("/customers", async (req, res) => {
-  try {
-    const newCustomer = await createCustomer(req.body);
-    res.status(201).json(newCustomer);
-  } catch (err) {
-    res.status(500).send(err.message);
+  } catch (error) {
+    console.error('Error fetching customer info:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -590,7 +585,7 @@ app.delete("/customers/:id", async (req, res) => {
 // ---------------------------------------------------------------- SALES -------------------------------------------------------------------------//
 
 // SALES routes
-app.get("/sales", async (req, res) => {
+app.get("/all_sales", async (req, res) => {
   try {
     const sales = await getSales();
     res.json(sales);
@@ -599,25 +594,26 @@ app.get("/sales", async (req, res) => {
   }
 });
 
-app.get("/sales/:id", async (req, res) => {
+// Route to get all sales for the authenticated customer
+app.get('/sales', isAuthenticated, async (req, res) => {
   try {
-    const sale = await getSaleById(req.params.id);
-    if (sale) {
-      res.json(sale);
-    } else {
-      res.status(404).send("Sale not found");
-    }
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
+    const loginId = req.user.ID;
 
-app.post("/sales", async (req, res) => {
-  try {
-    const newSale = await createSale(req.body);
-    res.status(201).json(newSale);
-  } catch (err) {
-    res.status(500).send(err.message);
+    // Get the customer associated with this loginId
+    const customer = await getCustomerById(loginId);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found.' });
+    }
+
+    const customerId = customer.ID;
+
+    // Get all sales for this customer
+    const sales = await getSalesByCustomerId(customerId);
+
+    res.json(sales);
+  } catch (error) {
+    console.error('Error fetching sales:', error);
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
@@ -651,7 +647,7 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
 app.post("/place-sale", isAuthenticated, async (req, res) => {
   try {
     const products = req.body.products; // [{ productId, quantity }, ...]
-    if (!products || !Array.isArray(products)) {
+    if (!products || !Array.isArray(products) || products.length <= 0) {
       return res.status(400).json({ message: "Invalid products data." });
     }
 
@@ -667,7 +663,7 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
 
     // Get customer ID
     const loginId = req.user.ID;
-    const customer = await getCustomerByLoginId(loginId);
+    const customer = await getCustomerById(loginId);
 
     // Place the sale
     const saleResult = await placeSale(customer.ID, products);
@@ -680,29 +676,6 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error placing sale:", error);
     res.status(500).json({ message: "Internal server error." });
-  }
-});
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------//
-
-// ------------------------------------------------------------ SALES PRODUCTS --------------------------------------------------------------------//
-
-// SALES_PRODUCTS routes
-app.get("/sales-products", async (req, res) => {
-  try {
-    const salesProducts = await getSalesProducts();
-    res.json(salesProducts);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-app.post("/sales-products", async (req, res) => {
-  try {
-    const newSalesProduct = await createSalesProduct(req.body);
-    res.status(201).json(newSalesProduct);
-  } catch (err) {
-    res.status(500).send(err.message);
   }
 });
 
@@ -726,29 +699,6 @@ app.post("/orders", async (req, res) => {
   try {
     const newOrder = await createOrder(req.body);
     res.status(201).json(newOrder);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------//
-
-// ------------------------------------------------------------ ORDERS PORODUCTS ------------------------------------------------------------------//
-
-// ORDERS_PRODUCTS routes
-app.get("/orders-products", async (req, res) => {
-  try {
-    const ordersProducts = await getOrdersProducts();
-    res.json(ordersProducts);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-app.post("/orders-products", async (req, res) => {
-  try {
-    const newOrderProduct = await createOrderProduct(req.body);
-    res.status(201).json(newOrderProduct);
   } catch (err) {
     res.status(500).send(err.message);
   }
