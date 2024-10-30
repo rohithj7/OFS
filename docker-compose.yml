@@ -1,0 +1,44 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"  # Pulls from environment in workflow
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+    volumes:
+      - ./database/db.sql:/docker-entrypoint-initdb.d/init.sql  # Load the SQL file at startup
+    ports:
+      - "3307:3306"
+    networks:
+      - ofs-network
+
+  backend:
+    build: ./server
+    container_name: backend_container
+    environment:
+      MYSQL_HOST: "${MYSQL_HOST}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      SESSION_SECRET: "${SESSION_SECRET}"
+      PORT: "${PORT}"
+    volumes:
+      - ./server:/app/OFS/server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - ofs-network
+
+  frontend:
+    build: ./client
+    container_name: frontend_container
+    ports:
+      - "3000:80"
+    networks:
+      - ofs-network
+
+networks:
+  ofs-network:
+    driver: bridge
