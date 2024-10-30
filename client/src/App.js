@@ -18,6 +18,8 @@ import Meats from "./Components/Products/Meats";
 import Dairy from "./Components/Products/Dairy";
 import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
+import Checkout from "./Components/Checkout";
+import DeliveryRoutePage from './Components/DeliveryRoutePage';
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -39,8 +41,6 @@ function App() {
     }
   };
 
-  console.log("Current isAuthenticated state:", isAuthenticated); // Logs the state on every render
-
   // ProtectedRoute component
   const ProtectedRoute = ({ isAuthenticated, children }) => {
     if (!isAuthenticated) {
@@ -57,26 +57,94 @@ function App() {
     children: PropTypes.node.isRequired,
   };
 
-  // const minusButton = document.getElementsByClassName('button-minus');
-  // const plusButton = document.getElementsByClassName('button-plus');
-  const inputField = document.getElementsByClassName("quantity-input");
+  /****** shopping cart *******/
+  const [cart, setCart] = useState([]); // Cart state
 
-  // when the minus button or the plus button is clicked, the input field with the number (quantity of a certain product) should be incremented
-  // does not work properly yet
-  const handleMinus = async (e) => {
-    e.preventDefault();
-    const currentValue = Number(inputField.value) || 0;
-    // console.log(currentValue);
-    inputField.value = currentValue - 1;
-    console.log(inputField.value);
+  // Function to add a product to the cart
+  const addToCart = (product) => {
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find((item) => item.ID === product.ID);
+      if (existingProduct) {
+        return prevCart.map((item) =>
+          item.ID === product.ID
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [...prevCart, { ...product, quantity: 1 }];
+      }
+    });
   };
 
-  const handlePlus = async (e) => {
-    e.preventDefault();
-    const currentValue = Number(inputField.value) || 0;
-    // console.log(currentValue);
-    inputField.value = currentValue + 1;
-    console.log(inputField.value);
+  // Function to increment quantity
+  const incrementQuantity = (productId) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.ID === productId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  // Function to decrement quantity
+  const decrementQuantity = (productId) => {
+    setCart((prevCart) =>
+      prevCart
+        .map((item) =>
+          item.ID === productId
+            ? { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  // Function to remove an item from the cart
+  const removeFromCart = (productId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.ID !== productId));
+  };
+
+  // place sales
+  const proceedToCheckout = async () => {
+    // Ensure cart has defined productId and quantity for each item
+    const products = cart.map((item) => ({
+      productId: item.ID, // Map item.ID to productId
+      quantity: item.quantity,
+    }));
+
+    console.log("Products to checkout:", products);
+
+    if (products.length === 0) {
+      alert("Your cart is empty or contains invalid items.");
+      return;
+    }
+
+    try {
+      // Call the /checkout route first to verify availability
+      const checkResponse = await axios.post(
+        "http://localhost:8080/checkout",
+        { products },
+        { withCredentials: true }
+      );
+      if (checkResponse.status === 200) {
+        // If all products are available, proceed to place-sale
+        const saleResponse = await axios.post(
+          "http://localhost:8080/place-sale",
+          { products },
+          { withCredentials: true }
+        );
+        if (saleResponse.status === 200) {
+          alert("Sale placed successfully!");
+          // Clear the cart
+          setCart([]);
+        }
+      }
+    } catch (error) {
+      console.error("Checkout or Sale placement error:", error);
+      alert(
+        error.response?.data.message ||
+          "There was an error processing your request."
+      );
+    }
   };
 
   return (
@@ -103,6 +171,57 @@ function App() {
               <ul className="navbar-nav ms-auto">
                 {isAuthenticated ? (
                   <>
+                    {/* Dropdown menu for Categories */}
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle btn me-2"
+                        href="#"
+                        id="navbarDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        Categories
+                      </a>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="navbarDropdown"
+                      >
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Fruits">
+                            Fruits
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            className="dropdown-item"
+                            to="/Products/Vegetables"
+                          >
+                            Vegetables
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meats">
+                            Meats
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Dairy">
+                            Dairy
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Snacks">
+                            Snacks
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meals">
+                            Meals
+                          </Link>
+                        </li>
+                      </ul>
+                    </li>
                     <button
                       className="btn me-2"
                       type="button"
@@ -111,7 +230,7 @@ function App() {
                       role="button"
                       aria-controls="offcanvasShoppingCart"
                     >
-                      Cart
+                      Cart ({cart.length})
                     </button>
                     {/* Dropdown menu for My Account */}
                     <li className="nav-item dropdown">
@@ -151,6 +270,57 @@ function App() {
                   </>
                 ) : (
                   <>
+                    {/* Dropdown menu for Categories */}
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle btn me-2"
+                        href="#"
+                        id="navbarDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        Categories
+                      </a>
+                      <ul
+                        className="dropdown-menu"
+                        aria-labelledby="navbarDropdown"
+                      >
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Fruits">
+                            Fruits
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            className="dropdown-item"
+                            to="/Products/Vegetables"
+                          >
+                            Vegetables
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meats">
+                            Meats
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Dairy">
+                            Dairy
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Snacks">
+                            Snacks
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/Products/Meals">
+                            Meals
+                          </Link>
+                        </li>
+                      </ul>
+                    </li>
                     <button className="btn me-2" type="button">
                       Cart
                     </button>
@@ -202,14 +372,18 @@ function App() {
           />
 
           {/* Public Routes */}
+          <Route path="/Checkout" element={<Checkout />} />
           <Route path="/Signup" element={<Signup />} />
           <Route path="/Home" element={<Home />} />
           <Route path="/personal-info" element={<PersonalInfo />} />
+          <Route path="/delivery-route" element={<DeliveryRoutePage />} />
 
           {/* Protected Routes */}
           <Route
             path="/Products/Fruits"
-            element={<Fruits isAuthenticated={isAuthenticated} />}
+            element={
+              <Fruits addToCart={addToCart} isAuthenticated={isAuthenticated} />
+            }
           />
           <Route
             path="/Products/Vegetables"
@@ -231,6 +405,9 @@ function App() {
             path="/Products/Meals"
             element={<Meals isAuthenticated={isAuthenticated} />}
           />
+
+          {/* Protected Routes */}
+          <Route path="/personal-info" element={<PersonalInfo />} />
           <Route
             path="/Account"
             element={
@@ -257,366 +434,164 @@ function App() {
           />
         </Routes>
 
-        {/* Shopping cart sidebar  */}
-        {/* when the Cart button is selected, this will open up (this is done through these specifications for the cart button: data-bs-toggle="offcanvas" href="#offcanvasShoppingCart") */}
+        {/* Shopping Cart Sidebar */}
         <div
-          class="offcanvas offcanvas-end w-50 border-box"
-          tabindex="-1"
+          className="offcanvas offcanvas-end w-50 border-box"
+          tabIndex="-1"
           id="offcanvasShoppingCart"
           aria-labelledby="offcanvasShoppingCartLabel"
         >
-          {/* offcanvas => gives the darkened background when the sidebar is opened; offcanvas-end => the sidebar opens up on the right side */}
-          {/* w-50 => sidebar will at all times be 50% of the screen size */}
-          <div class="border-bottom offcanvas-header">
-            {" "}
-            {/* border-bottom => there will be a border (gray line) underneath the header */}
-            <div class="text-start">
-              {" "}
-              {/* text-start => any text begins at the left */}
-              <h5 class="mb-0 fs-4">Shopping Cart</h5>{" "}
-              {/* mb-0 => no margin bottom; fs-4 => font size for text */}
-              {/* <small>Location in 382480</small> */}
+          <div className="border-bottom offcanvas-header">
+            <div className="text-start">
+              <h5 className="mb-0 fs-4">Shopping Cart</h5>
             </div>
             <button
               type="button"
-              class="btn-close text-reset"
+              className="btn-close text-reset"
               data-bs-dismiss="offcanvas"
               aria-label="Close"
-            ></button>{" "}
-            {/* X button (close button) on top right corner that closes the sidebar */}
+            ></button>
           </div>
-          <div class="offcanvas-body">
-            {/* alert banner for free delivery alert if customer is eligible */}
-            <div role="alert" class="p-2 alert alert-custom border-green">
+          <div className="offcanvas-body">
+            <div role="alert" className="p-2 alert alert-custom border-green">
               You’ve got FREE delivery. Start{" "}
-              <a class="alert-link" href="#!">
+              <a className="alert-link" href="#!">
                 checkout now!
               </a>
             </div>
-            {/* p-2 => padding size; alert-custom => css specifications are in App.css file */}
 
-            {/* list for products in shoping cart */}
-            <ul class="list-group list-group-flush">
-              {" "}
-              {/* list-group-flush => remove some borders and rounded corners to render list group items: https://getbootstrap.com/docs/5.3/components/list-group/#flush */}
-              <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
-                {/* justify-content-between => gives space in between each of the following direct child elements (in this case the div elements that are immediate children) */}
-                {/* border-bottom => gray border underneath/after each list-item (after each product) */}
-
-                {/* product image */}
-                <div class="col-md-2 col-lg-2 col-4">
-                  <img
-                    src="/Assets/cheddar cheese.jpeg"
-                    class="img-fluid rounded-3"
-                  ></img>{" "}
-                  {/* img-fluid => this is what allows the image to be much smaller than it's actual dimensions */}
-                </div>
-
-                {/* simple product description (name, etc.) */}
-                <div class="col-md-3 col-lg-3 col-xl-3">
-                  {/* (column) size of this production description section based on the screen size (md => medium-sized screen, lg => large-sized screen) */}
-                  <h6 class="text-muted">Dairy</h6>
-                  <h6 class="mb-0">Cheddar Cheese</h6>
-
-                  {/* option to remove product from shopping cart */}
-                  <div class="mt-2 small lh-1">
-                    <a class="text-decoration-none text-inherit" href="#!">
-                      <span class="me-1 align-text-bottom">
-                        {/* trash can icon */}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="text-danger"
-                        >
-                          {" "}
-                          {/* text-danger => gives the icon a red color */}
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </span>
-                      <span class="text-muted">Remove</span>
-                    </a>
+            <ul className="list-group list-group-flush">
+              {cart.map((item) => (
+                <li
+                  key={item.ID}
+                  className="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item"
+                >
+                  <div className="col-md-2 col-lg-2 col-4">
+                    <img
+                      src={`/Assets/${item.PICTURE_URL}`}
+                      className="img-fluid rounded-3"
+                      alt={item.PRODUCTNAME}
+                    />
                   </div>
-                </div>
-
-                {/* plus minus button (for changing the quantity of a product) */}
-                <div class="col-lg-3 col-md-4 col-4">
-                  <div class="input-spinner input-group input-group-sm">
-                    <input
-                      class="button-minus btn btn-sm btn-number border"
-                      type="button"
-                      value="-"
-                    ></input>{" "}
-                    {/* minus */}
-                    <input
-                      class="form-control form-control-sm form-input border"
-                      type="number"
-                      min="1"
-                      name="quantity"
-                    ></input>{" "}
-                    {/* input field for quantity */}
-                    <input
-                      class="button-plus btn btn-sm btn-number border"
-                      type="button"
-                      value="+"
-                    ></input>{" "}
-                    {/* plus */}
+                  <div className="col-md-3 col-lg-3 col-xl-3">
+                    <h6 className="text-muted">{item.CATEGORY}</h6>
+                    <h6 className="mb-0">{item.PRODUCTNAME}</h6>
+                    <div className="mt-2 small lh-1">
+                      <a
+                        className="text-decoration-none text-inherit"
+                        href="#!"
+                        onClick={() => removeFromCart(item.ID)}
+                      >
+                        <span className="text-muted">Remove</span>
+                      </a>
+                    </div>
                   </div>
-                </div>
-
-                {/* total cost for current product */}
-                <div class="text-center col-md-2 col-2">
-                  <span class="fw-bold">$86.40</span>
-                </div>
-              </li>
-              <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
-                <div class="col-md-2 col-lg-2 col-4">
-                  <img
-                    src="/Assets/bananas.jpg"
-                    class="img-fluid rounded-3"
-                  ></img>
-                </div>
-                <div class="col-md-3 col-lg-3 col-xl-3">
-                  <h6 class="text-muted">Fruits</h6>
-                  <h6 class="mb-0">Bananas</h6>
-                  <div class="mt-2 small lh-1">
-                    <a class="text-decoration-none text-inherit" href="#!">
-                      <span class="me-1 align-text-bottom">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="text-danger"
-                        >
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </span>
-                      <span class="text-muted">Remove</span>
-                    </a>
+                  <div className="col-lg-3 col-md-4 col-4">
+                    <div className="input-spinner input-group input-group-sm">
+                      <input
+                        className="button-minus btn btn-sm border"
+                        type="button"
+                        value="-"
+                        onClick={() => decrementQuantity(item.ID)}
+                      />
+                      <input
+                        className="form-control form-control-sm form-input border text-center"
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        readOnly
+                      />
+                      <input
+                        className="button-plus btn btn-sm border"
+                        type="button"
+                        value="+"
+                        onClick={() => incrementQuantity(item.ID)}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-4">
-                  <div class="input-spinner input-group input-group-sm">
-                    <input
-                      class="button-minus btn btn-sm border"
-                      type="button"
-                      value="-"
-                    ></input>
-                    <input
-                      class="form-control form-control-sm form-input border"
-                      type="number"
-                      min="1"
-                      name="quantity"
-                    ></input>
-                    <input
-                      class="button-plus btn btn-sm border"
-                      type="button"
-                      value="+"
-                    ></input>
+                  <div className="text-center col-md-2 col-2">
+                    <span className="fw-bold">
+                      ${(item.PRICE * item.quantity).toFixed(2)}
+                    </span>
                   </div>
-                </div>
-                <div class="text-center col-md-2 col-2">
-                  <span class="fw-bold">$86.40</span>
-                </div>
-              </li>
-              <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
-                <div class="col-md-2 col-lg-2 col-4">
-                  <img
-                    src="/Assets/carrots.jpeg"
-                    class="img-fluid rounded-3"
-                  ></img>
-                </div>
-                <div class="col-md-3 col-lg-3 col-xl-3">
-                  <h6 class="text-muted">Vegetables</h6>
-                  <h6 class="mb-0">Carrots</h6>
-                  <div class="mt-2 small lh-1">
-                    <a class="text-decoration-none text-inherit" href="#!">
-                      <span class="me-1 align-text-bottom">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="text-danger"
-                        >
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </span>
-                      <span class="text-muted">Remove</span>
-                    </a>
-                  </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-4">
-                  <div class="input-spinner input-group input-group-sm">
-                    <input
-                      class="button-minus btn btn-sm border"
-                      type="button"
-                      value="-"
-                    ></input>
-                    <input
-                      class="form-control form-control-sm form-input border"
-                      type="number"
-                      min="1"
-                      name="quantity"
-                    ></input>
-                    <input
-                      class="button-plus btn btn-sm border"
-                      type="button"
-                      value="+"
-                    ></input>
-                  </div>
-                </div>
-                <div class="text-center col-md-2 col-2">
-                  <span class="fw-bold">$86.40</span>
-                </div>
-              </li>
-              <li class="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item">
-                <div class="col-md-2 col-lg-2 col-4">
-                  <img
-                    src="/Assets/whole milk.jpeg"
-                    class="img-fluid rounded-3"
-                  ></img>
-                </div>
-                <div class="col-md-3 col-lg-3 col-xl-3">
-                  <h6 class="text-muted">Dairy</h6>
-                  <h6 class="mb-0">Whole Milk</h6>
-                  <div class="mt-2 small lh-1">
-                    <a class="text-decoration-none text-inherit" href="#!">
-                      <span class="me-1 align-text-bottom">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="text-danger"
-                        >
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </span>
-                      <span class="text-muted">Remove</span>
-                    </a>
-                  </div>
-                </div>
-                <div class="col-lg-3 col-md-4 col-4">
-                  <div class="input-spinner input-group input-group-sm">
-                    <input
-                      class="button-minus btn btn-sm border"
-                      onClick={handleMinus}
-                      type="button"
-                      value="-"
-                    ></input>
-                    <input
-                      class="form-control form-control-sm form-input border quantity-input"
-                      type="number"
-                      min="1"
-                      name="quantity"
-                    ></input>
-                    <input
-                      class="button-plus btn btn-sm border"
-                      onClick={handlePlus}
-                      type="button"
-                      value="+"
-                    ></input>
-                  </div>
-                </div>
-                <div class="text-center col-md-2 col-2">
-                  <span class="fw-bold">$86.40</span>
-                </div>
-              </li>
+                </li>
+              ))}
             </ul>
 
-            {/* option to remove all items from shopping cart */}
             <div className="d-grid gap-2 mt-2">
-              <button type="button" class="btn btn-green fw-bold">
+              <button
+                type="button"
+                className="btn btn-green fw-bold"
+                onClick={() => setCart([])}
+              >
                 Remove All
               </button>
             </div>
 
-            <h2 class="h5 mt-3 mb-3">Summary</h2>
-            <div class="mb-3 card">
-              {" "}
-              {/* card=> a flexible and extensible content container (more information: https://getbootstrap.com/docs/5.3/components/card) */}
-              <div class="list-group list-group-flush">
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                  <div class="me-auto">
-                    <div class="">Item Subtotal</div>
-                  </div>
-                  <span class="">$179.95</span>
+            <h2 className="h5 mt-3 mb-3">Summary</h2>
+            <div className="mb-3 card">
+              <div className="list-group list-group-flush">
+                <div className="d-flex justify-content-between align-items-start list-group-item">
+                  <div className="me-auto">Item Subtotal</div>
+                  <span>
+                    $
+                    {cart
+                      .reduce(
+                        (total, item) => total + item.PRICE * item.quantity,
+                        0
+                      )
+                      .toFixed(2)}
+                  </span>
                 </div>
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                  <div class="me-auto">
-                    <div class="">Total Weight</div>
-                  </div>
-                  <span class="">12 pounds</span>
+                <div className="d-flex justify-content-between align-items-start list-group-item">
+                  <div className="me-auto">Total Weight</div>
+                  <span>
+                    {cart
+                      .reduce(
+                        (total, item) => total + item.WEIGHT * item.quantity,
+                        0
+                      )
+                      .toFixed(2)}{" "}
+                    ounces
+                  </span>
                 </div>
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                  <div class="me-auto">
-                    <div class="">Cart Size</div>
-                  </div>
-                  <span class="">10</span>
+                <div className="d-flex justify-content-between align-items-start list-group-item">
+                  <div className="me-auto">Cart Size</div>
+                  <span>{cart.length}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                  <div class="me-auto">
-                    <div class="">Shipping Fee</div>
-                  </div>
-                  <span class="">$0.00</span>
+                <div className="d-flex justify-content-between align-items-start list-group-item">
+                  <div className="me-auto">Shipping Fee</div>
+                  <span>$0.00</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-start list-group-item">
-                  <div class="me-auto">
-                    <div class="fw-bold">Subtotal</div>
-                  </div>
-                  <span class="fw-bold">$212.34</span>
+                <div className="d-flex justify-content-between align-items-start list-group-item">
+                  <div className="me-auto fw-bold">Subtotal</div>
+                  <span className="fw-bold">
+                    $
+                    {cart
+                      .reduce(
+                        (total, item) => total + item.PRICE * item.quantity,
+                        0
+                      )
+                      .toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* option to remove all items from shopping cart */}
-            <div class="d-flex justify-content-between mt-4">
-              {" "}
-              {/* more information on flex behavior => https://getbootstrap.com/docs/5.3/utilities/flex/#enable-flex-behaviors */}
+            <div className="d-flex justify-content-between mt-4">
               <button
                 type="button"
-                class="btn btn-mint"
+                className="btn btn-mint"
                 data-bs-dismiss="offcanvas"
                 aria-label="Close"
               >
                 Continue Shopping
               </button>
-              <button type="button" class="btn btn-pastelblue">
+              <button
+                type="button"
+                className="btn btn-pastelblue"
+                onClick={proceedToCheckout}
+              >
                 Proceed To Checkout
               </button>
             </div>
