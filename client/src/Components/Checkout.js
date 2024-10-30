@@ -13,37 +13,89 @@ export default function Checkout() {
                 <div class="row">
                     <div class="col-lg-6 col-md-12 ms-lg-3 ms-xl-5">
                         <div id="accordionFlushExample" class="accordion accordion-flush border-box">
-                        <div class="py-4 accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <a class="fs-5 text-inherit h4" href="">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
-                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                                <circle cx="12" cy="10" r="3"></circle>
-                                            </svg>
-                                            Delivery address
-                                        </a>
-                                    </div>
-                                </button>
-                            </h2>
-                            <div id="flush-collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <div class="mt-3 card">
-                                        
-                                            <div class="p-6 card-body">
-                                                <p class="mb-6">
-                                                    Jitu Chauhan<br></br>
-                                                    4450 North Avenue Oakland, <br></br>
-                                                    Nebraska  United States <br></br>
-                                                    402-776-1106 
-                                                </p>
-                                            </div>
+                            <div class="py-4 accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a class="fs-5 text-inherit h4" href="">
+                                                {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                </svg> */}
+                                                Delivery address
+                                            </a>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="flush-collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
+                                    <div class="accordion-body">
+                                        <div class="mt-3 card">
+                                            
+                                                <div class="p-6 card-body">
+                                                    <p class="">
+                                                        Jitu Chauhan<br></br>
+                                                        4450 North Avenue Oakland, <br></br>
+                                                        Nebraska  United States <br></br>
+                                                        402-776-1106 
+                                                    </p>
+                                                </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
                             <div class="py-4 accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a class="fs-5 text-inherit h4" href="">
+                                                {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                </svg> */}
+                                                Additional Instructions
+                                            </a>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="flush-collapseTwo" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
+                                    <div class="accordion-body">
+                                        <div class="mt-3 card">
+                                            {/* <div class="mt-5">
+                                                <label class="form-label" for="DeliveryInstructions">Delivery instructions</label>
+                                                <textarea rows="3" placeholder="Write delivery instructions " class="form-control"></textarea>
+                                                <p class="form-text">Add instructions for how you want your order shopped and/or delivered</p>
+                                            </div>
+                                            <div class="mt-5 d-flex justify-content-end">
+                                                <button type="button" class="text-muted btn btn-outline-gray-400">Prev</button>
+                                                <button type="button" class="ms-2 btn btn-primary">Next</button>
+                                            </div> */}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="py-4 accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a class="fs-5 text-inherit h4" href="">
+                                                {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                </svg> */}
+                                                Payment
+                                            </a>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="flush-collapseThree" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
+                                    <div class="accordion-body">
+                                        <div class="mt-3 card">
+                                           
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* <div class="py-4 accordion-item">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <a class="fs-5 text-inherit h4" href="">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
@@ -94,14 +146,14 @@ export default function Checkout() {
                                         <button type="button" class="ms-2 btn btn-primary">Next</button>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 
                     <div class="col-lg-5 col-md-12 col-12 ms-lg-1">
                         <div class="mt-4 mt-lg-0" style={{mw: "390px"}}>
                             <div class="shadow-sm card">
-                                <h5 class="px-5 py-4 bg-transparent mb-0">Order Details</h5>
+                                <h5 class="px-4 py-4 bg-transparent mb-0">Order Details</h5>
                                 <ul class="list-group list-group-flush">
                                     <li class="px-4 py-3 list-group-item">
                                         <div class="align-items-center row">
