@@ -93,6 +93,10 @@ body.active-modl {
   background: 0 0;
 }
 
+.mb-3 {
+  text-align: left;
+}
+
 .product-search:active {
   border-color: #99D98C;
 }

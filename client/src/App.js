@@ -292,6 +292,7 @@ function App() {
         </nav>
 
         <Routes>
+        <Route path="/" element={<Navigate to="/Home" />} />
           <Route
             path="/Login"
             element={<Login setIsAuthenticated={setIsAuthenticated} />}
