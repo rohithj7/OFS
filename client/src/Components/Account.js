@@ -78,11 +78,11 @@ export default function Account() {
         <div className="text-left card border-0">
           <div className="text-left card-body ms-5">
           <div>
-            <h5 class="mb-3 fw-bold">Account details</h5>
+            <h5 class="mb-3 account fw-bold">Account details</h5>
             <div class="row">
               <div class="row col-lg-5">
                 <form class="" method="post">
-                  <div class="mb-3">
+                  <div class="mb-3 account">
                     <label class="form-label">First Name</label>
                     <input type="text"
                     className="form-control"
@@ -90,7 +90,7 @@ export default function Account() {
                     value={formData.firstName}
                     onChange={handleChange}/>
                   </div>
-                  <div class="mb-3">
+                  <div class="mb-3 account">
                     <label class="form-label">Last Name</label>
                     <input type="text"
                     className="form-control"
@@ -98,7 +98,7 @@ export default function Account() {
                     value={formData.lastName}
                     onChange={handleChange}/>
                   </div>
-                  <div class="mb-3">
+                  <div class="mb-3 account">
                     <label class="form-label">Address</label>
                     <input type="text"
                     className="form-control"
@@ -106,15 +106,15 @@ export default function Account() {
                     value={formData.address}
                     onChange={handleChange}/>
                   </div>
-                  <div class="mb-3">
+                  <div class="mb-3 account">
                     <label class="form-label">Phone</label>
                     <input type="text"
                     className="form-control"
-                    name="Phone Number"
+                    name="phone"
                     value={formData.phone}
                     onChange={handleChange}/>
                   </div>
-                  <div class="mb-3">
+                  <div class="mb-3 account">
                     <button type="button" onClick={handleSave} class="fw-bold btn btn-primary bg-green border-0">Save</button>
                   </div>
                 </form>
