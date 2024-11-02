@@ -50,13 +50,8 @@ export default function SignUp() {
         );
 
         if (loginResponse.status === 200) {
-          // Get the login ID from the register response
-          const loginId = loginResponse.data.loginId;
-          console.log("Storing loginId in localStorage:", loginId); // Debug line
-          // Store loginId in local storage
-          localStorage.setItem("loginId", loginId);
-          // Redirect to PersonalInfo page, passing loginId as state
-          navigate("/personal-info", { state: { loginId } });
+          // Redirect to PersonalInfo page
+          navigate("/personal-info");
         }
       }
     } catch (error) {
