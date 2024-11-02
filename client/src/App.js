@@ -148,7 +148,7 @@ function App() {
   };
   
   const freeDeliveryAlert = document.getElementById("freeDeliveryAlert"); // gets the free delivery alert element
-  const deliveryFeeCart = document.getElementById("deliveryFeeCart");
+  const deliveryFeeCart = document.getElementById("deliveryFeeCart"); // gets the delivery free element
   // free delivery alert function - will display alert banner if total weight in cart is < 20 (otherwise, won't display banner)
   function handleFreeDeliveryAlert() {
     var totalWeight = document.getElementById("totalWeightCart").textContent.replace(/[a-zA-Z]+/g, ''); 
@@ -159,12 +159,12 @@ function App() {
     console.log(totalWeight); // test to make sure value stored in total weight var is a number
     console.log(totalWeight < 20.00); // test to see if total weight value is < 20
 
-    if (totalWeight < 20.00 && totalWeight !== 0.00) { // if totalWeight is < 20, then the alert banner will be displayed
+    if (totalWeight < 20.00 && totalWeight !== 0.00) { // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
       freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element 
-      deliveryFeeCart.innerHTML = "$0.00";
+      deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
     }
-    else if (totalWeight >= 20.00) {
-      deliveryFeeCart.innerHTML = "$10.00";
+    else if (totalWeight >= 20.00) { // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
+      deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee eleemnt
       freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
     }
     else {
