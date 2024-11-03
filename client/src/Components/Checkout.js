@@ -24,6 +24,8 @@ export default function Checkout({ cart = [], setCart }) {
         setShippingAddress(response.data.ADDRESS);
         setCustomerInfo({
           id: response.data.ID || "N/A",
+          firstName: response.data.FIRSTNAME || "",
+          lastName: response.data.LASTNAME || "",
         });
       } catch (err) {
         console.error("Error fetching shipping address:", err);
@@ -114,9 +116,9 @@ export default function Checkout({ cart = [], setCart }) {
                     <div class="mt-3 card">
                       <div class="p-3 card-body">
                         <p class="">
-                          Jitu Chauhan<br></br>
-                          4450 North Avenue Oakland, <br></br>
-                          Nebraska United States
+                          {customerInfo.firstName} {customerInfo.lastName}
+                          <br />
+                          {shippingAddress}
                         </p>
                       </div>
                     </div>
@@ -198,97 +200,88 @@ export default function Checkout({ cart = [], setCart }) {
               <div class="shadow-sm card">
                 <h5 class="px-4 py-4 bg-transparent mb-0">Order Details</h5>
                 <ul class="list-group list-group-flush">
-                  <li class="px-4 py-3 list-group-item">
-                    <div class="align-items-center row">
-                      <div class="col-md-2 col-2">
-                        <img
-                          src="/Assets/carrots.jpeg"
-                          alt="Ecommerce"
-                          class="img-fluid"
-                        ></img>
+                  {cart.map((item) => (
+                    <li key={item.ID} className="px-4 py-3 list-group-item">
+                      <div className="align-items-center row">
+                        <div className="col-md-2 col-2">
+                          <img
+                            src={`/Assets/${item.PICTURE_URL}`}
+                            alt={item.PRODUCTNAME}
+                            className="img-fluid"
+                          />
+                        </div>
+                        <div className="col-md-5 col-5">
+                          <h6 className="mb-0">{item.PRODUCTNAME}</h6>
+                          <span>
+                            <small className="text-muted">
+                              {parseFloat(item.WEIGHT).toFixed(2)}g
+                            </small>
+                          </span>
+                        </div>
+                        <div className="text-center text-muted col-md-2 col-2">
+                          <span>{item.quantity}</span>
+                        </div>
+                        <div className="text-lg-end text-start text-md-end col-md-3 col-3">
+                          <span className="fw-bold">
+                            ${(item.PRICE * item.quantity).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
-                      <div class="col-md-5 col-5">
-                        <h6 class="mb-0">Carrots</h6>
-                        <span>
-                          <small class="text-muted">200g</small>
-                        </span>
-                      </div>
-                      <div class="text-center text-muted col-md-2 col-2">
-                        <span>1</span>
-                      </div>
-                      <div class="text-lg-end text-start text-md-end col-md-3 col-3">
-                        <span class="fw-bold">$21.60</span>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="px-4 py-3 list-group-item">
-                    <div class="align-items-center row">
-                      <div class="col-md-2 col-2">
-                        <img
-                          src="/Assets/whole milk.jpeg"
-                          alt="Ecommerce"
-                          class="img-fluid"
-                        ></img>
-                      </div>
-                      <div class="col-md-5 col-5">
-                        <h6 class="mb-0">Whole Milk</h6>
-                        <span>
-                          <small class="text-muted">200g</small>
-                        </span>
-                      </div>
-                      <div class="text-center text-muted col-md-2 col-2">
-                        <span>1</span>
-                      </div>
-                      <div class="text-lg-end text-start text-md-end col-md-3 col-3">
-                        <span class="fw-bold">$21.60</span>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="px-4 py-3 list-group-item">
-                    <div class="align-items-center row">
-                      <div class="col-md-2 col-2">
-                        <img
-                          src="/Assets/strawberries.jpg"
-                          alt="Ecommerce"
-                          class="img-fluid"
-                        ></img>
-                      </div>
-                      <div class="col-md-5 col-5">
-                        <h6 class="mb-0">Strawberries</h6>
-                        <span>
-                          <small class="text-muted">200g</small>
-                        </span>
-                      </div>
-                      <div class="text-center text-muted col-md-2 col-2">
-                        <span>1</span>
-                      </div>
-                      <div class="text-lg-end text-start text-md-end col-md-3 col-3">
-                        <span class="fw-bold">$21.60</span>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="px-4 py-3 list-group-item">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
+                    </li>
+                  ))}
+                  <li className="px-4 py-3 list-group-item">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
                       <div>Item Subtotal</div>
-                      <div class="fw-bold">$93.55</div>
+                      <div className="fw-bold">
+                        $
+                        {cart
+                          .reduce(
+                            (total, item) => total + item.PRICE * item.quantity,
+                            0
+                          )
+                          .toFixed(2)}
+                      </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
                       <div>Total Weight</div>
-                      <div class="fw-bold">12 ounces</div>
+                      <div className="fw-bold">
+                        {cart
+                          .reduce(
+                            (total, item) =>
+                              total + parseFloat(item.WEIGHT) * item.quantity,
+                            0
+                          )
+                          .toFixed(2)}{" "}
+                        ounces
+                      </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
                       <div>Delivery Fee</div>
-                      <div class="fw-bold">$0.00</div>
+                      <div className="fw-bold">$0.00</div>
                     </div>
                   </li>
-                  <li class="px-4 py-3 list-group-item">
-                    <div class="d-flex align-items-center justify-content-between mb-2 fw-bold">
+                  <li className="px-4 py-3 list-group-item">
+                    <div className="d-flex align-items-center justify-content-between mb-2 fw-bold">
                       <div>Grand Total</div>
-                      <div class="fw-bold">$93.55</div>
+                      <div className="fw-bold">
+                        $
+                        {cart
+                          .reduce(
+                            (total, item) => total + item.PRICE * item.quantity,
+                            0
+                          )
+                          .toFixed(2)}
+                      </div>
                     </div>
                   </li>
                 </ul>
               </div>
+              <button
+                onClick={handlePlaceSale}
+                className="btn btn-mint text-black w-100 mt-3"
+              >
+                Place Order
+              </button>
             </div>
           </div>
         </div>
