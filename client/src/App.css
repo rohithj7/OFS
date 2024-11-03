@@ -102,3 +102,7 @@ body.active-modl {
 .product-search:active {
   border-color: #99D98C;
 }
+
+html, body {
+  overflow-y: auto !important;
+}
