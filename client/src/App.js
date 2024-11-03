@@ -142,7 +142,6 @@ function App() {
         if (sidebar) {
           sidebar.classList.remove("show"); // Hides the sidebar
           sidebar.setAttribute("aria-hidden", "true"); // Update aria for accessibility
-          console.log("Sidebar manually hidden");
         } else {
           console.warn("Sidebar reference or Bootstrap library not available.");
         }
@@ -180,37 +179,40 @@ function App() {
       }
     }
   };
-  
+
   const freeDeliveryAlert = document.getElementById("freeDeliveryAlert"); // gets the free delivery alert element
   const deliveryFeeCart = document.getElementById("deliveryFeeCart"); // gets the delivery free element
   // free delivery alert function - will display alert banner if total weight in cart is < 20 (otherwise, won't display banner)
+  /*
   function handleFreeDeliveryAlert() {
-    var totalWeight = document.getElementById("totalWeightCart").textContent.replace(/[a-zA-Z]+/g, ''); 
-    /* gets the textContent (content) from the free total weight element (which is the span tag) (ex. 9.00 ounces), 
-      and removes any alphabetical characters (using regex: [a-zA-Z]+ ) => replaces the alphabetical characters with no space
-      the resulting value that goes into totalWeight will be something like 9.00, for example */
+    var totalWeight = document
+      .getElementById("totalWeightCart")
+      .textContent.replace(/[a-zA-Z]+/g, "");
+    // gets the textContent (content) from the free total weight element (which is the span tag) (ex. 9.00 ounces), 
+    // and removes any alphabetical characters (using regex: [a-zA-Z]+ ) => replaces the alphabetical characters with no space
+    //  the resulting value that goes into totalWeight will be something like 9.00, for example 
 
     console.log(totalWeight); // test to make sure value stored in total weight var is a number
-    console.log(totalWeight < 20.00); // test to see if total weight value is < 20
+    console.log(totalWeight < 20.0); // test to see if total weight value is < 20
 
-    if (totalWeight < 20.00 && totalWeight !== 0.00) { // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
-      freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element 
+    if (totalWeight < 20.0 && totalWeight !== 0.0) {
+      // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
+      freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element
       deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
-    }
-    else if (totalWeight >= 20.00) { // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
+    } else if (totalWeight >= 20.0) {
+      // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
       deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee eleemnt
       freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
-    }
-    else {
+    } else {
       freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
     }
 
-    // Current Problems: 
+    // Current Problems:
     // Sometimes only shows alert (and makes delivery fee price $0) if totalWeight is < 19, and sometimes only removes alert (and changes delivery fee price to $10) if totalWeight is > 21
     // GIVES AN ERROR IF TEXT CONTENT IS NULL, SO NEED TO DEAL W/ THIS
     // ALSO MAYBE SHOULD HANDLE REMOVING D-NONE WHEN THERE IS NO D-NONE IS CLASS LIST? NOT SURE THOUGH
-    
-  };
+  }
+  */
 
   return (
     <div>
@@ -427,14 +429,7 @@ function App() {
             </ul>
           </div>
         </div>
-        </nav>
-
-        <Routes>
-        <Route path="/" element={<Navigate to="/Home" />} />
-          <Route
-            path="/Login"
-            element={<Login setIsAuthenticated={setIsAuthenticated} />}
-          />
+      </nav>
 
       <Routes>
         {/* Public Routes */}
@@ -521,7 +516,7 @@ function App() {
 
       {/* Shopping Cart Sidebar */}
       <div
-        ref={sidebarRef}
+        ref={sidebarRef} // Assign sidebarRef
         className="offcanvas offcanvas-end w-50 border-box"
         tabIndex="-1"
         id="offcanvasShoppingCart"
@@ -539,78 +534,16 @@ function App() {
           ></button>
         </div>
         <div className="offcanvas-body">
-          <div role="alert" className="p-2 alert alert-custom border-green">
+          <div
+            role="alert"
+            id="freeDeliveryAlert"
+            className="p-2 alert d-none alert-custom border-green"
+          >
             You’ve got FREE delivery. Start{" "}
             <a className="alert-link" href="#!">
               checkout now!
             </a>
           </div>
-          <div className="offcanvas-body">
-            <div role="alert" id="freeDeliveryAlert" className="p-2 alert d-none alert-custom border-green">
-              You’ve got FREE delivery. Start{" "}
-              <a className="alert-link" href="#!">
-                checkout now!
-              </a>
-            </div>
-
-            <ul className="list-group list-group-flush">
-              {cart.map((item) => (
-                <li
-                  key={item.ID}
-                  className="pb-3 ps-0 mb-3 d-flex justify-content-between align-items-center border-bottom list-group-item"
-                >
-                  <div className="col-md-2 col-lg-2 col-4">
-                    <img
-                      src={`/Assets/${item.PICTURE_URL}`}
-                      className="img-fluid rounded-3"
-                      alt={item.PRODUCTNAME}
-                    />
-                  </div>
-                  <div className="col-md-3 col-lg-3 col-xl-3">
-                    <h6 className="text-muted">{item.CATEGORY}</h6>
-                    <h6 className="mb-0">{item.PRODUCTNAME}</h6>
-                    <div className="mt-2 small lh-1">
-                      <a
-                        className="text-decoration-none text-inherit"
-                        href="#!"
-                        onClick={() => removeFromCart(item.ID)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger me-1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        <span className="text-muted">Remove</span>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="col-lg-3 col-md-4 col-4">
-                    <div className="input-spinner input-group input-group-sm">
-                      <input
-                        className="button-minus btn btn-sm border"
-                        type="button"
-                        value="-"
-                        onClick={() => decrementQuantity(item.ID)}
-                      />
-                      <input
-                        className="form-control form-control-sm form-input border text-center"
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        readOnly
-                      />
-                      <input
-                        className="button-plus btn btn-sm border"
-                        type="button"
-                        value="+"
-                        onClick={() => incrementQuantity(item.ID)}
-                      />
-                    </div>
-                  </div>
-                  <div className="text-center col-md-2 col-2">
-                    <span className="fw-bold">
-                      ${(item.PRICE * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
 
           <ul className="list-group list-group-flush">
             {cart.map((item) => (
@@ -634,6 +567,23 @@ function App() {
                       href="#!"
                       onClick={() => removeFromCart(item.ID)}
                     >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-danger me-1"
+                      >
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
                       <span className="text-muted">Remove</span>
                     </a>
                   </div>
@@ -660,25 +610,6 @@ function App() {
                       onClick={() => incrementQuantity(item.ID)}
                     />
                   </div>
-                <div className="d-flex justify-content-between align-items-start list-group-item">
-                  <div className="me-auto">Total Weight</div>
-                  <span id="totalWeightCart" onChange={handleFreeDeliveryAlert()}>
-                    {cart
-                      .reduce(
-                        (total, item) => total + item.WEIGHT * item.quantity,
-                        0
-                      )
-                      .toFixed(2)}{" "}
-                    ounces
-                  </span>
-                </div>
-                <div className="d-flex justify-content-between align-items-start list-group-item">
-                  <div className="me-auto">Cart Size</div>
-                  <span>{cart.length}</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-start list-group-item">
-                  <div className="me-auto">Delivery Fee</div>
-                  <span id="deliveryFeeCart">$0.00</span>
                 </div>
                 <div className="text-center col-md-2 col-2">
                   <span className="fw-bold">
@@ -716,14 +647,16 @@ function App() {
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
                 <div className="me-auto">Total Weight</div>
-                <span>
+                <span
+                  id="totalWeightCart" /*onChange={handleFreeDeliveryAlert()}*/
+                >
                   {cart
                     .reduce(
                       (total, item) => total + item.WEIGHT * item.quantity,
                       0
                     )
                     .toFixed(2)}{" "}
-                  ounce
+                  ounces
                 </span>
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
@@ -731,8 +664,8 @@ function App() {
                 <span>{cart.length}</span>
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
-                <div className="me-auto">Shipping Fee</div>
-                <span>$0.00</span>
+                <div className="me-auto">Delivery Fee</div>
+                <span id="deliveryFeeCart">$0.00</span>
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
                 <div className="me-auto fw-bold">Subtotal</div>

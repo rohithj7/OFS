@@ -93,8 +93,7 @@ function OrderDetails() {
         </p>
         <p>Order Date: {orderDate}</p>
         <p>Shipping Address: {shippingAddress}</p>
-        <p>Order Status: {renderOrderStatus(orderStatus)}</p>
-
+        <p>Order Status: {}</p> {/* need to modify*/}
         {saleProducts.length > 0 ? (
           <table style={{ width: "100%", marginTop: "20px" }}>
             <thead style={{ backgroundColor: "#f0f0f0" }}>
@@ -136,12 +135,12 @@ function OrderDetails() {
                   </td>
                   <td>${Number(product.price).toFixed(2)}</td>
                   <td>
-                    {product.weight !== "N/A" ? `${product.weight}g` : "N/A"}
+                    {product.weight !== "N/A" ? `${product.weight}oz.` : "N/A"}
                   </td>
                   <td>{product.quantity}</td>
                   <td>
                     {product.weight !== "N/A"
-                      ? `${(product.quantity * product.weight).toFixed(2)}g`
+                      ? `${(product.quantity * product.weight).toFixed(2)}oz.`
                       : "N/A"}
                   </td>
                   <td>${(product.quantity * product.price).toFixed(2)}</td>
