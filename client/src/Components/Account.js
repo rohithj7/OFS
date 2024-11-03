@@ -74,10 +74,55 @@ export default function Account() {
 
   return (
     <div>
-      <div className="container text-center my-5">
-        <div className="card border-0">
-          <div className="card-body ms-5">
-            <div className="fs-2 mb-3 mt-2 ms-3 text-start fw-bold">
+      <div className="text-left container text-center my-5">
+        <div className="text-left card border-0">
+          <div className="text-left card-body ms-5">
+          <div>
+            <h5 class="mb-3 account fw-bold">Account details</h5>
+            <div class="row">
+              <div class="row col-lg-5">
+                <form class="" method="post">
+                  <div class="mb-3 account">
+                    <label class="form-label">First Name</label>
+                    <input type="text"
+                    className="form-control"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}/>
+                  </div>
+                  <div class="mb-3 account">
+                    <label class="form-label">Last Name</label>
+                    <input type="text"
+                    className="form-control"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}/>
+                  </div>
+                  <div class="mb-3 account">
+                    <label class="form-label">Address</label>
+                    <input type="text"
+                    className="form-control"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}/>
+                  </div>
+                  <div class="mb-3 account">
+                    <label class="form-label">Phone</label>
+                    <input type="text"
+                    className="form-control"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}/>
+                  </div>
+                  <div class="mb-3 account">
+                    <button type="button" onClick={handleSave} class="fw-bold btn btn-primary bg-green border-0">Save</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+            {/* <div className="fs-2 mb-3 mt-2 ms-3 text-start fw-bold">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="100px"
@@ -151,19 +196,19 @@ export default function Account() {
                   />
                 </div>
               </div>
-            </form>
+            </form> */}
 
             {errorMessage && <p className="text-danger">{errorMessage}</p>}
             {successMessage && <p className="text-success">{successMessage}</p>}
 
-            <div className="d-grid gap-2 d-md-flex justify-content-md-end me-5">
+            {/* <div className="d-grid gap-2 d-md-flex justify-content-md-end me-5">
               <button
                 onClick={handleSave}
                 className="btn btn-lg bg-mint text-light fw-bold"
               >
                 Save
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
