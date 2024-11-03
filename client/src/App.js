@@ -185,34 +185,31 @@ function App() {
   // free delivery alert function - will display alert banner if total weight in cart is < 20 (otherwise, won't display banner)
   /*
   function handleFreeDeliveryAlert() {
-    var totalWeight = document
-      .getElementById("totalWeightCart")
-      .textContent.replace(/[a-zA-Z]+/g, "");
-    // gets the textContent (content) from the free total weight element (which is the span tag) (ex. 9.00 ounces), 
-    // and removes any alphabetical characters (using regex: [a-zA-Z]+ ) => replaces the alphabetical characters with no space
-    //  the resulting value that goes into totalWeight will be something like 9.00, for example 
+    // var totalWeight = document.getElementById("totalWeightCart").textContent.replace(/[a-zA-Z]+/g, ''); 
+    // /* gets the textContent (content) from the free total weight element (which is the span tag) (ex. 9.00 ounces), 
+    //   and removes any alphabetical characters (using regex: [a-zA-Z]+ ) => replaces the alphabetical characters with no space
+    //   the resulting value that goes into totalWeight will be something like 9.00, for example */
 
-    console.log(totalWeight); // test to make sure value stored in total weight var is a number
-    console.log(totalWeight < 20.0); // test to see if total weight value is < 20
+  // console.log(totalWeight); // test to make sure value stored in total weight var is a number
+  // console.log(totalWeight < 20.00); // test to see if total weight value is < 20
 
-    if (totalWeight < 20.0 && totalWeight !== 0.0) {
-      // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
-      freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element
-      deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
-    } else if (totalWeight >= 20.0) {
-      // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
-      deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee eleemnt
-      freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
-    } else {
-      freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
-    }
+  // if (totalWeight < 20.00 && totalWeight !== 0.00) { // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
+  //   freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element
+  //   deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
+  // }
+  // else if (totalWeight >= 20.00) { // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
+  //   deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee eleemnt
+  //   freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
+  // }
+  // else {
+  //   freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
+  // }
 
-    // Current Problems:
-    // Sometimes only shows alert (and makes delivery fee price $0) if totalWeight is < 19, and sometimes only removes alert (and changes delivery fee price to $10) if totalWeight is > 21
-    // GIVES AN ERROR IF TEXT CONTENT IS NULL, SO NEED TO DEAL W/ THIS
-    // ALSO MAYBE SHOULD HANDLE REMOVING D-NONE WHEN THERE IS NO D-NONE IS CLASS LIST? NOT SURE THOUGH
-  }
-  */
+  // Current Problems:
+  // Sometimes only shows alert (and makes delivery fee price $0) if totalWeight is < 19, and sometimes only removes alert (and changes delivery fee price to $10) if totalWeight is > 21
+  // GIVES AN ERROR IF TEXT CONTENT IS NULL, SO NEED TO DEAL W/ THIS
+  // ALSO MAYBE SHOULD HANDLE REMOVING D-NONE WHEN THERE IS NO D-NONE IS CLASS LIST? NOT SURE THOUGH
+  //}
 
   return (
     <div>

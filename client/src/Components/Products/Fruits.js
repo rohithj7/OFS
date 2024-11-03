@@ -53,6 +53,21 @@ export default function Fruits({ addToCart }) {
     return <div>No products available</div>;
   }
 
+  // Function to decrement quantity
+  /* const decrementQuantity = (productId) => {
+    setCart((prevCart) =>
+      prevCart
+        .map((item) =>
+          item.ID === productId
+            ? { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const [cart, setCart] = useState([]); // Cart state */
+
   return (
     <div>
       <div className="container my-5">
@@ -205,47 +220,28 @@ export default function Fruits({ addToCart }) {
                                 : "Weight not available"}
                             </div>
                             <div className="w-25 mt-4">
-                              <div className="input-spinner input-group">
-                                <button
-                                  type="button"
-                                  className="button-minus btn btn-sm text-dark border"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    fill="currentColor"
-                                    className="bi bi-dash-lg"
-                                    viewBox="0 0 16 16"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"
-                                    />
-                                  </svg>
-                                </button>
+                              <div className="input-spinner input-group input-group-sm">
                                 <input
-                                  type="number"
-                                  className="form-control text-center"
-                                  min="1"
-                                  name="quantity"
-                                />
-                                <button
+                                  className="button-minus btn btn-sm border"
                                   type="button"
-                                  className="button-plus btn btn-sm text-dark border"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    fill="currentColor"
-                                    className="bi bi-plus-lg"
-                                    viewBox="0 0 16 16"
-                                  >
-                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
-                                  </svg>
-                                </button>
+                                  value="-"
+                                  // onClick={() => decrementQuantity(selectedProduct.ID)}
+                                />
+                                <input
+                                  className="form-control form-control-sm form-input border text-center"
+                                  type="number"
+                                  min="1"
+                                  // value={selectedProduct.quantity}
+                                  // readOnly
+                                />
+                                <input
+                                  className="button-plus btn btn-sm border"
+                                  type="button"
+                                  value="+"
+                                  // onClick={() => decrementQuantity(selectedProduct.ID)}
+                                />
                               </div>
+                
                             </div>
                             <div class="mt-4 justify-content-start g-2 align-items-center row">
                               <div class="d-grid col-lg-4 col-md-5 col-6">
