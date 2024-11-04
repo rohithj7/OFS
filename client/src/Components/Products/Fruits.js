@@ -12,6 +12,7 @@ export default function Fruits({ addToCart }) {
   const [modal, setModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
   const [quantity, setQuantity] = useState(1); // State to track quantity
+  const [searchTerm, setSearchTerm] = useState("");
 
   console.log("categoryId from URL params:", categoryId);
   // Define PropTypes for the component
@@ -63,7 +64,34 @@ export default function Fruits({ addToCart }) {
         setError("Could not fetch products.");
         setLoading(false);
       });
-  }, [categoryId]);
+  }, [categoryId, searchTerm === ""]);
+
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm) {
+      axios
+        .get(`http://localhost:8080/product-search`, {
+          params: { q: searchTerm },
+          withCredentials: true,
+        })
+        .then((res) => {
+          if (res.data.length === 0) {
+            // No items found, show alert and reset the page
+            alert("No products found.");
+            setSearchTerm(""); // Clear the search term to reset
+          } else {
+            setData(res.data); // Show products data with search results
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error searching products:", err);
+          setError("Could not fetch search results.");
+          setLoading(false);
+        });
+    }
+  };
 
   // Handle loading, error, and empty data states
   if (loading) {
@@ -86,16 +114,18 @@ export default function Fruits({ addToCart }) {
           <div className="p-9 card-body">
             <h2 className="mb-0 fs-1 mb-2">Fruits</h2>
             {/* search bar */}
-            <form class="">
+            <form onSubmit={handleSearchSubmit} className="">
               <div class="input-group">
                 <input
                   placeholder="Search for products"
                   class="rounded form-control product-search"
                   type="search"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
                 ></input>
                 <span class="input-group-append">
                   <button
-                    type="button"
+                    type="submit"
                     class="border border-start-0 ms-n10 rounded-0 rounded-end btn btn-white"
                   >
                     <svg
@@ -343,10 +373,16 @@ export default function Fruits({ addToCart }) {
                                   </tr>
                                   <tr>
                                     <td className="text-secondary">Brand:</td>
+                                    <td className="text-secondary">
+                                      {selectedProduct.BRAND}
+                                    </td>
                                   </tr>
                                   <tr>
                                     <td className="text-secondary">
                                       Description:
+                                    </td>
+                                    <td className="text-secondary">
+                                      {selectedProduct.PRODUCTDESCRIPTION}
                                     </td>
                                   </tr>
                                 </tbody>
