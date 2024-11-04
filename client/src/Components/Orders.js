@@ -14,11 +14,11 @@ function Orders() {
   const renderStatusText = (status) => {
     switch (status) {
       case "NOT STARTED":
-        return "Pending";
+        return "Sales Not Started";
       case "ONGOING":
-        return "Shipped";
+        return "Sales Ongoing";
       case "COMPLETED":
-        return "Completed";
+        return "Sales Completed";
       default:
         return status;
     }
@@ -60,10 +60,12 @@ function Orders() {
     fetchShippingAddress();
   }, []);
 
-  // Filter the current and previous orders based on saleStatus
-  const currentOrder = orders.find((order) => order.saleStatus === "ONGOING");
-  const previousOrders = orders.filter(
+  // Filter the current and previous orders based on order status
+  const currentOrder = orders.filter(
     (order) => order.saleStatus === "COMPLETED"
+  ); // Filter all orders with saleStatus COMPLETED to display under Current Orders
+  const previousOrders = orders.filter(
+    (order) => order.saleStatus === "..." // need to modify based on the order delivery status
   );
 
   return (
@@ -75,30 +77,31 @@ function Orders() {
             <div className="flex-grow-1 pe-2">
               {loading ? (
                 <div className="text-muted">Fetching data...</div>
-              ) : currentOrder ? (
+              ) : currentOrder.length > 0 ? (
                 <>
-                  <h3 style={{ marginBottom: "40px" }}>Current Order</h3>
-                  <p>Customer ID: {customerInfo.id}</p>
-                  <p>Order ID: {currentOrder.saleId}</p>
-                  <p>
-                    Order Total: ${Number(currentOrder.totalPrice).toFixed(2)}
-                  </p>
-                  <p>
-                    Date: {new Date(currentOrder.saleDate).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <Link
-                      to={`/OrderDetails/${currentOrder.saleId}`}
-                      state={{
-                        orderDate: currentOrder.saleDate,
-                        orderStatus: currentOrder.saleStatus,
-                        orderAmount: currentOrder.totalPrice,
-                        shippingAddress: shippingAddress,
-                      }}
-                    >
-                      View Order
-                    </Link>
-                  </p>
+                  <h3 style={{ marginBottom: "40px" }}>Current Orders</h3>
+                  {currentOrder.map((order) => (
+                    <div key={order.saleId} style={{ marginBottom: "50px" }}>
+                      <p>Order ID: {order.saleId}</p>
+                      <p>Order Total: ${Number(order.totalPrice).toFixed(2)}</p>
+                      <p>
+                        Date: {new Date(order.saleDate).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <Link
+                          to={`/OrderDetails/${order.saleId}`}
+                          state={{
+                            orderDate: order.saleDate,
+                            orderStatus: order.saleStatus,
+                            orderAmount: order.totalPrice,
+                            shippingAddress: shippingAddress,
+                          }}
+                        >
+                          View Order
+                        </Link>
+                      </p>
+                    </div>
+                  ))}
                 </>
               ) : (
                 <p>No current orders</p>
