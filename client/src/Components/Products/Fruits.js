@@ -1,28 +1,53 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import PropTypes from "prop-types";
 
 export default function Fruits({ addToCart }) {
+  const { categoryId } = useParams();
   const [theData, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   // if the state is false it will go to true, and if it is true it will go to false
   const [modal, setModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
+  const [quantity, setQuantity] = useState(1); // State to track quantity
+
+  console.log("categoryId from URL params:", categoryId);
+  // Define PropTypes for the component
+  Fruits.propTypes = {
+    addToCart: PropTypes.func.isRequired, // Specify that addToCart is required and must be a function
+  };
 
   // Toggle modal and set selected product
   const toggleModal = (product) => {
     setSelectedProduct(product); // Set the clicked product as selected
+    setQuantity(1); // Reset quantity to 1 whenever a new product is selected
     setModal(!modal); // Toggle modal open or closed
   };
 
+  const incrementQuantity = () => {
+    setQuantity((prev) => prev + 1);
+    console.log("Quantity incremented to:", quantity + 1); // Check if increment works
+  };
+  const decrementQuantity = () =>
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+  // Modify the addToCart function call to include quantity
+  const handleAddToCart = (product, quantity) => {
+    console.log("Adding to cart:", product, "Quantity:", quantity);
+    addToCart(product, quantity); // Ensure addToCart is using the quantity correctly
+  };
+
   useEffect(() => {
+    console.log("categoryId from URL params:", categoryId);
+    if (!categoryId) return;
     axios
-      .get(`http://localhost:8080/products`, {
+      .get(`http://localhost:8080/products/category/${categoryId}`, {
         withCredentials: true, // Keep this to maintain session
       })
       .then((res) => {
-        console.log(res.data);
+        console.log("Products of Fruits:", res.data);
         // Check if res.data is an array, if not assign the correct value
         /*
         The setData line checks whether res.data is already an array (Array.isArray(res.data)). 
@@ -38,7 +63,7 @@ export default function Fruits({ addToCart }) {
         setError("Could not fetch products.");
         setLoading(false);
       });
-  }, []);
+  }, [categoryId]);
 
   // Handle loading, error, and empty data states
   if (loading) {
@@ -52,21 +77,6 @@ export default function Fruits({ addToCart }) {
   if (theData.length === 0) {
     return <div>No products available</div>;
   }
-
-  // Function to decrement quantity
-  /* const decrementQuantity = (productId) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) =>
-          item.ID === productId
-            ? { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const [cart, setCart] = useState([]); // Cart state */
 
   return (
     <div>
@@ -142,6 +152,20 @@ export default function Fruits({ addToCart }) {
                     <button
                       className="btn btn-sm btn bg-green text-light fw-bolder"
                       onClick={() => addToCart(product)}
+                      style={{
+                        backgroundColor: "#99D98C",
+                        color: "black",
+                        transition:
+                          "background-color 0.3s ease, transform 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#99D98C";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#99D98C";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -219,29 +243,29 @@ export default function Fruits({ addToCart }) {
                                 ? `${selectedProduct.WEIGHT} ounce per unit`
                                 : "Weight not available"}
                             </div>
+                            {/* Quantity control */}
                             <div className="w-25 mt-4">
                               <div className="input-spinner input-group input-group-sm">
                                 <input
                                   className="button-minus btn btn-sm border"
                                   type="button"
                                   value="-"
-                                  // onClick={() => decrementQuantity(selectedProduct.ID)}
+                                  onClick={decrementQuantity}
                                 />
                                 <input
                                   className="form-control form-control-sm form-input border text-center"
                                   type="number"
                                   min="1"
-                                  // value={selectedProduct.quantity}
-                                  // readOnly
+                                  value={quantity}
+                                  readOnly
                                 />
                                 <input
                                   className="button-plus btn btn-sm border"
                                   type="button"
                                   value="+"
-                                  // onClick={() => decrementQuantity(selectedProduct.ID)}
+                                  onClick={incrementQuantity}
                                 />
                               </div>
-                
                             </div>
                             <div class="mt-4 justify-content-start g-2 align-items-center row">
                               <div class="d-grid col-lg-4 col-md-5 col-6">
@@ -250,8 +274,26 @@ export default function Fruits({ addToCart }) {
                                   type="button"
                                   className="btn btn-green"
                                   onClick={() => {
-                                    addToCart(selectedProduct);
+                                    handleAddToCart(selectedProduct, quantity); // Pass selectedProduct and quantity
                                     toggleModal(); // Close the modal after adding to cart
+                                  }}
+                                  style={{
+                                    backgroundColor: "#99D98C",
+                                    color: "black",
+                                    transition:
+                                      "background-color 0.3s ease, transform 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                      "#99D98C";
+                                    e.currentTarget.style.transform =
+                                      "scale(1.05)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                      "#99D98C";
+                                    e.currentTarget.style.transform =
+                                      "scale(1)";
                                   }}
                                 >
                                   <svg

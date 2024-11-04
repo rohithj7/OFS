@@ -110,3 +110,11 @@ body.active-modl {
 html, body {
   overflow-y: auto !important;
 }
+
+.btn.bg-green {
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+.btn.bg-green:hover {
+  background-color: #99D98C;
+}

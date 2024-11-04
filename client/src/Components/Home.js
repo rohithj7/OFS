@@ -11,7 +11,7 @@ export default function Home() {
         {/* Categories Section */}
         <h2 className="my-4">Categories</h2>
         <div className="row justify-content-center">
-          <Link className="col-2" to="/Products/Fruits">
+          <Link className="col-2" to="/Products/Fruits/1">
             <img
               src="Assets/fruits.jpeg"
               className="img-fluid rounded-circle"

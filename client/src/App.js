@@ -71,17 +71,28 @@ function App() {
   const [cart, setCart] = useState([]); // Cart state
 
   // Function to add a product to the cart
-  const addToCart = (product) => {
+  const addToCart = (product, quantity = 1) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.ID === product.ID);
       if (existingProduct) {
+        console.log(
+          "Product already in cart. Current quantity:",
+          existingProduct.quantity
+        );
+        console.log("Adding quantity:", quantity);
         return prevCart.map((item) =>
           item.ID === product.ID
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+        console.log(
+          "Adding new product to cart:",
+          product,
+          "Quantity:",
+          quantity
+        );
+        return [...prevCart, { ...product, quantity }];
       }
     });
   };
@@ -251,7 +262,7 @@ function App() {
                       aria-labelledby="navbarDropdown"
                     >
                       <li>
-                        <Link className="dropdown-item" to="/Products/Fruits">
+                        <Link className="dropdown-item" to="/Products/Fruits/1">
                           Fruits
                         </Link>
                       </li>
@@ -350,7 +361,7 @@ function App() {
                       aria-labelledby="navbarDropdown"
                     >
                       <li>
-                        <Link className="dropdown-item" to="/Products/Fruits">
+                        <Link className="dropdown-item" to="/Products/Fruits/1">
                           Fruits
                         </Link>
                       </li>
@@ -437,7 +448,7 @@ function App() {
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Home" element={<Home />} />
         <Route
-          path="/Products/Fruits"
+          path="/Products/Fruits/:categoryId"
           element={
             <Fruits addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
