@@ -7,7 +7,7 @@ Login.propTypes = {
   setIsAuthenticated: PropTypes.func.isRequired,
 };
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login({ setIsAuthenticated, setCart }) {
   const backgroundStyle = {
     backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
     backgroundSize: "cover",
@@ -38,6 +38,7 @@ export default function Login({ setIsAuthenticated }) {
 
       if (response.status === 200) {
         setIsAuthenticated(true); // Update auth state
+        setCart([]); // Clear the cart when login
         navigate("/Home"); // Navigate to the home page
       }
     } catch (error) {

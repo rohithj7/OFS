@@ -109,43 +109,43 @@ export default function Snacks({ addToCart }) {
   return (
     <div>
       <div className="container my-5">
+        {/* search bar */}
+        <form onSubmit={handleSearchSubmit} className="mb-4">
+          <div class="input-group">
+            <input
+              placeholder="Search for products"
+              class="rounded form-control product-search"
+              type="search"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            ></input>
+            <span class="input-group-append">
+              <button
+                type="submit"
+                class="border border-start-0 ms-n10 rounded-0 rounded-end btn btn-white"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </span>
+          </div>
+        </form>
         {/* Product Section */}
-        <div className="mb-4 bg-light border-0 card">
+        <div className="mb-4 bg-light border-0 card mt-4">
           <div className="p-9 card-body">
             <h2 className="mb-0 fs-1 mb-2">Snacks</h2>
-            {/* search bar */}
-            <form onSubmit={handleSearchSubmit} className="">
-              <div class="input-group">
-                <input
-                  placeholder="Search for products"
-                  class="rounded form-control product-search"
-                  type="search"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                ></input>
-                <span class="input-group-append">
-                  <button
-                    type="submit"
-                    class="border border-start-0 ms-n10 rounded-0 rounded-end btn btn-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                  </button>
-                </span>
-              </div>
-            </form>
           </div>
         </div>
 
