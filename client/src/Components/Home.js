@@ -61,7 +61,7 @@ export default function Home() {
                 <div className="card-body">
                   <Link
                     className="text-decoration-none text-center"
-                    to="/Products/Meats"
+                    to="/Products/Meats/3"
                   >
                     <img
                       src={`/Assets/meats.jpeg`}

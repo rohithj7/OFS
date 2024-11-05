@@ -269,28 +269,28 @@ function App() {
                       <li>
                         <Link
                           className="dropdown-item"
-                          to="/Products/Vegetables"
+                          to="/Products/Vegetables/2"
                         >
                           Vegetables
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Meats">
+                        <Link className="dropdown-item" to="/Products/Meats/3">
                           Meats
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Dairy">
+                        <Link className="dropdown-item" to="/Products/Dairy/4">
                           Dairy
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Snacks">
+                        <Link className="dropdown-item" to="/Products/Snacks/5">
                           Snacks
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Meals">
+                        <Link className="dropdown-item" to="/Products/Meals/6">
                           Meals
                         </Link>
                       </li>
@@ -368,28 +368,28 @@ function App() {
                       <li>
                         <Link
                           className="dropdown-item"
-                          to="/Products/Vegetables"
+                          to="/Products/Vegetables/2"
                         >
                           Vegetables
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Meats">
+                        <Link className="dropdown-item" to="/Products/Meats/3">
                           Meats
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Dairy">
+                        <Link className="dropdown-item" to="/Products/Dairy/4">
                           Dairy
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Snacks">
+                        <Link className="dropdown-item" to="/Products/Snacks/5">
                           Snacks
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Meals">
+                        <Link className="dropdown-item" to="/Products/Meals/6">
                           Meals
                         </Link>
                       </li>
@@ -454,7 +454,7 @@ function App() {
           }
         />
         <Route
-          path="/Products/Vegetables"
+          path="/Products/Vegetables/:categoryId"
           element={
             <Vegetables
               addToCart={addToCart}
@@ -463,25 +463,25 @@ function App() {
           }
         />
         <Route
-          path="/Products/Meats"
+          path="/Products/Meats/:categoryId"
           element={
             <Meats addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
         />
         <Route
-          path="/Products/Dairy"
+          path="/Products/Dairy/:categoryId"
           element={
             <Dairy addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
         />
         <Route
-          path="/Products/Snacks"
+          path="/Products/Snacks/:categoryId"
           element={
             <Snacks addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
         />
         <Route
-          path="/Products/Meals"
+          path="/Products/Meals/:categoryId"
           element={
             <Meals addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
