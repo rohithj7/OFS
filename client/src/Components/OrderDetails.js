@@ -105,7 +105,7 @@ function OrderDetails() {
                     <p class="fw-bold text-secondary mb-1">Customer Name</p>
                     <p>{customerInfo.firstName} {customerInfo.lastName}</p>
                   </div>
-                  <div class="col">
+                  <div class="col border-end">
                     <p class="fw-bold text-secondary mb-1">Order Date</p>
                     <p>{orderDate}</p>
                   </div>
