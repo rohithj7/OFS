@@ -360,14 +360,6 @@ export default function Vegetables({ addToCart }) {
                                 <tbody>
                                   <tr>
                                     <td className="text-secondary">
-                                      Product ID:
-                                    </td>
-                                    <td className="text-secondary">
-                                      {selectedProduct.ID}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td className="text-secondary">
                                       Availability:
                                     </td>
                                     <td className="text-secondary">

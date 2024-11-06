@@ -487,6 +487,9 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
+        <Route 
+        path="/"
+          element={<Home />} />
         <Route
           path="/Login"
           element={

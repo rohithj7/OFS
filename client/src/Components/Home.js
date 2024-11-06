@@ -83,7 +83,7 @@ export default function Home() {
                 <div className="card-body">
                   <Link
                     className="text-decoration-none text-center"
-                    to="/Products/Dairy"
+                    to="/Products/Dairy/4"
                   >
                     <img
                       src={`/Assets/dairy.jpeg`}
@@ -105,7 +105,7 @@ export default function Home() {
                 <div className="card-body">
                   <Link
                     className="text-decoration-none text-center"
-                    to="/Products/Snacks"
+                    to="/Products/Snacks/5"
                   >
                     <img
                       src={`/Assets/snacks.jpeg`}
@@ -127,7 +127,7 @@ export default function Home() {
                 <div className="card-body">
                   <Link
                     className="text-decoration-none text-center"
-                    to="/Products/Meals"
+                    to="/Products/Meals/6"
                   >
                     <img
                       src={`/Assets/meals.jpeg`}
