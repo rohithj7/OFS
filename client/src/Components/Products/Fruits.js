@@ -34,6 +34,15 @@ export default function Fruits({ addToCart }) {
   const decrementQuantity = () =>
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
+  // Function to handle manual changes in the quantity input field
+  const handleQuantityInput = (e) => {
+    const value = e.target.value;
+    // Only set if it's a positive number or empty (for easier editing)
+    if (value === "" || (Number.isInteger(+value) && +value > 0)) {
+      setQuantity(value === "" ? "" : +value); // Set to integer if valid, else empty string for clearing
+    }
+  };
+
   // Modify the addToCart function call to include quantity
   const handleAddToCart = (product, quantity) => {
     console.log("Adding to cart:", product, "Quantity:", quantity);
@@ -287,7 +296,11 @@ export default function Fruits({ addToCart }) {
                                   type="number"
                                   min="1"
                                   value={quantity}
-                                  readOnly
+                                  onChange={handleQuantityInput}
+                                  onBlur={() => {
+                                    // Ensure quantity is at least 1 if left empty
+                                    if (quantity == "") setQuantity(1);
+                                  }}
                                 />
                                 <input
                                   className="button-plus btn btn-sm border"
