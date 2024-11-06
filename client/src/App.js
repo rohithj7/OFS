@@ -119,6 +119,29 @@ function App() {
     );
   };
 
+  // Function to handle quantity input directly in the cart
+  const handleQuantityInputChange = (productId, value) => {
+    const newQuantity = parseInt(value, 10);
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.ID === productId
+          ? { ...item, quantity: newQuantity > 0 ? newQuantity : "" } // Allow empty temporarily
+          : item
+      )
+    );
+  };
+
+  // Function to ensure quantity is at least 1 on blur
+  const handleQuantityBlur = (productId) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.ID === productId
+          ? { ...item, quantity: item.quantity || 1 } // Reset to 1 if empty
+          : item
+      )
+    );
+  };
+
   // Function to remove an item from the cart
   const removeFromCart = (productId) => {
     setCart((prevCart) => prevCart.filter((item) => item.ID !== productId));
@@ -191,36 +214,50 @@ function App() {
     }
   };
 
-  const freeDeliveryAlert = document.getElementById("freeDeliveryAlert"); // gets the free delivery alert element
-  const deliveryFeeCart = document.getElementById("deliveryFeeCart"); // gets the delivery free element
-  // free delivery alert function - will display alert banner if total weight in cart is < 20 (otherwise, won't display banner)
-  /*
-  function handleFreeDeliveryAlert() {
-    // var totalWeight = document.getElementById("totalWeightCart").textContent.replace(/[a-zA-Z]+/g, ''); 
-    // /* gets the textContent (content) from the free total weight element (which is the span tag) (ex. 9.00 ounces), 
-    //   and removes any alphabetical characters (using regex: [a-zA-Z]+ ) => replaces the alphabetical characters with no space
-    //   the resulting value that goes into totalWeight will be something like 9.00, for example */
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  // free delivery alert function - will display alert banner if total weight in cart is < 320 ounces (20 lbs) (otherwise, won't display banner)
+  const handleFreeDeliveryAlert = () => {
+    const freeDeliveryAlert = document.getElementById("freeDeliveryAlert"); // gets the free delivery alert element
+    const deliveryFeeCart = document.getElementById("deliveryFeeCart"); // gets the delivery free element
+    const totalWeight = cart.reduce(
+      (total, item) => total + item.WEIGHT * item.quantity,
+      0
+    );
 
-  // console.log(totalWeight); // test to make sure value stored in total weight var is a number
-  // console.log(totalWeight < 20.00); // test to see if total weight value is < 20
+    console.log("Total weight:", totalWeight); // test to make sure value stored in total weight var is a number
+    console.log(totalWeight < 320.0); // test to see if total weight value is < 320
 
-  // if (totalWeight < 20.00 && totalWeight !== 0.00) { // if totalWeight is < 20, then the alert banner will be displayed, and delivery fee will be $0
-  //   freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element
-  //   deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
-  // }
-  // else if (totalWeight >= 20.00) { // if totalWeight >= 20, then the alert banner will be removed, and delivery fee will be $10
-  //   deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee eleemnt
-  //   freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
-  // }
-  // else {
-  //   freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
-  // }
+    if (totalWeight > 0 && totalWeight < 320.0) {
+      // if totalWeight is < 320, then the alert banner will be displayed, and delivery fee will be $0
+      if (freeDeliveryAlert) {
+        freeDeliveryAlert.classList.remove("d-none"); // will remove d-none from class list of this element
+      }
+      if (deliveryFeeCart) {
+        deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
+      }
+      setDeliveryFee(0); // Set delivery fee to 0
+    } else if (totalWeight >= 320.0) {
+      // if totalWeight >= 320, then the alert banner will be removed, and delivery fee will be $10
+      if (freeDeliveryAlert) {
+        freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
+      }
+      if (deliveryFeeCart) {
+        deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee element
+      }
+      setDeliveryFee(10); // Set delivery fee to 10
+    } else {
+      // If totalWeight is 0 (empty cart), hide alert banner
+      if (freeDeliveryAlert) {
+        freeDeliveryAlert.classList.add("d-none"); // will add d-none from class list of this element (d-none makes the freeDeliveryAlert element not display anything)
+      }
+      setDeliveryFee(0); // Set delivery fee to 0
+    }
+  };
 
-  // Current Problems:
-  // Sometimes only shows alert (and makes delivery fee price $0) if totalWeight is < 19, and sometimes only removes alert (and changes delivery fee price to $10) if totalWeight is > 21
-  // GIVES AN ERROR IF TEXT CONTENT IS NULL, SO NEED TO DEAL W/ THIS
-  // ALSO MAYBE SHOULD HANDLE REMOVING D-NONE WHEN THERE IS NO D-NONE IS CLASS LIST? NOT SURE THOUGH
-  //}
+  // Update free delivery alert whenever the cart changes
+  useEffect(() => {
+    handleFreeDeliveryAlert();
+  }, [cart]);
 
   return (
     <div>
@@ -518,7 +555,11 @@ function App() {
           path="/Checkout"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Checkout cart={cart} setCart={setCart} />
+              <Checkout
+                cart={cart}
+                setCart={setCart}
+                deliveryFee={deliveryFee}
+              />
             </ProtectedRoute>
           }
         />
@@ -615,7 +656,10 @@ function App() {
                       type="number"
                       min="1"
                       value={item.quantity}
-                      readOnly
+                      onChange={(e) =>
+                        handleQuantityInputChange(item.ID, e.target.value)
+                      }
+                      onBlur={() => handleQuantityBlur(item.ID)}
                     />
                     <input
                       className="button-plus btn btn-sm border"
@@ -661,16 +705,20 @@ function App() {
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
                 <div className="me-auto">Total Weight</div>
-                <span
-                  id="totalWeightCart" /*onChange={handleFreeDeliveryAlert()}*/
-                >
-                  {cart
-                    .reduce(
+                <span id="totalWeightCart">
+                  {(() => {
+                    const totalWeight = cart.reduce(
                       (total, item) => total + item.WEIGHT * item.quantity,
                       0
-                    )
-                    .toFixed(2)}{" "}
-                  ounces
+                    );
+
+                    if (totalWeight >= 16) {
+                      const weightInLbs = (totalWeight / 16).toFixed(2);
+                      return `${weightInLbs} lbs`;
+                    } else {
+                      return `${totalWeight.toFixed(2)} ounces`;
+                    }
+                  })()}
                 </span>
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
@@ -679,7 +727,7 @@ function App() {
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
                 <div className="me-auto">Delivery Fee</div>
-                <span id="deliveryFeeCart">$0.00</span>
+                <span id="deliveryFeeCart">${deliveryFee.toFixed(2)}</span>
               </div>
               <div className="d-flex justify-content-between align-items-start list-group-item">
                 <div className="me-auto fw-bold">Subtotal</div>
