@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
+import PropTypes from "prop-types";
 
 function OrderDetails() {
   const { id } = useParams();
@@ -245,10 +246,15 @@ function OrderDetails() {
                 )}
 
                 <div class="card-footer border-0 px-4 py-4 mt-2 bg-white">
+                  <p className="text-end text-muted mb-2">
+                    {/* Delivery Fee: ${deliveryFee?.toFixed(2)} */}
+                  </p>
                   <h5 class="d-flex align-items-center justify-content-end text-black mb-0 me-2">
                     Total paid:{" "}
                     <span class="h2 mb-0 ms-2">
-                      ${Number(totalPrice).toFixed(2)}
+                      $
+                      {Number(totalPrice) /*+ (deliveryFee || 0)*/
+                        .toFixed(2)}
                     </span>
                   </h5>
                 </div>

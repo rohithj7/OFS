@@ -272,12 +272,12 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                       <div>Grand Total</div>
                       <div className="fw-bold">
                         $
-                        {cart
-                          .reduce(
+                        {(
+                          cart.reduce(
                             (total, item) => total + item.PRICE * item.quantity,
                             0
-                          )
-                          .toFixed(2)}
+                          ) + deliveryFee
+                        ).toFixed(2)}
                       </div>
                     </div>
                   </li>

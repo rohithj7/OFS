@@ -171,6 +171,7 @@ function App() {
       );
       if (checkResponse.status === 200) {
         console.log("Ready to checkout");
+        localStorage.setItem("deliveryFee", deliveryFee); // Store delivery fee
         // Close the sidebar
         const sidebar = sidebarRef.current;
         if (sidebar) {
@@ -215,6 +216,7 @@ function App() {
   };
 
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [isFreeDelivery, setIsFreeDelivery] = useState(false);
   // free delivery alert function - will display alert banner if total weight in cart is < 320 ounces (20 lbs) (otherwise, won't display banner)
   const handleFreeDeliveryAlert = () => {
     const freeDeliveryAlert = document.getElementById("freeDeliveryAlert"); // gets the free delivery alert element
@@ -235,6 +237,7 @@ function App() {
       if (deliveryFeeCart) {
         deliveryFeeCart.innerHTML = "$0.00"; // changing content of delivery fee element
       }
+      setIsFreeDelivery(true); // Set flag for free delivery
       setDeliveryFee(0); // Set delivery fee to 0
     } else if (totalWeight >= 320.0) {
       // if totalWeight >= 320, then the alert banner will be removed, and delivery fee will be $10
@@ -244,6 +247,7 @@ function App() {
       if (deliveryFeeCart) {
         deliveryFeeCart.innerHTML = "$10.00"; // changing content of delivery fee element
       }
+      setIsFreeDelivery(false); // Set flag to false
       setDeliveryFee(10); // Set delivery fee to 10
     } else {
       // If totalWeight is 0 (empty cart), hide alert banner
@@ -258,6 +262,11 @@ function App() {
   useEffect(() => {
     handleFreeDeliveryAlert();
   }, [cart]);
+
+  useEffect(() => {
+    // Store the delivery fee in local storage whenever it changes
+    localStorage.setItem("storedDeliveryFee", deliveryFee);
+  }, [deliveryFee]);
 
   return (
     <div>
@@ -539,7 +548,10 @@ function App() {
           path="/Orders"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Orders />
+              <Orders
+                deliveryFee={deliveryFee}
+                isFreeDelivery={isFreeDelivery}
+              />
             </ProtectedRoute>
           }
         />
@@ -547,7 +559,10 @@ function App() {
           path="/OrderDetails/:id"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <OrderDetails />
+              <OrderDetails
+                deliveryFee={deliveryFee}
+                isFreeDelivery={isFreeDelivery}
+              />
             </ProtectedRoute>
           }
         />
@@ -559,6 +574,7 @@ function App() {
                 cart={cart}
                 setCart={setCart}
                 deliveryFee={deliveryFee}
+                setDeliveryFee={setDeliveryFee}
               />
             </ProtectedRoute>
           }
@@ -733,12 +749,12 @@ function App() {
                 <div className="me-auto fw-bold">Subtotal</div>
                 <span className="fw-bold">
                   $
-                  {cart
-                    .reduce(
+                  {(
+                    cart.reduce(
                       (total, item) => total + item.PRICE * item.quantity,
                       0
-                    )
-                    .toFixed(2)}
+                    ) + deliveryFee
+                  ).toFixed(2)}
                 </span>
               </div>
             </div>
