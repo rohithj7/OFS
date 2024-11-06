@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
-export default function Checkout({ cart = [], setCart }) {
+export default function Checkout({ cart = [], setCart, deliveryFee }) {
   useEffect(() => {
     console.log("Cart received in Checkout:", cart);
   }, [cart]);
@@ -245,19 +246,25 @@ export default function Checkout({ cart = [], setCart }) {
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <div>Total Weight</div>
                       <div className="fw-bold">
-                        {cart
-                          .reduce(
+                        {(() => {
+                          const totalWeight = cart.reduce(
                             (total, item) =>
-                              total + parseFloat(item.WEIGHT) * item.quantity,
+                              total + item.WEIGHT * item.quantity,
                             0
-                          )
-                          .toFixed(2)}{" "}
-                        ounces
+                          );
+
+                          if (totalWeight >= 16) {
+                            const weightInLbs = (totalWeight / 16).toFixed(2);
+                            return `${weightInLbs} lbs`;
+                          } else {
+                            return `${totalWeight.toFixed(2)} ounces`;
+                          }
+                        })()}
                       </div>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <div>Delivery Fee</div>
-                      <div className="fw-bold">$0.00</div>
+                      <div className="fw-bold">${deliveryFee.toFixed(2)}</div>
                     </div>
                   </li>
                   <li className="px-4 py-3 list-group-item">
@@ -265,12 +272,12 @@ export default function Checkout({ cart = [], setCart }) {
                       <div>Grand Total</div>
                       <div className="fw-bold">
                         $
-                        {cart
-                          .reduce(
+                        {(
+                          cart.reduce(
                             (total, item) => total + item.PRICE * item.quantity,
                             0
-                          )
-                          .toFixed(2)}
+                          ) + deliveryFee
+                        ).toFixed(2)}
                       </div>
                     </div>
                   </li>
@@ -289,3 +296,9 @@ export default function Checkout({ cart = [], setCart }) {
     </section>
   );
 }
+// Define PropTypes for the Checkout component
+Checkout.propTypes = {
+  cart: PropTypes.array.isRequired,
+  setCart: PropTypes.func.isRequired,
+  deliveryFee: PropTypes.number.isRequired,
+};
