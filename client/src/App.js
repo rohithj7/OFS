@@ -446,7 +446,9 @@ function App() {
           element={<Home />} />
         <Route
           path="/Login"
-          element={<Login setIsAuthenticated={setIsAuthenticated} />}
+          element={
+            <Login setIsAuthenticated={setIsAuthenticated} setCart={setCart} />
+          }
         />
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Home" element={<Home />} />
@@ -515,12 +517,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Other Routes */}
         <Route
           path="/Checkout"
-          element={<Checkout cart={cart} setCart={setCart} />}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Checkout cart={cart} setCart={setCart} />
+            </ProtectedRoute>
+          }
         />
+
+        {/* Other Routes */}
         <Route path="/personal-info" element={<PersonalInfo />} />
         <Route path="/delivery-route" element={<DeliveryRoutePage />} />
       </Routes>
