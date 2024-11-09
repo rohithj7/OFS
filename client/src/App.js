@@ -27,6 +27,7 @@ import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
 import Checkout from "./Components/Checkout";
 import DeliveryRoutePage from "./Components/DeliveryRoutePage";
+import ManagerDashboard from "./Components/ManagerDashboard";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -487,6 +488,7 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
+        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
         <Route 
         path="/"
           element={<Home />} />
@@ -537,6 +539,7 @@ function App() {
             <Meals addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
         />
+       
 
         {/* Protected Routes */}
         <Route
