@@ -118,3 +118,56 @@ html, body {
 .btn.bg-green:hover {
   background-color: #99D98C;
 }
+
+.btn-products-dropdown:hover {
+  /* &:hover {
+    background-color: var(--bs-btn-bg);
+    color: var(--bs-btn-color);
+  }
+  &:focus {
+    background-color: var(--bs-btn-bg);
+    color: var(--bs-btn-color);
+  }
+  &.active {
+    &:hover {
+      background-color: var(--bs-btn-active-bg);
+      color: var(--bs-btn-active-color);
+    }
+    &:focus {
+      background-color: var(--bs-btn-active-bg);
+      color: var(--bs-btn-active-color);
+    }
+  } */
+  /* border-color: #EB780A; */
+}
+
+.form-check-input:checked {
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+
+/* .form-select option {
+  background-color: #198754;
+  color: #fff;
+} */
+
+.form-select:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+/* when you select the input of a form, ex. input for login, there will be a green shadow/outline instead of default blue */
+.form-control:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+.btn-close:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+.product-description-manager {
+  
+}
+
