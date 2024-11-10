@@ -53,6 +53,8 @@ import {
   reorderProduct,
   getProductIdByName,
   getSupplierIdByName,
+  updateSaleStatus,
+  resetPassword,
 } from "./database.js";
 import { registerAdmin, registerCustomer, registerSupplier, registerEmployee } from "./userController.js";
 
@@ -144,6 +146,22 @@ function isAdmin(req, res, next) {
   res.status(403).json({ message: "Forbidden for non-admins" });
 }
 
+// Middleware to check if the user is either an admin or an employee
+function isAdminOrEmployee(req, res, next) {
+  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'employee')) {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins and non-employees" });
+}
+
+// Middleware to check if the user is either an admin or a supplier
+function isAdminOrSupplier(req, res, next) {
+  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'supplier')) {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins and non-suppliers" });
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // -------------------------------------------------------- REGISTER AND LOGIN --------------------------------------------------------------------//
@@ -154,10 +172,10 @@ app.post("/registerAdmin", registerAdmin);
 // Customer registration route
 app.post("/registerCustomer", registerCustomer);
 
-// Supplier registration route
+// Supplier registration route; requires admin logged in
 app.post("/registerSupplier", isAdmin, registerSupplier);
 
-// Employee registration route
+// Employee registration route; requires admin logged in
 app.post("/registerEmployee", isAdmin, registerEmployee);
 
 // Login route
@@ -281,6 +299,33 @@ app.post("/admin/reorder-product", isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error("Error reordering product:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to reset password for admin
+app.put("/admin/reset-password", isAdmin, async (req, res) => {
+  try {
+    const adminId = req.user.ID;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required." });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password in the database
+    const updated = await resetPassword(adminId, hashedPassword);
+
+    if (updated) {
+      res.json({ message: "Password reset successfully." });
+    } else {
+      res.status(500).json({ message: "Failed to reset password." });
+    }
+  } catch (error) {
+    console.error("Error resetting password:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -759,6 +804,29 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
     });
   } catch (error) {
     console.error("Error placing sale:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to update sale status
+app.put("/sales/:id/status", isAdminOrEmployee, async (req, res) => {
+  try {
+    const saleId = req.params.id;
+    const { newStatus } = req.body;
+
+    if (!newStatus) {
+      return res.status(400).json({ message: "New status is required." });
+    }
+
+    const updated = await updateSaleStatus(saleId, newStatus);
+
+    if (updated) {
+      res.json({ message: "Sale status updated successfully." });
+    } else {
+      res.status(404).json({ message: "Sale not found." });
+    }
+  } catch (error) {
+    console.error("Error updating sale status:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });

@@ -7,6 +7,7 @@ import {
   createCustomer,
   createSupplier,
   createEmployee,
+  getAdminCount, // Import the new function
 } from "./database.js";
 
 export async function registerAdmin(req, res) {
@@ -20,6 +21,12 @@ export async function registerAdmin(req, res) {
   }
 
   try {
+    // Check if an admin already exists
+    const adminCount = await getAdminCount();
+    if (adminCount > 0) {
+      return res.status(409).json({ message: "An admin already exists." });
+    }
+
     // Check if the email already exists
     const existingUser = await getLoginByEmail(email);
     if (existingUser) {
@@ -153,7 +160,7 @@ export async function registerSupplier(req, res) {
 }
 
 export async function registerEmployee(req, res) {
-  const { email, password, firstName, lastName, ssn, salary, startDate } = req.body;
+  const { email, password, firstName, lastName, ssn, salary, phone, address, startDate, endDate } = req.body;
 
   // Input validation
   if (!email || !password || !firstName || !lastName || !ssn || !salary || !startDate) {
@@ -190,7 +197,18 @@ export async function registerEmployee(req, res) {
     );
 
     // Create an entry in the EMPLOYEES table
-    await createEmployee(loginId, firstName, lastName, ssn, salary, startDate);
+    await createEmployee({
+      loginId,
+      firstName,
+      lastName,
+      ssn,
+      email,
+      phone,
+      address,
+      salary,
+      startDate,
+      endDate: null // Assuming endDate is optional
+    });
 
     res.status(201).json({ message: "Employee registered successfully." });
   } catch (error) {

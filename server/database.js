@@ -57,6 +57,27 @@ export async function createLogin(email, hashedPassword, accountCreationDate, ro
   return result.insertId; // Return the new user's ID
 }
 
+// Function to reset password
+export async function resetPassword(userId, hashedPassword) {
+  const sql = `
+        UPDATE LOGIN
+        SET PASSWORD = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [hashedPassword, userId]);
+  return result.affectedRows > 0;
+}
+
+// Function to get the count of admins
+export async function getAdminCount() {
+  const sql = `
+        SELECT COUNT(*) AS count FROM LOGIN
+        WHERE ROLE = 'admin'
+    `;
+  const [result] = await pool.query(sql);
+  return result[0].count;
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ------------------------------------------------------------- ADMIN INFO -----------------------------------------------------------------------//
@@ -307,7 +328,7 @@ export async function updateProduct(
 ) {
   const sql = `
         UPDATE PRODUCTS
-        SET PRODUCTNAME = ?, PRODUCTDESCRIPTION = ?, QUANTITY = ?, REORDERLEVEL = ?, REORDERQUANTITY = ?, PRICE = ?, WEIGHT = ?
+        SET PRODUCTNAME = ?, PRODUCTDESCRIPTION = ?, QUANTITY = ?, REORDERLEVEL = ?, REORDERQUANTITY = ?, PRICE, WEIGHT = ?
         WHERE ID = ?
     `;
   const [result] = await pool.query(sql, [
@@ -642,6 +663,17 @@ export async function getSalesByCustomerId(customerId) {
   // Convert the sales map into an array
   const sales = Object.values(salesMap);
   return sales;
+}
+
+// Function to update sale status
+export async function updateSaleStatus(saleId, newStatus) {
+  const sql = `
+        UPDATE SALES
+        SET SALE_STATUS = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [newStatus, saleId]);
+  return result.affectedRows > 0;
 }
 
 // Check Product Availability
