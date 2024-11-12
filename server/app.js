@@ -49,8 +49,14 @@ import {
   searchProductsByName,
   getProductsByCategory,
   planDeliveryRoute,
+  getProductsBelowReorderLevel,
+  reorderProduct,
+  getProductIdByName,
+  getSupplierIdByName,
+  updateSaleStatus,
+  resetPassword,
 } from "./database.js";
-import { registerAdmin, registerCustomer } from "./userController.js";
+import { registerAdmin, registerCustomer, registerSupplier, registerEmployee } from "./userController.js";
 
 const app = express();
 
@@ -132,6 +138,30 @@ function isAuthenticated(req, res, next) {
   res.status(401).json({ message: "Unauthorized" });
 }
 
+// Middleware to check admin authentication
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.ROLE === 'admin') {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins" });
+}
+
+// Middleware to check if the user is either an admin or an employee
+function isAdminOrEmployee(req, res, next) {
+  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'employee')) {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins and non-employees" });
+}
+
+// Middleware to check if the user is either an admin or a supplier
+function isAdminOrSupplier(req, res, next) {
+  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'supplier')) {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins and non-suppliers" });
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // -------------------------------------------------------- REGISTER AND LOGIN --------------------------------------------------------------------//
@@ -141,6 +171,12 @@ app.post("/registerAdmin", registerAdmin);
 
 // Customer registration route
 app.post("/registerCustomer", registerCustomer);
+
+// Supplier registration route; requires admin logged in
+app.post("/registerSupplier", isAdmin, registerSupplier);
+
+// Employee registration route; requires admin logged in
+app.post("/registerEmployee", isAdmin, registerEmployee);
 
 // Login route
 app.post("/login", passport.authenticate("local"), (req, res) => {
@@ -198,6 +234,98 @@ app.post("/userinfo", isAuthenticated, async (req, res) => {
     res.json({ message: "User info updated successfully." });
   } catch (error) {
     console.error("Error updating user info:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Admin routes
+app.get("/admin/users", isAdmin, async (req, res) => {
+  try {
+    const users = await getUserInfo();
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+app.delete("/admin/users/:id", isAdmin, async (req, res) => {
+  try {
+    const deletedUser = await deleteCustomer(req.params.id);
+    if (deletedUser) {
+      res.json(deletedUser);
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Admin PRODUCTS
+// Admin route to get products below reorder level
+app.get("/admin/products-below-reorder-level", isAdmin, async (req, res) => {
+  try {
+    const products = await getProductsBelowReorderLevel();
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products below reorder level:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Admin PRODUCTS
+// Admin route to reorder products
+app.post("/admin/reorder-product", isAdmin, async (req, res) => {
+  try {
+    const { productName, supplierName, quantity } = req.body;
+
+    // Get product ID and supplier ID
+    const productId = await getProductIdByName(productName);
+    const supplierId = await getSupplierIdByName(supplierName);
+
+    if (!productId || !supplierId) {
+      return res.status(400).json({ message: "Invalid product or supplier name." });
+    }
+
+    // Reorder product
+    const reorderResult = await reorderProduct(productId, supplierId, quantity);
+
+    res.json({
+      message: "Product reordered successfully.",
+      orderId: reorderResult.orderId,
+      reorderQuantity: reorderResult.reorderQuantity,
+      price: reorderResult.price,
+    });
+  } catch (error) {
+    console.error("Error reordering product:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to reset password for admin
+app.put("/admin/reset-password", isAdmin, async (req, res) => {
+  try {
+    const adminId = req.user.ID;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required." });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password in the database
+    const updated = await resetPassword(adminId, hashedPassword);
+
+    if (updated) {
+      res.json({ message: "Password reset successfully." });
+    } else {
+      res.status(500).json({ message: "Failed to reset password." });
+    }
+  } catch (error) {
+    console.error("Error resetting password:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -676,6 +804,29 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
     });
   } catch (error) {
     console.error("Error placing sale:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to update sale status
+app.put("/sales/:id/status", isAdminOrEmployee, async (req, res) => {
+  try {
+    const saleId = req.params.id;
+    const { newStatus } = req.body;
+
+    if (!newStatus) {
+      return res.status(400).json({ message: "New status is required." });
+    }
+
+    const updated = await updateSaleStatus(saleId, newStatus);
+
+    if (updated) {
+      res.json({ message: "Sale status updated successfully." });
+    } else {
+      res.status(404).json({ message: "Sale not found." });
+    }
+  } catch (error) {
+    console.error("Error updating sale status:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });

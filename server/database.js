@@ -43,17 +43,39 @@ export async function getLoginByEmail(email) {
 }
 
 // Function to create a new user in LOGIN table
-export async function createLogin(email, hashedPassword, accountCreationDate) {
+export async function createLogin(email, hashedPassword, accountCreationDate, role = 'customer') {
   const sql = `
-        INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE)
-        VALUES (?, ?, ?)
+        INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE, ROLE)
+        VALUES (?, ?, ?, ?)
     `;
   const [result] = await pool.execute(sql, [
     email,
     hashedPassword,
     accountCreationDate,
+    role,
   ]);
   return result.insertId; // Return the new user's ID
+}
+
+// Function to reset password
+export async function resetPassword(userId, hashedPassword) {
+  const sql = `
+        UPDATE LOGIN
+        SET PASSWORD = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [hashedPassword, userId]);
+  return result.affectedRows > 0;
+}
+
+// Function to get the count of admins
+export async function getAdminCount() {
+  const sql = `
+        SELECT COUNT(*) AS count FROM LOGIN
+        WHERE ROLE = 'admin'
+    `;
+  const [result] = await pool.query(sql);
+  return result[0].count;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -306,7 +328,7 @@ export async function updateProduct(
 ) {
   const sql = `
         UPDATE PRODUCTS
-        SET PRODUCTNAME = ?, PRODUCTDESCRIPTION = ?, QUANTITY = ?, REORDERLEVEL = ?, REORDERQUANTITY = ?, PRICE = ?, WEIGHT = ?
+        SET PRODUCTNAME = ?, PRODUCTDESCRIPTION = ?, QUANTITY = ?, REORDERLEVEL = ?, REORDERQUANTITY = ?, PRICE, WEIGHT = ?
         WHERE ID = ?
     `;
   const [result] = await pool.query(sql, [
@@ -351,6 +373,88 @@ export async function getProductsByCategory(categoryId) {
     `;
   const products = await query(sql, [categoryId]);
   return products;
+}
+// Function to get products with quantities less than their reorder levels
+export async function getProductsBelowReorderLevel() {
+  const sql = `
+    SELECT ID, PRODUCTNAME
+    FROM PRODUCTS
+    WHERE QUANTITY < REORDERLEVEL
+  `;
+  const [result] = await pool.query(sql);
+  return result;
+}
+
+// Function to reorder products with quantities less than their reorder levels by a specified quantity 
+// Function to reorder products
+export async function reorderProduct(productId, supplierId, quantity = null) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Get product details
+    const productSql = `SELECT REORDERQUANTITY, PRICE FROM PRODUCTS WHERE ID = ?`;
+    const [product] = await connection.query(productSql, [productId]);
+    if (!product.length) {
+      throw new Error("Product not found");
+    }
+
+    const reorderQuantity = quantity || product[0].REORDERQUANTITY;
+    const price = product[0].PRICE * reorderQuantity;
+
+    // Insert into ORDERS table
+    const orderSql = `
+      INSERT INTO ORDERS (PRICE, ORDERDATE, PAYMENTDETAILS, SUPPLIERID, ORDER_STATUS)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const orderDate = new Date().toISOString().slice(0, 10);
+    const paymentDetails = "Paid via Stripe"; // Placeholder
+    const orderStatus = "COMPLETED";
+
+    const [orderResult] = await connection.query(orderSql, [
+      price,
+      orderDate,
+      paymentDetails,
+      supplierId,
+      orderStatus,
+    ]);
+
+    const orderId = orderResult.insertId;
+
+    // Insert into ORDERS_PRODUCTS table
+    const orderProductSql = `
+      INSERT INTO ORDERS_PRODUCTS (ORDERID, PRODUCTID, QUANTITY, PRICE)
+      VALUES (?, ?, ?, ?)
+    `;
+    await connection.query(orderProductSql, [
+      orderId,
+      productId,
+      reorderQuantity,
+      price,
+    ]);
+
+    await connection.commit();
+    return { orderId, reorderQuantity, price };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+// Function to get product ID by product name
+export async function getProductIdByName(productName) {
+  const sql = `SELECT ID FROM PRODUCTS WHERE PRODUCTNAME = ?`;
+  const [result] = await pool.query(sql, [productName]);
+  return result.length ? result[0].ID : null;
+}
+
+// Function to get supplier ID by supplier name
+export async function getSupplierIdByName(supplierName) {
+  const sql = `SELECT ID FROM SUPPLIERS WHERE SUPPLIERNAME = ?`;
+  const [result] = await pool.query(sql, [supplierName]);
+  return result.length ? result[0].ID : null;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -559,6 +663,17 @@ export async function getSalesByCustomerId(customerId) {
   // Convert the sales map into an array
   const sales = Object.values(salesMap);
   return sales;
+}
+
+// Function to update sale status
+export async function updateSaleStatus(saleId, newStatus) {
+  const sql = `
+        UPDATE SALES
+        SET SALE_STATUS = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [newStatus, saleId]);
+  return result.affectedRows > 0;
 }
 
 // Check Product Availability
