@@ -356,7 +356,7 @@ export async function deleteProduct(id) {
 // Search Products by Name
 export async function searchProductsByName(searchTerm) {
   const sql = `
-      SELECT P.ID, P.PRODUCTNAME, P.PRODUCTDESCRIPTION, P.BRAND, P.PRICE, P.PICTURE_URL, P.QUANTITY
+      SELECT P.ID, P.CATEGORYID, P.PRODUCTNAME, P.PRODUCTDESCRIPTION, P.BRAND, P.PRICE, P.PICTURE_URL, P.QUANTITY, P.WEIGHT
       FROM PRODUCTS P
       WHERE P.PRODUCTNAME LIKE ?
     `;
@@ -367,7 +367,7 @@ export async function searchProductsByName(searchTerm) {
 // Get Products by Category
 export async function getProductsByCategory(categoryId) {
   const sql = `
-      SELECT P.ID, P.PRODUCTNAME, P.PRODUCTDESCRIPTION, P.BRAND, P.PRICE, P.PICTURE_URL, P.QUANTITY
+      SELECT P.ID, P.CATEGORYID, P.PRODUCTNAME, P.PRODUCTDESCRIPTION, P.BRAND, P.PRICE, P.PICTURE_URL, P.QUANTITY, P.WEIGHT
       FROM PRODUCTS P
       WHERE P.CATEGORYID = ?
     `;
@@ -879,23 +879,23 @@ const START_LAT = 37.337214;
 const START_LNG = -121.882696;
 
 export async function planDeliveryRoute() {
-    const startCoord = { latitude: START_LAT, longitude: START_LNG };
+  const startCoord = { latitude: START_LAT, longitude: START_LNG };
 
-    const deliveryAddresses = [
-        '1016 Johnson Ave, San Jose, CA 95129',
-        '2430 Newhall St, San Jose, CA 95128',
-        // Add more addresses
-    ];
+  const deliveryAddresses = [
+    "1016 Johnson Ave, San Jose, CA 95129",
+    "2430 Newhall St, San Jose, CA 95128",
+    // Add more addresses
+  ];
 
-    const deliveryCoords = [];
-    for (const address of deliveryAddresses) {
-        const coord = await geocodeAddress(address);
-        deliveryCoords.push(coord);
-    }
+  const deliveryCoords = [];
+  for (const address of deliveryAddresses) {
+    const coord = await geocodeAddress(address);
+    deliveryCoords.push(coord);
+  }
 
-    const routeData = await getOptimizedRoute(startCoord, deliveryCoords);
+  const routeData = await getOptimizedRoute(startCoord, deliveryCoords);
 
-    return routeData;
+  return routeData;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//

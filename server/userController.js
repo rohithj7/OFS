@@ -95,11 +95,15 @@ export async function registerCustomer(req, res) {
     // Get the current date
     const accountCreationDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
 
+    // Set the role as 'admin'
+    const role = 'customer';
+
     // Insert the new user into the LOGIN table
     const loginId = await createLogin(
       email,
       hashedPassword,
-      accountCreationDate
+      accountCreationDate,
+      role
     );
 
     // Optionally, create an entry in the INFO table
