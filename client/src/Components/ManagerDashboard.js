@@ -745,7 +745,7 @@ export default function ManagerDashboard() {
                                                     
                                                 </form>
                                                 <button type="" class="btn btn-pastelblue mt-3 w-100" id="clearAllButton">Clear All Fields</button>
-                                                <button type="submit" class="btn btn-lightergreen mt-4 w-100">Create New Product</button>
+                                                <button type="submit" class="btn btn-lightergreen mt-4 w-100">Submit Changes</button>
                                             </div>
                                         </div>
                                         
