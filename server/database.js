@@ -45,14 +45,15 @@ export async function getLoginByEmail(email) {
 // Function to create a new user in LOGIN table
 export async function createLogin(email, hashedPassword, accountCreationDate, role = 'customer') {
   const sql = `
-        INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE, ROLE)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE, ROLE, FIRST_TIME_LOGIN)
+        VALUES (?, ?, ?, ?, ?)
     `;
   const [result] = await pool.execute(sql, [
     email,
     hashedPassword,
     accountCreationDate,
     role,
+    true // Set FIRST_TIME_LOGIN to true for new users
   ]);
   return result.insertId; // Return the new user's ID
 }
@@ -76,6 +77,17 @@ export async function getAdminCount() {
     `;
   const [result] = await pool.query(sql);
   return result[0].count;
+}
+
+// Function to update the first time login flag
+export async function updateFirstTimeLogin(userId, firstTimeLogin) {
+  const sql = `
+        UPDATE LOGIN
+        SET FIRST_TIME_LOGIN = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [firstTimeLogin, userId]);
+  return result.affectedRows > 0;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -225,6 +237,16 @@ export async function deleteEmployee(id) {
   const sql = `DELETE FROM Employees WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result.affectedRows > 0;
+}
+
+// Function to get an employee by SSN
+export async function getEmployeeBySSN(ssn) {
+  const sql = `
+        SELECT * FROM EMPLOYEES
+        WHERE SSN = ?
+    `;
+  const [result] = await pool.query(sql, [ssn]);
+  return result.length ? result[0] : null;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
