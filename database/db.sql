@@ -4,14 +4,12 @@ CREATE DATABASE OFS;
 
 USE OFS;
 
--- TABLE FOR LOGIN DETAILS
 CREATE TABLE LOGIN (
     ID INT PRIMARY KEY AUTO_INCREMENT,
     EMAIL VARCHAR(255) NOT NULL UNIQUE,
     PASSWORD VARCHAR(255) NOT NULL,
     ACCOUNTCREATIONDATE DATE NOT NULL,
-    ROLE ENUM('admin', 'customer', 'supplier', 'employee') NOT NULL DEFAULT 'customer',
-    CONSTRAINT unique_admin CHECK (ROLE != 'admin' OR (ROLE = 'admin' AND (SELECT COUNT(*) FROM LOGIN WHERE ROLE = 'admin') <= 1))
+    ROLE ENUM('admin', 'customer', 'supplier', 'employee') NOT NULL DEFAULT 'customer'
 );
 
 -- TABLE FOR GENERAL INFO
@@ -174,6 +172,15 @@ CREATE INDEX idx_sales_products_salesid_productid ON SALES_PRODUCTS(SALESID, PRO
 CREATE INDEX idx_orders_products_orderid_productid ON ORDERS_PRODUCTS(ORDERID, PRODUCTID);
 
 DELIMITER //
+
+CREATE TRIGGER trg_before_login_insert
+BEFORE INSERT ON LOGIN
+FOR EACH ROW
+BEGIN
+    IF NEW.ROLE = 'admin' AND (SELECT COUNT(*) FROM LOGIN WHERE ROLE = 'admin') >= 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one admin is allowed.';
+    END IF;
+END //
 
 -- Trigger to update BALANCE after a SALE is inserted
 CREATE TRIGGER trg_after_sale_insert
