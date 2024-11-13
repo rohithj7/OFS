@@ -8,6 +8,7 @@ export default function ManagerDashboard() {
     const [addModal, setAddModal] = useState(false);
     const [reOrderProductsModal, setReOrderProductsModal] = useState(false);
     const [createProductModal, setCreateProductModal] = useState(false);
+    const [editProductModal, setEditProductModal] = useState(false);
 
     const backgroundStyle = {
         backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
@@ -20,13 +21,13 @@ export default function ManagerDashboard() {
         opacity: "0.5"
     };
 
-    const editStatus = async () => {
-        try {
-            // sidebar.classList.remove("show"); // Hides the sidebar
-        } 
-        catch (err) {
-        }
-    }
+    // const editStatus = async () => {
+    //     try {
+    //         // sidebar.classList.remove("show"); // Hides the sidebar
+    //     } 
+    //     catch (err) {
+    //     }
+    // }
 
     // Toggle modal 
     const toggleEditStatusModal = () => {
@@ -47,6 +48,30 @@ export default function ManagerDashboard() {
      const toggleCreateProductModal = () => {
         setCreateProductModal(!createProductModal); // Toggle modal open or closed
     };
+
+    const toggleEditProductModal = () => {
+        setEditProductModal(!editProductModal); // Toggle modal open or closed
+    };
+
+    // const editProductElements = document.getElementsByClassName("editProduct-manager");
+
+    // const clearAll = () => {   
+    //     Array.prototype.forEach.call(editProductElements.children, child => {
+    //          console.log(child.value);
+    //         child.value = "";
+    //          console.log(child.value);
+    //     })
+    // }
+
+    // const theClearAllButton = document.getElementById("clearAllButton");
+    // theClearAllButton?.addEventListener('click', e => {
+    //     // Loop & manipulate live nodeLList
+    //     for (const field of document.getElementsByClassName('editProduct-manager')) {
+    //         console.log(field.value);
+    //         field.value = "";
+    //         console.log(field.value);
+    //     }
+    //   });
 
     return(
     <>
@@ -334,7 +359,7 @@ export default function ManagerDashboard() {
                                             </td>
                                             <td class="py-4 align-middle me-5 fw-bold">In Stock</td>
                                             <td class="py-4 align-middle">
-                                                <Link class="btn btn-outline-0 btn-sm fw-bold">
+                                                <Link class="btn btn-outline-0 btn-sm fw-bold" onClick={() => toggleEditProductModal()}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-pencil-square fs-5 text-secondary" viewBox="0 0 16 16">
                                                             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                                                             <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
@@ -375,7 +400,7 @@ export default function ManagerDashboard() {
                                             </td>
                                             <td class="py-4 align-middle me-5 fw-bold">In Stock</td>
                                             <td class="py-4 align-middle">
-                                                <Link class="btn btn-outline-0 btn-sm fw-bold">
+                                                <Link class="btn btn-outline-0 btn-sm fw-bold" onClick={() => toggleEditProductModal()}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-pencil-square fs-5 text-secondary" viewBox="0 0 16 16">
                                                             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                                                             <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
@@ -500,13 +525,13 @@ export default function ManagerDashboard() {
                         <div class="modal-content">
                             <div class="modal-content-dialog">
                                 <div class="modal-content-content">
-                                    <div class="p-5 modal-body bg-green rounded-3">
+                                    <div class="p-5 modal-body rounded-3">
                                         <div class="position-absolute top-0 end-0 me-3 mt-3">
                                             <button type="button" class="btn-close btn-close-primary close-modal" onClick={toggleReOrderProductsModal}></button>
                                         </div>
-                                        <div class="card-lg card border-0">
+                                        <div class="card-md card border-0">
                                             
-                                            <div class="p-5 card-body">
+                                            <div class="card-body">
                                                 <form class="row gy-2 gx-3 align-items-center">
 
                                                     <h3 class="text-center mb-4">Reorder Products</h3>
@@ -645,6 +670,82 @@ export default function ManagerDashboard() {
                                                 </form>
                                                
                                                 <button type="submit" class="btn btn-lightergreen mt-3 w-100">Create New Product</button>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+    {editProductModal && (
+            <div>
+                <div class="fade modal-backdrop show"></div>
+                <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" style={{paddingLeft: "0px", display: "block"}}>
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-content-dialog">
+                                <div class="modal-content-content">
+                                    <div class="p-5 modal-body bg-green rounded-3">
+                                        <div class="position-absolute top-0 end-0 me-3 mt-3">
+                                            <button type="button" class="btn-close btn-close-primary close-modal" onClick={toggleEditProductModal}></button>
+                                        </div>
+                                        
+
+                                        <div class="card-lg card border-0">
+                                            
+                                            <div class="p-5 card-body">
+                                            <h3 class="text-center mb-4">Edit Product</h3>
+                                                <form class="row">
+                                                    <div class="mb-3 col-lg-6">
+                                                        <label class="form-label">Product Name</label>
+                                                        {/* defaultValue => this is what gives the field its initial value of, for example, Apples */}
+                                                        <input type="text" class="form-control editProduct-manager" placeholder="e.g. Apples" defaultValue="Apples"></input>
+                                                    </div>
+                                                    <div class="mb-3 col-lg-6">
+                                                    <label for="sendToName" class="form-label">Product Category</label>
+                                                        <select class="form-select">
+                                                            <option selected>Select a category</option>
+                                                            <option value="">Fruits</option>
+                                                            <option value="">Vegetables</option>
+                                                            <option value="">Meats</option>
+                                                            <option value="">Dairy</option>
+                                                            <option value="">Snacks</option>
+                                                            <option value="">Meals</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Product Description</label>
+                                                        <input type="text" class="form-control editProduct-manager" placeholder="e.g. These apples are juicy and shiny." defaultValue="These apples are juicy and shiny."></input>
+                                                    </div>
+                                                    <div class="mb-3 col-lg-6">
+                                                        <label class="form-label">Price per Unit</label>
+                                                        <input type="number" min="0.01" step="0.01" class="form-control editProduct-manager" placeholder="e.g. 1.25" defaultValue="1.25"></input>
+                                                    </div>
+                                                    <div class="mb-3 col-lg-6">
+                                                        <label class="form-label">Weight per Unit</label>
+                                                        <input type="number" min="0.01" step="0.01" class="form-control editProduct-manager" placeholder="e.g. 4.15" defaultValue="1.25"></input>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Product Image</label>
+                                                        <input class="form-control" type="file" id="formFile"></input>
+                                                    </div>
+                                                    <div class="mb-3 col-lg-6">
+                                                        <label class="form-label">Brand</label>
+                                                        <input type="text" class="form-control editProduct-manager" placeholder="e.g. Sunny Orchard" defaultValue="Sweet Orchard"></input>
+                                                    </div>
+                                                    <div class="mb-3 col-lg-6">
+                                                        <label class="form-label">Reorder Quantity</label>
+                                                        <input type="number" min="1" step="1" class="form-control editProduct-manager" placeholder="e.g. 25" defaultValue="25"></input>
+                                                    </div>
+                                                    
+                                                </form>
+                                                <button type="" class="btn btn-pastelblue mt-3 w-100" id="clearAllButton">Clear All Fields</button>
+                                                <button type="submit" class="btn btn-lightergreen mt-4 w-100">Create New Product</button>
                                             </div>
                                         </div>
                                         
