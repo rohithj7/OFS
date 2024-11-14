@@ -734,7 +734,7 @@ export async function placeSale(customerId, products) {
     const totalPrice = await calculateTotalPrice(products);
     const saleDate = new Date().toISOString().slice(0, 10);
     const paymentDetails = "Paid via Stripe"; // Placeholder
-    const saleStatus = "COMPLETED";
+    const saleStatus = "ONGOING";
 
     const [saleResult] = await connection.execute(saleSql, [
       customerId,
