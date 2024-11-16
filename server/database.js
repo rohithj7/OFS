@@ -43,7 +43,12 @@ export async function getLoginByEmail(email) {
 }
 
 // Function to create a new user in LOGIN table
-export async function createLogin(email, hashedPassword, accountCreationDate, role = 'customer') {
+export async function createLogin(
+  email,
+  hashedPassword,
+  accountCreationDate,
+  role = "customer"
+) {
   const sql = `
         INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE, ROLE, FIRST_TIME_LOGIN)
         VALUES (?, ?, ?, ?, ?)
@@ -407,7 +412,7 @@ export async function getProductsBelowReorderLevel() {
   return result;
 }
 
-// Function to reorder products with quantities less than their reorder levels by a specified quantity 
+// Function to reorder products with quantities less than their reorder levels by a specified quantity
 // Function to reorder products
 export async function reorderProduct(productId, supplierId, quantity = null) {
   const connection = await pool.getConnection();

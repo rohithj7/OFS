@@ -11,6 +11,8 @@ import {
 } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
@@ -26,17 +28,23 @@ import Dairy from "./Components/Products/Dairy";
 import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
 import Checkout from "./Components/Checkout";
+import OrderConfirmation from "./Components/OrderConfirmation";
 import DeliveryRoutePage from "./Components/DeliveryRoutePage";
 import ManagerDashboard from "./Components/ManagerDashboard";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
 
+const stripePromise = loadStripe(
+  "pk_test_51QLGHpBI56iyGeVwohOAeqeUa0OQQmSpCjT6xI2tagJujZdyrOHUIOIuDhBPk8Rq49PJkVJtKiElywf3zHoUjM8b00D3adN1kQ"
+);
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
   const [showModal, setShowModal] = useState(false);
   const [redirectToCheckout, setRedirectToCheckout] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
   const navigate = useNavigate();
   const sidebarRef = useRef(null);
 
@@ -54,11 +62,12 @@ function App() {
 
   // ProtectedRoute component
   const ProtectedRoute = ({ isAuthenticated, children }) => {
+    console.log("ProtectedRoute: isAuthenticated =", isAuthenticated);
     if (!isAuthenticated) {
       setShowModal(true); // Show the modal if not authenticated
       return <Navigate to="/Login" replace />; // Redirect to login if not authenticated
     }
-
+    console.log("Rendering children inside ProtectedRoute...");
     return children; // Render the protected component
   };
 
@@ -268,6 +277,11 @@ function App() {
     // Store the delivery fee in local storage whenever it changes
     localStorage.setItem("storedDeliveryFee", deliveryFee);
   }, [deliveryFee]);
+
+  useEffect(() => {
+    // Replace with your direct client secret for testing only
+    setClientSecret("YOUR_CLIENT_SECRET_FROM_STRIPE_DASHBOARD");
+  }, []);
 
   return (
     <div>
@@ -489,9 +503,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
-        <Route 
-        path="/"
-          element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route
           path="/Login"
           element={
@@ -539,7 +551,6 @@ function App() {
             <Meals addToCart={addToCart} isAuthenticated={isAuthenticated} />
           }
         />
-       
 
         {/* Protected Routes */}
         <Route
@@ -572,16 +583,28 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/Checkout"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Checkout
-                cart={cart}
-                setCart={setCart}
-                deliveryFee={deliveryFee}
-                setDeliveryFee={setDeliveryFee}
-              />
+              <Elements stripe={stripePromise}>
+                <Checkout
+                  cart={cart}
+                  setCart={setCart}
+                  deliveryFee={deliveryFee}
+                  setDeliveryFee={setDeliveryFee}
+                />
+              </Elements>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/Order-confirmation"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <OrderConfirmation />
             </ProtectedRoute>
           }
         />
