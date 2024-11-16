@@ -5,6 +5,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
+import Stripe from "stripe";
 
 dotenv.config();
 
@@ -56,9 +57,16 @@ import {
   updateSaleStatus,
   resetPassword,
 } from "./database.js";
-import { registerAdmin, registerCustomer, registerSupplier, registerEmployee } from "./userController.js";
+import {
+  registerAdmin,
+  registerCustomer,
+  registerSupplier,
+  registerEmployee,
+} from "./userController.js";
 
 const app = express();
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = new Stripe(stripeSecretKey);
 
 // Configure CORS
 app.use(
@@ -140,7 +148,7 @@ function isAuthenticated(req, res, next) {
 
 // Middleware to check admin authentication
 function isAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user.ROLE === 'admin') {
+  if (req.isAuthenticated() && req.user.ROLE === "admin") {
     return next();
   }
   res.status(403).json({ message: "Forbidden for non-admins" });
@@ -148,18 +156,28 @@ function isAdmin(req, res, next) {
 
 // Middleware to check if the user is either an admin or an employee
 function isAdminOrEmployee(req, res, next) {
-  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'employee')) {
+  if (
+    req.isAuthenticated() &&
+    (req.user.ROLE === "admin" || req.user.ROLE === "employee")
+  ) {
     return next();
   }
-  res.status(403).json({ message: "Forbidden for non-admins and non-employees" });
+  res
+    .status(403)
+    .json({ message: "Forbidden for non-admins and non-employees" });
 }
 
 // Middleware to check if the user is either an admin or a supplier
 function isAdminOrSupplier(req, res, next) {
-  if (req.isAuthenticated() && (req.user.ROLE === 'admin' || req.user.ROLE === 'supplier')) {
+  if (
+    req.isAuthenticated() &&
+    (req.user.ROLE === "admin" || req.user.ROLE === "supplier")
+  ) {
     return next();
   }
-  res.status(403).json({ message: "Forbidden for non-admins and non-suppliers" });
+  res
+    .status(403)
+    .json({ message: "Forbidden for non-admins and non-suppliers" });
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -285,7 +303,9 @@ app.post("/admin/reorder-product", isAdmin, async (req, res) => {
     const supplierId = await getSupplierIdByName(supplierName);
 
     if (!productId || !supplierId) {
-      return res.status(400).json({ message: "Invalid product or supplier name." });
+      return res
+        .status(400)
+        .json({ message: "Invalid product or supplier name." });
     }
 
     // Reorder product
@@ -661,18 +681,18 @@ app.get("/customers", isAuthenticated, async (req, res) => {
 });
 
 //get cusotmer info
-app.get('/customerinfo', isAuthenticated, async (req, res) => {
+app.get("/customerinfo", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID;
     const customer = await getCustomerById(loginId);
     if (customer) {
       res.json(customer);
     } else {
-      res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: "Customer not found" });
     }
   } catch (error) {
-    console.error('Error fetching customer info:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching customer info:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -724,14 +744,14 @@ app.get("/all_sales", async (req, res) => {
 });
 
 // Route to get all sales for the authenticated customer
-app.get('/sales', isAuthenticated, async (req, res) => {
+app.get("/sales", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID;
 
     // Get the customer associated with this loginId
     const customer = await getCustomerById(loginId);
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found.' });
+      return res.status(404).json({ message: "Customer not found." });
     }
 
     const customerId = customer.ID;
@@ -741,8 +761,8 @@ app.get('/sales', isAuthenticated, async (req, res) => {
 
     res.json(sales);
   } catch (error) {
-    console.error('Error fetching sales:', error);
-    res.status(500).json({ message: 'Internal server error.' });
+    console.error("Error fetching sales:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
@@ -775,9 +795,15 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
 // Protected route to place a sale
 app.post("/place-sale", isAuthenticated, async (req, res) => {
   try {
-    const products = req.body.products; // [{ productId, quantity }, ...]
+    const { products, stripePaymentId } = req.body; // [{ productId, quantity }, ...]
     if (!products || !Array.isArray(products) || products.length <= 0) {
       return res.status(400).json({ message: "Invalid products data." });
+    }
+
+    if (!stripePaymentId) {
+      return res
+        .status(400)
+        .json({ message: "Stripe payment(ID) is required." });
     }
 
     // Check product availability
@@ -789,13 +815,12 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
         unavailableProducts,
       });
     }
-
     // Get customer ID
     const loginId = req.user.ID;
     const customer = await getCustomerById(loginId);
 
     // Place the sale
-    const saleResult = await placeSale(customer.ID, products);
+    const saleResult = await placeSale(customer.ID, products, stripePaymentId);
 
     res.json({
       message: "Sale placed successfully.",
@@ -805,6 +830,36 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error placing sale:", error);
     res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Protected route to handle Stripe payment
+app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invalid payment amount." });
+    }
+    // Create a PaymentIntent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    console.log("PaymentIntent created successfully:", paymentIntent.id);
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+  } catch (error) {
+    console.error("Error creating PaymentIntent:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error while creating payment." });
   }
 });
 
@@ -884,14 +939,14 @@ app.post("/balance", async (req, res) => {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
-app.get('/route', async (req, res) => {
-    try {
-        const routeData = await planDeliveryRoute();
-        res.json(routeData);
-    } catch (error) {
-        console.error('Error generating route:', error);
-        res.status(500).json({ message: 'Error generating route' });
-    }
+app.get("/route", async (req, res) => {
+  try {
+    const routeData = await planDeliveryRoute();
+    res.json(routeData);
+  } catch (error) {
+    console.error("Error generating route:", error);
+    res.status(500).json({ message: "Error generating route" });
+  }
 });
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//

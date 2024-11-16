@@ -43,7 +43,12 @@ export async function getLoginByEmail(email) {
 }
 
 // Function to create a new user in LOGIN table
-export async function createLogin(email, hashedPassword, accountCreationDate, role = 'customer') {
+export async function createLogin(
+  email,
+  hashedPassword,
+  accountCreationDate,
+  role = "customer"
+) {
   const sql = `
         INSERT INTO LOGIN (EMAIL, PASSWORD, ACCOUNTCREATIONDATE, ROLE)
         VALUES (?, ?, ?, ?)
@@ -385,7 +390,7 @@ export async function getProductsBelowReorderLevel() {
   return result;
 }
 
-// Function to reorder products with quantities less than their reorder levels by a specified quantity 
+// Function to reorder products with quantities less than their reorder levels by a specified quantity
 // Function to reorder products
 export async function reorderProduct(productId, supplierId, quantity = null) {
   const connection = await pool.getConnection();
@@ -699,7 +704,7 @@ export async function checkProductAvailability(products) {
 }
 
 // Place Sale
-export async function placeSale(customerId, products) {
+export async function placeSale(customerId, products, stripePaymentId) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -711,8 +716,8 @@ export async function placeSale(customerId, products) {
         `;
     const totalPrice = await calculateTotalPrice(products);
     const saleDate = new Date().toISOString().slice(0, 10);
-    const paymentDetails = "Paid via Stripe"; // Placeholder
-    const saleStatus = "COMPLETED";
+    const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
+    const saleStatus = "ONGOING";
 
     const [saleResult] = await connection.execute(saleSql, [
       customerId,
