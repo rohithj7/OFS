@@ -795,9 +795,15 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
 // Protected route to place a sale
 app.post("/place-sale", isAuthenticated, async (req, res) => {
   try {
-    const products = req.body.products; // [{ productId, quantity }, ...]
+    const { products, stripePaymentId } = req.body; // [{ productId, quantity }, ...]
     if (!products || !Array.isArray(products) || products.length <= 0) {
       return res.status(400).json({ message: "Invalid products data." });
+    }
+
+    if (!stripePaymentId) {
+      return res
+        .status(400)
+        .json({ message: "Stripe payment(ID) is required." });
     }
 
     // Check product availability
@@ -809,13 +815,12 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
         unavailableProducts,
       });
     }
-
     // Get customer ID
     const loginId = req.user.ID;
     const customer = await getCustomerById(loginId);
 
     // Place the sale
-    const saleResult = await placeSale(customer.ID, products);
+    const saleResult = await placeSale(customer.ID, products, stripePaymentId);
 
     res.json({
       message: "Sale placed successfully.",
@@ -836,7 +841,6 @@ app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
     if (!amount || isNaN(amount) || amount <= 0) {
       return res.status(400).json({ message: "Invalid payment amount." });
     }
-
     // Create a PaymentIntent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
@@ -845,7 +849,6 @@ app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
         enabled: true,
       },
     });
-
     console.log("PaymentIntent created successfully:", paymentIntent.id);
 
     res.json({

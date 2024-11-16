@@ -704,7 +704,7 @@ export async function checkProductAvailability(products) {
 }
 
 // Place Sale
-export async function placeSale(customerId, products) {
+export async function placeSale(customerId, products, stripePaymentId) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -716,7 +716,7 @@ export async function placeSale(customerId, products) {
         `;
     const totalPrice = await calculateTotalPrice(products);
     const saleDate = new Date().toISOString().slice(0, 10);
-    const paymentDetails = "Paid via Stripe"; // Placeholder
+    const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
     const saleStatus = "ONGOING";
 
     const [saleResult] = await connection.execute(saleSql, [
