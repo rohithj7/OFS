@@ -87,7 +87,7 @@ const PaymentForm = ({ cart, setCart, setError, clientSecret, error }) => {
             "http://localhost:8080/place-sale",
             {
               products,
-              paymentIntentId: paymentIntent.id,
+              stripePaymentId: paymentIntent.id, // Add the paymentIntent ID here
             },
             { withCredentials: true }
           );
