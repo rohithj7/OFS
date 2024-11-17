@@ -212,11 +212,11 @@ export default function ManagerDashboard() {
 
             <div class="row">
                 <div class="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
-                    <div class="h-100 card-lg card">
+                    <div class="h-100 card-lg card border border-2">
                         <h3 class="p-4 my-2 fs-5 text-center">Recent Orders</h3>
                         <div class="p-0 card-body">
-                            <div class="table-responsive">
-                                <table class="table-centered text-nowrap table table-borderless table-hover">
+                            <div class="table-responsive rounded-1">
+                                <table class="mb-0 table-centered text-nowrap table table-borderless table-hover">
                                 <thead class="table-light text-center">
                                     <tr class="text-center">
                                         <th colspan="1">
@@ -293,11 +293,11 @@ export default function ManagerDashboard() {
 
             <div class="row">
                 <div class="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
-                    <div class="h-100 card-lg card">
+                    <div class="h-100 card-lg card border border-2">
                         <h3 class="p-4 my-2 fs-5 text-center" id="productsTable-manager">Products</h3>
                         <div class="p-0 card-body">
-                            <div class="table-responsive">
-                                <table class="table-centered text-nowrap table table-borderless table-hover">
+                            <div class="table-responsive rounded-1">
+                                <table class="mb-0 table-centered text-nowrap table table-borderless table-hover">
                                 <thead class="table-light text-center">
                                     <tr class="text-center">
                                         <th colspan="1">
@@ -425,7 +425,7 @@ export default function ManagerDashboard() {
 
         </div>
         
-        {editStatusModal && ( // MAKE DROPDOWN
+        {editStatusModal && (
             <div>
                 <div class="fade modal-backdrop show"></div>
                 <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" style={{paddingLeft: "0px", display: "block"}}>
@@ -655,8 +655,8 @@ export default function ManagerDashboard() {
                                                         <input type="number" min="0.01" step="0.01" class="form-control" placeholder="e.g. 4.15"></input>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Product Image</label>
-                                                        <input class="form-control" type="file" id="formFile"></input>
+                                                        <label class="form-label">Product Image URL</label>
+                                                        <input type="text" class="form-control" placeholder="e.g. www.google.com"></input>
                                                     </div>
                                                     <div class="mb-3 col-lg-6">
                                                         <label class="form-label">Brand</label>
@@ -731,8 +731,8 @@ export default function ManagerDashboard() {
                                                         <input type="number" min="0.01" step="0.01" class="form-control editProduct-manager" placeholder="e.g. 4.15" defaultValue="1.25"></input>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Product Image</label>
-                                                        <input class="form-control" type="file" id="formFile"></input>
+                                                        <label class="form-label">Product Image URL</label>
+                                                        <input type="text" class="form-control" placeholder="e.g. www.google.com" defaultValue="www.google.com"></input>
                                                     </div>
                                                     <div class="mb-3 col-lg-6">
                                                         <label class="form-label">Brand</label>
