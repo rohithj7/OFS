@@ -56,12 +56,15 @@ import {
   getSupplierIdByName,
   updateSaleStatus,
   resetPassword,
+  updateFirstTimeLogin
 } from "./database.js";
 import {
   registerAdmin,
   registerCustomer,
   registerSupplier,
   registerEmployee,
+  generateOneTimePassword,
+  updatePassword
 } from "./userController.js";
 
 const app = express();
@@ -197,9 +200,23 @@ app.post("/registerSupplier", isAdmin, registerSupplier);
 app.post("/registerEmployee", isAdmin, registerEmployee);
 
 // Login route
-app.post("/login", passport.authenticate("local"), (req, res) => {
-  res.json({ message: "Logged in successfully.", loginId: req.user.ID });
+app.post("/login", passport.authenticate("local"), async (req, res) => {
+  try {
+    const user = req.user;
+    if (user.ROLE === 'employee' && user.FIRST_TIME_LOGIN) {
+      // Set FIRST_TIME_LOGIN flag to false
+      await updateFirstTimeLogin(user.ID, false);
+      return res.json({ message: "First-time login. Please update your password.", firstTimeLogin: true, redirectTo: "/update-password" });
+    }
+    res.json({ message: "Logged in successfully.", loginId: user.ID });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
 });
+
+// Route to update password for first-time login
+app.put("/update-password", isAuthenticated, updatePassword);
 
 // Logout route
 app.get("/logout", (req, res, next) => {
