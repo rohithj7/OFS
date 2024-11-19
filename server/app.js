@@ -56,7 +56,9 @@ import {
   getSupplierIdByName,
   updateSaleStatus,
   resetPassword,
-  updateFirstTimeLogin
+  updateFirstTimeLogin,
+  getDashboardStatistics,
+  getOrdersWithDetails,
 } from "./database.js";
 import {
   registerAdmin,
@@ -64,7 +66,7 @@ import {
   registerSupplier,
   registerEmployee,
   generateOneTimePassword,
-  updatePassword
+  updatePassword,
 } from "./userController.js";
 
 const app = express();
@@ -203,12 +205,21 @@ app.post("/registerEmployee", isAdmin, registerEmployee);
 app.post("/login", passport.authenticate("local"), async (req, res) => {
   try {
     const user = req.user;
-    if (user.ROLE === 'employee' && user.FIRST_TIME_LOGIN) {
+    if (user.ROLE === "employee" && user.FIRST_TIME_LOGIN) {
       // Set FIRST_TIME_LOGIN flag to false
       await updateFirstTimeLogin(user.ID, false);
-      return res.json({ message: "First-time login. Please update your password.", firstTimeLogin: true, redirectTo: "/update-password" });
+      return res.json({
+        message: "First-time login. Please update your password.",
+        firstTimeLogin: true,
+        redirectTo: "/update-password",
+        role: user.ROLE,
+      });
     }
-    res.json({ message: "Logged in successfully.", loginId: user.ID });
+    res.json({
+      message: "Logged in successfully.",
+      loginId: user.ID,
+      role: user.ROLE,
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Internal server error." });
@@ -560,9 +571,52 @@ app.get("/products/:id", async (req, res) => {
 // Apply authentication middleware to the routes
 app.post("/products", isAuthenticated, async (req, res) => {
   try {
-    const newProduct = await createProduct(req.body);
+    console.log("Received product data:", req.body);
+
+    const {
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight,
+    } = req.body;
+
+    console.log("Extracted values:", {
+      // Debug log
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight,
+    });
+    // Create the product
+    const newProduct = await createProduct(
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight
+    );
+
+    console.log("Created product:", newProduct);
     res.status(201).json(newProduct);
   } catch (err) {
+    console.error("Error creating product:", err);
     res.status(500).send(err.message);
   }
 });
@@ -903,9 +957,33 @@ app.put("/sales/:id/status", isAdminOrEmployee, async (req, res) => {
   }
 });
 
+// Route to get dashboard statistics
+app.get("/statistics", async (req, res) => {
+  try {
+    const statistics = await getDashboardStatistics();
+    res.json(statistics);
+  } catch (err) {
+    console.error("Error in /statistics endpoint:", err);
+    res.status(500).json({
+      error: "Failed to fetch statistics",
+      details: err.message,
+    });
+  }
+});
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ---------------------------------------------------------------- ORDERS ------------------------------------------------------------------------//
+// Get all orders from suppliers with details
+app.get("/orders-with-details", async (req, res) => {
+  try {
+    const orders = await getOrdersWithDetails();
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
 
 // Get all orders by login ID
 app.get("/orders", isAuthenticated, async (req, res) => {

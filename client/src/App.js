@@ -16,6 +16,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
+import Unauthorized from "./Components/Unauthorized";
 import Home from "./Components/Home";
 import PersonalInfo from "./Components/PersonalInfo";
 import Account from "./Components/Account";
@@ -31,6 +32,8 @@ import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
 import DeliveryRoutePage from "./Components/DeliveryRoutePage";
 import ManagerDashboard from "./Components/ManagerDashboard";
+import AdminRegister from "./Components/AdminRegister";
+import ManagerOrderDetails from "./Components/ManagerOrderDetails";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -41,6 +44,7 @@ const stripePromise = loadStripe(
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
   const [showModal, setShowModal] = useState(false);
   const [redirectToCheckout, setRedirectToCheckout] = useState(false);
@@ -61,19 +65,28 @@ function App() {
   };
 
   // ProtectedRoute component
-  const ProtectedRoute = ({ isAuthenticated, children }) => {
-    console.log("ProtectedRoute: isAuthenticated =", isAuthenticated);
+  const ProtectedRoute = ({ allowedRoles, children }) => {
+    console.log(
+      "ProtectedRoute: isAuthenticated =",
+      isAuthenticated,
+      "userRole =",
+      userRole
+    );
+
     if (!isAuthenticated) {
-      setShowModal(true); // Show the modal if not authenticated
-      return <Navigate to="/Login" replace />; // Redirect to login if not authenticated
+      setShowModal(true);
+      return <Navigate to="/Login" replace />;
     }
-    console.log("Rendering children inside ProtectedRoute...");
-    return children; // Render the protected component
+
+    if (allowedRoles && !allowedRoles.includes(userRole)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+
+    return children;
   };
 
-  // Add PropTypes validation
   ProtectedRoute.propTypes = {
-    isAuthenticated: PropTypes.bool.isRequired,
+    allowedRoles: PropTypes.arrayOf(PropTypes.string),
     children: PropTypes.node.isRequired,
   };
 
@@ -283,6 +296,32 @@ function App() {
     setClientSecret("YOUR_CLIENT_SECRET_FROM_STRIPE_DASHBOARD");
   }, []);
 
+  // Add this state for tracking product quantities
+  const [productQuantities, setProductQuantities] = useState({});
+
+  // Add this function to fetch current product quantities
+  const fetchProductQuantities = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/products", {
+        withCredentials: true,
+      });
+      const quantities = {};
+      response.data.forEach((product) => {
+        quantities[product.ID] = product.QUANTITY;
+      });
+      setProductQuantities(quantities);
+    } catch (error) {
+      console.error("Error fetching product quantities:", error);
+    }
+  };
+
+  // Add this useEffect to fetch quantities when cart changes
+  useEffect(() => {
+    if (cart.length > 0) {
+      fetchProductQuantities();
+    }
+  }, [cart]);
+
   return (
     <div>
       {/* Navbar */}
@@ -304,7 +343,8 @@ function App() {
           </button>
           <div className="collapse navbar-collapse" id="navbarText">
             <ul className="navbar-nav ms-auto">
-              {isAuthenticated ? (
+              {isAuthenticated && userRole === "customer" ? (
+                // Customer view
                 <>
                   {/* Dropdown menu for Categories */}
                   <li className="nav-item dropdown">
@@ -395,6 +435,24 @@ function App() {
                       </li>
                     </ul>
                   </li>
+                  <button
+                    className="btn me-2"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : isAuthenticated && userRole === "admin" ? (
+                // admin view
+                <>
+                  <span className="navbar-text me-3 text-white">
+                    <i className="bi bi-shield-lock-fill me-1"></i>
+                    Admin Mode
+                  </span>
+                  <Link to="/ManagerDashboard" className="btn me-2">
+                    Dashboard
+                  </Link>
                   <button
                     className="btn me-2"
                     type="button"
@@ -502,12 +560,15 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
-        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
         <Route path="/" element={<Home />} />
         <Route
           path="/Login"
           element={
-            <Login setIsAuthenticated={setIsAuthenticated} setCart={setCart} />
+            <Login
+              setIsAuthenticated={setIsAuthenticated}
+              setUserRole={setUserRole}
+              setCart={setCart}
+            />
           }
         />
         <Route path="/Signup" element={<Signup />} />
@@ -554,9 +615,25 @@ function App() {
 
         {/* Protected Routes */}
         <Route
+          path="/ManagerDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ManagerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/order-details/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ManagerOrderDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/Account"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <Account />
             </ProtectedRoute>
           }
@@ -564,7 +641,7 @@ function App() {
         <Route
           path="/Orders"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <Orders
                 deliveryFee={deliveryFee}
                 isFreeDelivery={isFreeDelivery}
@@ -575,7 +652,7 @@ function App() {
         <Route
           path="/OrderDetails/:id"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <OrderDetails
                 deliveryFee={deliveryFee}
                 isFreeDelivery={isFreeDelivery}
@@ -587,7 +664,7 @@ function App() {
         <Route
           path="/Checkout"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <Elements stripe={stripePromise}>
                 <Checkout
                   cart={cart}
@@ -603,7 +680,7 @@ function App() {
         <Route
           path="/Order-confirmation"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <OrderConfirmation />
             </ProtectedRoute>
           }
@@ -611,7 +688,9 @@ function App() {
 
         {/* Other Routes */}
         <Route path="/personal-info" element={<PersonalInfo />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/delivery-route" element={<DeliveryRoutePage />} />
+        <Route path="/admin-register" element={<AdminRegister />} />
       </Routes>
 
       {/* Shopping Cart Sidebar */}
@@ -661,6 +740,16 @@ function App() {
                 <div className="col-md-3 col-lg-3 col-xl-3">
                   <h6 className="text-muted">{item.CATEGORY}</h6>
                   <h6 className="mb-0">{item.PRODUCTNAME}</h6>
+
+                  {/* Add low stock warning */}
+                  {productQuantities[item.ID] <= 10 &&
+                    productQuantities[item.ID] > 0 && (
+                      <div className="small text-warning mt-1">
+                        <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                        Only {productQuantities[item.ID]} left in stock!
+                      </div>
+                    )}
+
                   <div className="mt-2 small lh-1">
                     <a
                       className="text-decoration-none text-inherit"
@@ -674,10 +763,10 @@ function App() {
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="text-danger me-1"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-danger me-1"
                       >
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -808,8 +897,33 @@ function App() {
           </div>
         </div>
       </div>
+      <div style={styles.linkContainer}>
+        <Link to="/ManagerDashboard" style={styles.link}>
+          For Admin
+        </Link>
+        <Link to="/EmployeeDashboard" style={styles.link}>
+          For Employees
+        </Link>
+        <Link to="/SupplierDashboard" style={styles.link}>
+          For Suppliers
+        </Link>
+      </div>
     </div>
   );
 }
-
+const styles = {
+  linkContainer: {
+    padding: "10px",
+    display: "flex",
+    justifyContent: "center",
+    gap: "20px",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+  },
+  link: {
+    textDecoration: "none",
+    color: "#666",
+    padding: "5px 10px",
+    fontSize: "14px",
+  },
+};
 export default App;

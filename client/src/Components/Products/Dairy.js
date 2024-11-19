@@ -270,6 +270,21 @@ export default function Dairy({ addToCart }) {
                               {selectedProduct.PRODUCTNAME}
                             </h2>
                             <hr className="my-6 mt-4" />
+
+                            {/* Add low stock warning */}
+                            {selectedProduct &&
+                              selectedProduct.QUANTITY <= 10 &&
+                              selectedProduct.QUANTITY > 0 && (
+                                <div
+                                  className="alert alert-warning mb-3"
+                                  role="alert"
+                                >
+                                  <i className="bi bi-exclamation-triangle me-2"></i>
+                                  Low Stock! Only {selectedProduct.QUANTITY}{" "}
+                                  remaining
+                                </div>
+                              )}
+
                             <span className="fs-4 text-dark">
                               {parseFloat(selectedProduct.PRICE)
                                 ? `$${parseFloat(selectedProduct.PRICE).toFixed(
@@ -362,10 +377,18 @@ export default function Dairy({ addToCart }) {
                                     <td className="text-secondary">
                                       Availability:
                                     </td>
-                                    <td className="text-secondary">
-                                      {selectedProduct.QUANTITY > 0
-                                        ? "In Stock"
-                                        : "Out of Stock"}
+                                    <td>
+                                      {selectedProduct.QUANTITY > 0 ? (
+                                        <span className="text-secondary">
+                                          <i className="bi bi-check-circle me-1"></i>
+                                          In Stock
+                                        </span>
+                                      ) : (
+                                        <span className="text-danger fw-bold">
+                                          <i className="bi bi-x-circle me-1"></i>
+                                          Out of Stock
+                                        </span>
+                                      )}
                                     </td>
                                   </tr>
                                   <tr>

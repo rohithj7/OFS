@@ -282,6 +282,19 @@ export default function Fruits({ addToCart }) {
                                 ? `${selectedProduct.WEIGHT} ounce per unit`
                                 : "Weight not available"}
                             </div>
+                            {/* Add this low stock warning */}
+                            {selectedProduct &&
+                              selectedProduct.QUANTITY <= 10 &&
+                              selectedProduct.QUANTITY > 0 && (
+                                <div
+                                  className="alert alert-warning mb-3"
+                                  role="alert"
+                                >
+                                  <i className="bi bi-exclamation-triangle me-2"></i>
+                                  Low Stock! Only {selectedProduct.QUANTITY}{" "}
+                                  remaining
+                                </div>
+                              )}
                             {/* Quantity control */}
                             <div className="w-25 mt-4">
                               <div className="input-spinner input-group input-group-sm">
@@ -362,10 +375,16 @@ export default function Fruits({ addToCart }) {
                                     <td className="text-secondary">
                                       Availability:
                                     </td>
-                                    <td className="text-secondary">
-                                      {selectedProduct.QUANTITY > 0
-                                        ? "In Stock"
-                                        : "Out of Stock"}
+                                    <td>
+                                      {selectedProduct.QUANTITY > 0 ? (
+                                        <span className="text-secondary">
+                                          In Stock
+                                        </span>
+                                      ) : (
+                                        <span className="text-danger fw-bold">
+                                          Out of Stock
+                                        </span>
+                                      )}
                                     </td>
                                   </tr>
                                   <tr>
