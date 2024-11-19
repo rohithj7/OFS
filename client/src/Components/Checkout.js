@@ -170,7 +170,7 @@ const PaymentForm = ({ cart, setCart, setError, clientSecret, error }) => {
 
       <button
         type="submit"
-        className="btn btn-mint text-black w-100 mt-3"
+        className="btn btn-mint text-black w-100 mt-3 fw-bold"
         disabled={!stripe || isProcessing || !clientSecret}
       >
         {isProcessing ? (
@@ -291,7 +291,7 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                 <div class="py-4 accordion-item">
                   <h2 class="accordion-header">
                     <button
-                      class="accordion-button collapsed"
+                      class="accordion-button collapsed bg-white"
                       type="button"
                       data-bs-toggle="collapse"
                       data-bs-target="#flush-collapseOne"
@@ -299,7 +299,7 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                       aria-controls="flush-collapseOne"
                     >
                       <div class="d-flex justify-content-between align-items-center">
-                        <a class="fs-5 text-inherit h4" href="">
+                        <a class="fs-4 text-inherit h4 text-decoration-none" href="">
                           {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
                                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                                  <circle cx="12" cy="10" r="3"></circle>
@@ -309,7 +309,7 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                             width="22"
                             height="22"
                             fill="currentColor"
-                            class="bi bi-geo-alt me-1 text-secondary"
+                            class="bi bi-geo-alt me-2 text-secondary"
                             viewBox="0 0 16 16"
                           >
                             <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
@@ -338,32 +338,6 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                     </div>
                   </div>
                 </div>
-                {/* <div class="py-4 accordion-item">
-                             <h2 class="accordion-header">
-                                 <button class="accordion-button collapsed bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-                                     <div class="d-flex justify-content-between align-items-center">
-                                         <a class="fs-4 text-inherit h4 text-decoration-none" href="">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-pencil-square me-2 text-secondary" viewBox="0 0 16 16">
-                                                 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                                                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                                             </svg>
-                                             Additional Instructions
-                                         </a>
-                                     </div>
-                                 </button>
-                             </h2>
-                             <div id="flush-collapseTwo" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
-                                 <div class="accordion-body">
-                                     <div class="mt-3 card border-0">
-                                         <div class="">
-                                             <label class="form-label">Delivery instructions</label>
-                                             <textarea rows="3" placeholder="Write delivery instructions " class="form-control"></textarea>
-                                             <p class="form-text">Add instructions for how you want your order shopped and/or delivered</p>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div> */}
                 <div class="py-4 accordion-item">
                   <h2 class="accordion-header">
                     <button

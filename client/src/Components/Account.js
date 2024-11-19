@@ -73,145 +73,169 @@ export default function Account() {
   };
 
   return (
-    <div>
-      <div className="text-left container text-center my-5">
-        <div className="text-left card border-0">
-          <div className="text-left card-body ms-5">
-          <div>
-            <h5 class="mb-3 account fw-bold">Account details</h5>
-            <div class="row">
-              <div class="row col-lg-5">
-                <form class="" method="post">
-                  <div class="mb-3 account">
-                    <label class="form-label">First Name</label>
-                    <input type="text"
-                    className="form-control"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}/>
-                  </div>
-                  <div class="mb-3 account">
-                    <label class="form-label">Last Name</label>
-                    <input type="text"
-                    className="form-control"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}/>
-                  </div>
-                  <div class="mb-3 account">
-                    <label class="form-label">Address</label>
-                    <input type="text"
-                    className="form-control"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}/>
-                  </div>
-                  <div class="mb-3 account">
-                    <label class="form-label">Phone</label>
-                    <input type="text"
-                    className="form-control"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}/>
-                  </div>
-                  <div class="mb-3 account">
-                    <button type="button" onClick={handleSave} class="fw-bold btn btn-primary bg-green border-0">Save</button>
-                  </div>
-                </form>
-              </div>
+    <>
+      <div class="py-5 mt-5 container w-75 w-lg-50 w-xl-50">
+        {/* <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body p-lg-5">
+            <div class="mb-5">
+                <h4 class="mb-1">Account Information</h4>
+                <p class="mb-0 fs-6">Edit your personal information and address.</p>
             </div>
+            <form class="row g-3 needs-validation" novalidate="">
+                <div class="col-lg-6 col-md-12">
+                  <label for="profileFirstNameInput" class="form-label">First Name</label>
+                  <input type="text" class="form-control" id="profileFirstNameInput" value="Jitu" required=""/>
+                  <div class="invalid-feedback">Please enter firstname.</div>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                  <label for="profileLastNameInput" class="form-label">Last Name</label>
+                  <input type="text" class="form-control" id="profileLastNameInput" value="Chauhan" required=""/>
+                  <div class="invalid-feedback">Please enter lastname.</div>
+                </div>
+                <div class="col-lg-6">
+                  <label for="profilePhoneInput" class="form-label">Phone</label>
+                  <input type="text" class="form-control input-phone" id="profilePhoneInput" placeholder="+1 4XX XXX XXXX" required=""/>
+                  <div class="invalid-feedback">Please enter phone.</div>
+                </div>
+                <div class="col-lg-6">
+                  <label for="profileBirthdayInput" class="form-label">Birthday</label>
+                  <input type="text" class="form-control input-date" id="profileBirthdayInput" placeholder="dd/mm/yyyy" required=""/>
+                  <div class="invalid-feedback">Please enter birthday.</div>
+                </div>
+              
+                <div class="col-12 mt-4">
+                  <button class="btn btn-primary me-2" type="submit">Save Changes</button>
+                  <button class="btn btn-light" type="submit">Cancel</button>
+                </div>
+            </form>
           </div>
-
-            {/* <div className="fs-2 mb-3 mt-2 ms-3 text-start fw-bold">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="100px"
-                height="100px"
-                className="bi bi-person-circle"
-                viewBox="0 0 16 16"
-                style={{ paddingRight: "20px" }}
-              >
-                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
-                <path
-                  fillRule="evenodd"
-                  d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"
-                ></path>
-              </svg>
-              Your Profile
-            </div>
-            <form className="ms-5 mt-3">
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  First Name:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                  />
+        </div> */}
+        <div class="row">
+            <div class="mt-5 card-lg card border border-2">
+              <h3 class="pt-4 my-2 fs-3 text-center fw-bold">Account Details</h3>
+              <div class="p-4 card-body">
+              {/* <div class="row justify-content-center">
+                <div class="col-auto">
+                  <label class="form-label">First Name</label>
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Last Name:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                  />
+                <div class="col-auto">
+                  <input type="text" class="form-control"name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}/>
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Phone:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
+                <div class="col-auto">
+                  <span id="passwordHelpInline" class="form-text">
+                    Must be 8-20 characters long.
+                  </span>
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Address:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </form> */}
-
-            {errorMessage && <p className="text-danger">{errorMessage}</p>}
-            {successMessage && <p className="text-success">{successMessage}</p>}
-
-            {/* <div className="d-grid gap-2 d-md-flex justify-content-md-end me-5">
-              <button
-                onClick={handleSave}
-                className="btn btn-lg bg-mint text-light fw-bold"
-              >
-                Save
-              </button>
             </div> */}
+           
+
+            
+            <div class="mb-4 row">
+              <label class="col-sm-2 col-form-label">First Name</label>
+              <div class="col-sm-10">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}/>
+              </div>
+            </div>
+            <div class="mb-4 row">
+              <label class="col-sm-2 col-form-label">Last Name</label>
+              <div class="col-sm-10">
+                <input 
+                  type="text" 
+                  className="form-control"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}/>
+              </div>
+            </div>
+            <div class="mb-4 row">
+              <label class="col-sm-2 col-form-label">Address</label>
+              <div class="col-sm-10">
+                <input 
+                  type="text" 
+                  className="form-control"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}/>
+              </div>
+            </div>
+            <div class="mb-4 row">
+              <label class="col-sm-2 col-form-label">Phone</label>
+              <div class="col-sm-10">
+                <input 
+                  type="text" 
+                  className="form-control"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}/>
+              </div>
+            </div>
+            <div class="mt-4 mb-3 d-grid gap-2 mx-auto">
+              <button type="button" onClick={handleSave} class="fw-bold btn text-white bg-green border-0 justify-content-center">Save</button>
+            </div>
+            
+
+
+                {/* <div class="row">
+                  <div class="row col-lg-5">
+                    <form class="" method="post">
+                      <div class="mb-3 account">
+                        <label class="form-label">First Name</label>
+                        <input type="text"
+                        className="form-control"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}/>
+                      </div>
+                      <div class="mb-3 account">
+                        <label class="form-label">Last Name</label>
+                        <input type="text"
+                        className="form-control"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}/>
+                      </div>
+                      <div class="mb-3 account">
+                        <label class="form-label">Address</label>
+                        <input type="text"
+                        className="form-control"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}/>
+                      </div>
+                      <div class="mb-3 account">
+                        <label class="form-label">Phone</label>
+                        <input type="text"
+                        className="form-control"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}/>
+                      </div>
+                      <div class="mb-3 account">
+                        <button type="button" onClick={handleSave} class="fw-bold btn btn-primary bg-green border-0">Save</button>
+                      </div>
+                    </form>
+                  </div>
+                </div> */}
+                      
+
+                    
+
+                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {successMessage && <p className="text-success">{successMessage}</p>}
+
+                      
+                    
+              </div>
+            </div>
           </div>
-        </div>
       </div>
-    </div>
+    </>
   );
 }
