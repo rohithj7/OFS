@@ -47,6 +47,7 @@ function ManagerDashboard() {
   });
   const [showOrders, setShowOrders] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [showRecentSales, setShowRecentSales] = useState(false);
 
   const backgroundStyle = {
     backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
@@ -193,7 +194,7 @@ function ManagerDashboard() {
       pictureUrl: e.target.pictureUrl.value,
       quantity: e.target.quantity.value,
       reorderLevel: e.target.reorderLevel.value,
-      reorderQuantity: e.target.reorderQuantity.value,
+      // reorderQuantity: e.target.reorderQuantity.value,
       price: e.target.price.value,
       weight: e.target.weight.value,
     });
@@ -206,7 +207,7 @@ function ManagerDashboard() {
       pictureUrl: e.target.pictureUrl.value.trim(),
       quantity: Number(e.target.quantity.value),
       reorderLevel: Number(e.target.reorderLevel.value),
-      reorderQuantity: Number(e.target.reorderQuantity.value),
+      //reorderQuantity: Number(e.target.reorderQuantity.value),
       price: Number(e.target.price.value),
       weight: Number(e.target.weight.value),
     };
@@ -577,7 +578,6 @@ function ManagerDashboard() {
               <th>Supplier</th>
               <th>Product</th>
               <th>Quantity</th>
-              <th>Product Price</th>
               <th>Total Price</th>
               <th>Order Date</th>
               <th>Status</th>
@@ -598,7 +598,7 @@ function ManagerDashboard() {
                       {order.PRODUCTNAME} ({order.BRAND})
                     </td>
                     <td>{order.QUANTITY}</td>
-                    <td>${productPrice.toFixed(2)}</td>
+
                     <td>${totalPrice.toFixed(2)}</td>
                     <td>{new Date(order.ORDERDATE).toLocaleDateString()}</td>
                     <td>
@@ -625,53 +625,53 @@ function ManagerDashboard() {
 
   return (
     <div className="container mt-4">
-      <div class="mb-5 row">
-        <div class="col-md-12">
+      {/* Welcome Banner */}
+      <div className="mb-5 row">
+        <div className="col-md-12">
           <div
-            class="border-0 rounded-4 card bg-image mt-5"
+            className="border-0 rounded-4 card bg-image mt-5"
             style={backgroundStyle}
           >
             <div
-              class="mask text-light d-flex justify-content-center flex-column text-center rounded-4 p-4"
+              className="mask text-light d-flex justify-content-center flex-column text-center rounded-4 p-4"
               style={{ backgroundColor: "rgba(52, 58, 64, 0.5)" }}
             >
-              <div class="p-lg-12 card-body">
-                <h1 class="text-white fw-bold">Welcome Back!</h1>
-                {/* <button type="button" class="btn btn-green p-2 me-3 mb-3">Create Product</button>
-                                <button type="button" class="btn btn-green p-2 me-3 mb-3">Create Supplier Order</button>
-                                <button type="button" class="btn btn-green p-2 me-3 mb-3">Add Employee Account</button>
-                                <button type="button" class="btn btn-green p-2 me-3 mb-3">Add Supplier Account</button> */}
-                <div class="btn-toolbar justify-content-center" role="toolbar">
-                  <div class="btn-group me-2" role="group">
+              <div className="p-lg-12 card-body">
+                <h1 className="text-white fw-bold">Welcome Back!</h1>
+                <div
+                  className="btn-toolbar justify-content-center"
+                  role="toolbar"
+                >
+                  <div className="btn-group me-2" role="group">
                     <button
                       type="button"
-                      class="btn btn-green p-2 mb-3"
+                      className="btn btn-green p-2 mb-3"
                       onClick={() => toggleCreateProductModal()}
                     >
                       Create Product
                     </button>
                   </div>
 
-                  <div class="btn-group me-2" role="group">
+                  <div className="btn-group me-2" role="group">
                     <button
                       type="button"
-                      class="btn btn-green p-2 mb-3"
+                      className="btn btn-green p-2 mb-3"
                       onClick={handleAddEmployeeClick}
                     >
                       Add Employee Account
                     </button>
                   </div>
-                  <div class="btn-group me-2" role="group">
+                  <div className="btn-group me-2" role="group">
                     <button
                       type="button"
-                      class="btn btn-green p-2 mb-3"
+                      className="btn btn-green p-2 mb-3"
                       onClick={handleAddSupplierClick}
                     >
                       Add Supplier Account
                     </button>
                   </div>
-                  <div class="btn-group me-2" role="group">
-                    <button type="button" class="btn btn-green p-2 mb-3">
+                  <div className="btn-group me-2" role="group">
+                    <button type="button" className="btn btn-green p-2 mb-3">
                       Delivery Fleet Management
                     </button>
                   </div>
@@ -691,9 +691,10 @@ function ManagerDashboard() {
         </div>
       </div>
 
-      <div class="mb-5 row">
-        <div class="table-responsive-xl mb-lg-0">
-          <div class="flex-nowrap pb-3 pb-lg-0 row">
+      {/* Statistics Cards */}
+      <div className="mb-5 row">
+        <div className="table-responsive-xl mb-lg-0">
+          <div className="flex-nowrap pb-3 pb-lg-0 row">
             <div className="mb-6 col-lg-4 col-12">
               <div className="h-100 card-lg card">
                 <div className="p-6 card-body">
@@ -717,10 +718,13 @@ function ManagerDashboard() {
                   <div className="lh-1">
                     <h1 className="mb-2 fw-bold fs-2">
                       $
-                      {statistics.totalEarnings.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {(statistics?.totalEarnings || 0).toLocaleString(
+                        "en-US",
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }
+                      )}
                     </h1>
                   </div>
                 </div>
@@ -729,13 +733,19 @@ function ManagerDashboard() {
                     <div className="col-auto">
                       <p className="fs-6 text-muted mb-0">Today's earnings</p>
                       <p className="fs-5 fw-bold mb-0">
-                        ${statistics.todayEarnings.toLocaleString("en-US")}
+                        $
+                        {(statistics?.todayEarnings || 0).toLocaleString(
+                          "en-US"
+                        )}
                       </p>
                     </div>
                     <div className="col text-end text-truncate">
                       <p className="fs-6 text-muted mb-0">Monthly earnings</p>
                       <p className="fs-5 fw-bold mb-0">
-                        ${statistics.monthlyEarnings.toLocaleString("en-US")}
+                        $
+                        {(statistics?.monthlyEarnings || 0).toLocaleString(
+                          "en-US"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -836,94 +846,129 @@ function ManagerDashboard() {
         </div>
       </div>
 
-      <div className="row">
-        <div className="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
-          <div className="h-100 card-lg card">
-            <h3 className="p-4 my-2 fs-5 text-center">Recent Sales</h3>
-            <div className="p-0 card-body">
-              <div className="table-responsive">
-                <table className="table-centered text-nowrap table table-borderless table-hover">
-                  <thead className="table-light text-center">
-                    <tr>
-                      <th>
-                        <div className="py-3">Sale ID</div>
+      {/* Orders Section */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Orders</h2>
+        <button
+          className="btn btn-green"
+          onClick={() => setShowOrders(!showOrders)}
+        >
+          {showOrders ? "Hide Supplier Orders" : "Show Supplier Orders"}
+        </button>
+      </div>
+
+      {showOrders && (
+        <div className="card mb-4">
+          <div className="card-header">
+            <h3 className="card-title mb-0">Supplier Orders</h3>
+          </div>
+          <div className="card-body">{renderOrdersTable()}</div>
+        </div>
+      )}
+
+      {/* Recent Sales Section */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Sales</h2>
+        <button
+          className="btn btn-green"
+          onClick={() => setShowRecentSales(!showRecentSales)}
+        >
+          {showRecentSales ? "Hide Sales" : "Show Sales"}
+        </button>
+      </div>
+
+      {showRecentSales && (
+        <div className="card mb-4">
+          <div className="card-header">
+            <h3 className="card-title mb-0">Customer Orders</h3>
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table-centered text-nowrap table table-borderless table-hover">
+                <thead className="table-light text-center">
+                  <tr>
+                    <th>
+                      <div className="py-3">Sale ID</div>
+                    </th>
+                    <th>
+                      <div className="py-3">Customer ID</div>
+                    </th>
+                    <th>
+                      <div className="py-3">Date</div>
+                    </th>
+                    <th>
+                      <div className="py-3">Price ($)</div>
+                    </th>
+                    <th>
+                      <div className="py-3">Status</div>
+                    </th>
+                    <th>
+                      <div className="py-3">Actions</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSales.map((sale) => (
+                    <tr key={sale.ID} className="text-center">
+                      <th className="py-4 align-middle">
+                        <Link
+                          to={`/manager/order-details/${sale.ID}`}
+                          state={{
+                            orderDate: new Date(
+                              sale.SALEDATE
+                            ).toLocaleDateString(),
+                            orderStatus: sale.SALE_STATUS,
+                          }}
+                          className="text-decoration-none text-primary"
+                        >
+                          {sale.ID}
+                        </Link>
                       </th>
-                      <th>
-                        <div className="py-3">Customer ID</div>
-                      </th>
-                      <th>
-                        <div className="py-3">Date</div>
-                      </th>
-                      <th>
-                        <div className="py-3">Price ($)</div>
-                      </th>
-                      <th>
-                        <div className="py-3">Status</div>
-                      </th>
-                      <th>
-                        <div className="py-3">Actions</div>
-                      </th>
+                      <td className="py-4 align-middle">{sale.CUSTOMERID}</td>
+                      <td className="py-4 align-middle">
+                        {new Date(sale.SALEDATE).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 align-middle">
+                        {Number(sale.PRICE).toFixed(2)}
+                      </td>
+                      <td className="py-4 align-middle">
+                        <span
+                          className={`p-2 text-uppercase badge ${
+                            sale.SALE_STATUS === "COMPLETED"
+                              ? "bg-success"
+                              : sale.SALE_STATUS === "ONGOING"
+                              ? "bg-mint"
+                              : "bg-warning"
+                          }`}
+                        >
+                          {sale.SALE_STATUS}
+                        </span>
+                      </td>
+                      <td className="py-4 align-middle">
+                        <button
+                          className="btn btn-outline-0 btn-sm fw-bold"
+                          onClick={() => {
+                            setSelectedSaleId(sale.ID);
+                            toggleEditStatusModal();
+                          }}
+                        >
+                          <span className="me-2">Edit Status</span>
+                          <i className="bi bi-pencil-square"></i>
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentSales.map((sale) => (
-                      <tr key={sale.ID} className="text-center">
-                        <th className="py-4 align-middle">
-                          <Link
-                            to={`/manager/order-details/${sale.ID}`}
-                            state={{
-                              orderDate: new Date(
-                                sale.SALEDATE
-                              ).toLocaleDateString(),
-                              orderStatus: sale.SALE_STATUS,
-                            }}
-                            className="text-decoration-none text-primary"
-                          >
-                            {sale.ID}
-                          </Link>
-                        </th>
-                        <td className="py-4 align-middle">{sale.CUSTOMERID}</td>
-                        <td className="py-4 align-middle">
-                          {new Date(sale.SALEDATE).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 align-middle">
-                          {Number(sale.PRICE).toFixed(2)}
-                        </td>
-                        <td className="py-4 align-middle">
-                          <span
-                            className={`p-2 text-uppercase badge ${
-                              sale.SALE_STATUS === "COMPLETED"
-                                ? "bg-success"
-                                : sale.SALE_STATUS === "ONGOING"
-                                ? "bg-mint"
-                                : "bg-warning"
-                            }`}
-                          >
-                            {sale.SALE_STATUS}
-                          </span>
-                        </td>
-                        <td className="py-4 align-middle">
-                          <button
-                            className="btn btn-outline-0 btn-sm fw-bold"
-                            onClick={() => {
-                              setSelectedSaleId(sale.ID);
-                              toggleEditStatusModal();
-                            }}
-                          >
-                            <span className="me-2">Edit Status</span>
-                            <i className="bi bi-pencil-square"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
+      {/* Products Section */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Products</h2>
+      </div>
       <div className="row">
         <div className="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
           <div className="h-100 card-lg card">
@@ -933,7 +978,7 @@ function ManagerDashboard() {
                 {selectedCategory && (
                   <span className="text-muted ms-2">
                     ({filteredProducts.length}{" "}
-                    {selectedCategory === "all" ? "total" : "in category"})
+                    {selectedCategory === "all" ? "total" : "items"})
                   </span>
                 )}
               </h3>
@@ -1569,7 +1614,7 @@ function ManagerDashboard() {
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Product Image
+                                Product Image URL
                               </label>
                               <input
                                 type="text"
@@ -1605,20 +1650,7 @@ function ManagerDashboard() {
                                 required
                               />
                             </div>
-                            <div className="mb-3">
-                              <label className="form-label">
-                                Reorder Quantity
-                              </label>
-                              <input
-                                type="number"
-                                name="reorderQuantity"
-                                className="form-control"
-                                min="1"
-                                step="1"
-                                placeholder="e.g. 50"
-                                required
-                              />
-                            </div>
+
                             <div className="mb-3">
                               <label className="form-label">Price</label>
                               <input
@@ -1948,26 +1980,6 @@ function ManagerDashboard() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Add this button after your statistics cards */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Orders</h2>
-        <button
-          className="btn btn-green"
-          onClick={() => setShowOrders(!showOrders)}
-        >
-          {showOrders ? "Hide Supplier Orders" : "Show Supplier Orders"}
-        </button>
-      </div>
-
-      {showOrders && (
-        <div className="card mb-4">
-          <div className="card-header">
-            <h3 className="card-title mb-0">Supplier Orders</h3>
-          </div>
-          <div className="card-body">{renderOrdersTable()}</div>
         </div>
       )}
     </div>

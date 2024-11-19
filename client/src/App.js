@@ -60,6 +60,9 @@ function App() {
         withCredentials: true,
       });
       setIsAuthenticated(false);
+      setUserRole(null);
+      setCart([]);
+      navigate("/Login");
       alert("Logged out successfully");
     } catch (err) {
       console.error("Error during logout:", err);
@@ -327,7 +330,10 @@ function App() {
   return (
     <div>
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg bg-green">
+      <nav
+        className="navbar navbar-expand-lg bg-green"
+        style={{ zIndex: 1030 }}
+      >
         <div className="container">
           <Link to="/Home" className="navbar-brand fw-bold">
             GroceryGo
@@ -346,24 +352,17 @@ function App() {
           <div className="collapse navbar-collapse" id="navbarText">
             <ul className="navbar-nav ms-auto">
               {isAuthenticated && userRole === "customer" ? (
-                // Customer view
                 <>
-                  {/* Dropdown menu for Categories */}
+                  {/* Categories Dropdown */}
                   <li className="nav-item dropdown">
-                    <a
+                    <button
                       className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       Categories
-                    </a>
-                    <ul
-                      className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
-                    >
+                    </button>
+                    <ul className="dropdown-menu">
                       <li>
                         <Link className="dropdown-item" to="/Products/Fruits/1">
                           Fruits
@@ -393,41 +392,34 @@ function App() {
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          className="dropdown-item mb-0"
-                          to="/Products/Meals/6"
-                        >
+                        <Link className="dropdown-item" to="/Products/Meals/6">
                           Meals
                         </Link>
                       </li>
                     </ul>
                   </li>
+
+                  {/* Cart Button */}
                   <button
                     className="btn me-2"
                     type="button"
                     data-bs-toggle="offcanvas"
-                    href="#offcanvasShoppingCart"
-                    role="button"
+                    data-bs-target="#offcanvasShoppingCart"
                     aria-controls="offcanvasShoppingCart"
                   >
                     Cart ({cart.length})
                   </button>
-                  {/* Dropdown menu for My Account */}
+
+                  {/* My Account Dropdown */}
                   <li className="nav-item dropdown">
-                    <a
+                    <button
                       className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       My Account
-                    </a>
-                    <ul
-                      className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
-                    >
+                    </button>
+                    <ul className="dropdown-menu">
                       <li>
                         <Link className="dropdown-item" to="/Account">
                           Account Settings
@@ -440,6 +432,8 @@ function App() {
                       </li>
                     </ul>
                   </li>
+
+                  {/* Logout Button */}
                   <button
                     className="btn me-2"
                     type="button"
@@ -449,7 +443,6 @@ function App() {
                   </button>
                 </>
               ) : isAuthenticated && userRole === "admin" ? (
-                // admin view
                 <>
                   <span className="navbar-text me-3 text-white">
                     <i className="bi bi-shield-lock-fill me-1"></i>
@@ -564,11 +557,10 @@ function App() {
       </nav>
 
       <Routes>
+        {/* Set the default route to home page */}
+        <Route path="/" element={<Navigate to="/home" />} />
         {/* Public Routes */}
-        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
-        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
-        <Route path="/EmployeeDashboard" element={<EmployeeDashboard />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/Home" element={<Home />} />
         <Route
           path="/Login"
           element={
@@ -580,7 +572,10 @@ function App() {
           }
         />
         <Route path="/Signup" element={<Signup />} />
-        <Route path="/Home" element={<Home />} />
+        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
+        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
+        <Route path="/EmployeeDashboard" element={<EmployeeDashboard />} />
+        <Route path="/" element={<Home />} />
         <Route
           path="/Products/Fruits/:categoryId"
           element={
@@ -901,17 +896,6 @@ function App() {
             </button>
           </div>
         </div>
-      </div>
-      <div style={styles.linkContainer}>
-        <Link to="/ManagerDashboard" style={styles.link}>
-          For Admin
-        </Link>
-        <Link to="/EmployeeDashboard" style={styles.link}>
-          For Employees
-        </Link>
-        <Link to="/SupplierDashboard" style={styles.link}>
-          For Suppliers
-        </Link>
       </div>
     </div>
   );
