@@ -32,6 +32,8 @@ import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
 import DeliveryRoutePage from "./Components/DeliveryRoutePage";
 import ManagerDashboard from "./Components/ManagerDashboard";
+import SupplierDashboard from "./Components/SupplierDashboard";
+import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
 import ManagerOrderDetails from "./Components/ManagerOrderDetails";
 
@@ -391,7 +393,10 @@ function App() {
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" to="/Products/Meals/6">
+                        <Link
+                          className="dropdown-item mb-0"
+                          to="/Products/Meals/6"
+                        >
                           Meals
                         </Link>
                       </li>
@@ -560,6 +565,9 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
+        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
+        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
+        <Route path="/EmployeeDashboard" element={<EmployeeDashboard />} />
         <Route path="/" element={<Home />} />
         <Route
           path="/Login"
@@ -718,10 +726,7 @@ function App() {
             id="freeDeliveryAlert"
             className="p-2 alert d-none alert-custom border-green"
           >
-            You’ve got FREE delivery. Start{" "}
-            <a className="alert-link" href="#!">
-              checkout now!
-            </a>
+            You’ve got <span class="fw-bold">FREE delivery</span>!
           </div>
 
           <ul className="list-group list-group-flush">
