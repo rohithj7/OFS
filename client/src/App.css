@@ -47,7 +47,7 @@ body.active-modl {
 
 .dropdown-menu .dropdown-item:hover {
   background-color: #99D98C;
-  color: white;
+  /* color: white; */
   text-decoration: none;
 }
 
@@ -99,9 +99,9 @@ body.active-modl {
   background: 0 0;
 }
 
-.mb-3.account{
+/* .mb-3.account{
   text-align: left;
-}
+} */
 
 .product-search:active {
   border-color: #99D98C;
@@ -168,6 +168,46 @@ html, body {
 }
 
 .product-description-manager {
+  
+}
+
+.continueShoppingButton {
+  border-color: #97D3C2;
+}
+
+.continueShoppingButton:hover, .continueShoppingButton:hover:active {
+  background-color: #97D3C2;
+  color: white;
+  font-weight: bold;
+}
+
+.viewMyOrdersButton {
+  border-color: #99D98C;
+}
+
+.viewMyOrdersButton:hover, .viewMyOrdersButton:hover:active {
+  background-color: #99D98C;
+  color: white;
+  font-weight: bold;
+}
+
+.completeButton .completeIcon {
+  color: white;
+  /* color: black; */
+  
+}
+.completeButton {
+  background-color: #99D98C;
+}
+
+.completeButton:hover, .completeButton:hover:active {
+  background-color: white;
+  /* color: black; */
+  border-color:#99D98C;
+  .completeIcon {
+    /* background-color:white; */
+    color: #99D98C;
+  }
   
 }
 
