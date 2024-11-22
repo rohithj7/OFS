@@ -1,248 +1,540 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-export default function EmployeeDashboard() {
-    const [viewProductsModal, setViewProductsModal] = useState(false);
+function EmployeeDashboard() {
+  const [editStatusModal, setEditStatusModal] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [recentSales, setRecentSales] = useState([]);
+  const [viewProductsModal, setViewProductsModal] = useState(false);
+  const [selectedSaleProducts, setSelectedSaleProducts] = useState([]);
+  const [saleDetailsModal, setSaleDetailsModal] = useState(false);
+  const [selectedSaleDetails, setSelectedSaleDetails] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Toggle modal
-    const toggleViewProductsModal = () => {
-        setViewProductsModal(!viewProductsModal); // Toggle modal open or closed
+  const categories = [
+    { id: "", name: "Select a category" },
+    { id: "all", name: "All Products" },
+    { id: "1", name: "Fruits" },
+    { id: "2", name: "Vegetables" },
+    { id: "3", name: "Meats" },
+    { id: "4", name: "Dairy" },
+    { id: "5", name: "Snacks" },
+    { id: "6", name: "Meals" },
+  ];
+
+  // Fetch sales data
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/all_sales", {
+          withCredentials: true,
+        });
+        setRecentSales(response.data);
+      } catch (error) {
+        console.error("Error fetching sales:", error);
+      }
+    };
+    fetchSales();
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get("http://localhost:8080/products", {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products:", error.response || error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    return (
-        <>
-        <div class="mt-5 container">
-        <div class="row">
-                <div class="mt-5 mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
-                    <div class="h-100 card-lg card border border-2">
-                        <h3 class="p-4 my-2 fs-5 text-center">Orders to Fulfill</h3>
-                        <div class="p-0 card-body">
-                            <div class="table-responsive rounded-1">
-                                <table class="mb-0 table-centered text-nowrap table table-borderless table-hover">
-                                <thead class="table-light text-center">
-                                    <tr class="text-center">
-                                        <th colspan="1">
-                                            <div class="py-3">Order ID</div>
-                                        </th>
-                                        <th colspan="1">
-                                            <div class="py-3">Date</div>
-                                        </th>
-                                        <th colspan="1">
-                                            <div class="py-3">Total</div>
-                                        </th>
-                                        {/* <th colspan="1"><div class="py-4 text-uppercase">Order Status</div></th> */}
-                                        <th colspan="1">
-                                            <div class="py-3">Status</div>
-                                        </th>
-                                        <th colspan="1">
-                                            <div class="py-3">View Products</div>
-                                        </th>
-                                        <th colspan="1">
-                                            <div class="py-3">Complete Order</div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                    <tbody>
-                                        <tr class="text-center">
-                                            <th class="py-4 align-middle">152323234</th>
-                                            <td class="py-4 align-middle">11/4/24</td>
-                                            <td class="py-4 align-middle me-5">$123.23</td>
-                                            <td class="py-4 align-middle">
-                                                <span class="p-2 text-uppercase badge bg-mint">Ongoing</span>
-                                                
-                                            </td>
-                                            <td class="py-4 align-middle">
-                                                <Link class="btn btn-pastelblue btn-sm fw-bold text-white" onClick={() => toggleViewProductsModal()}> 
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-eye fs-4 me-2" viewBox="0 0 16 16">
-                                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                                    </svg>
-                                                    <span class="">View Products</span>
-                                                </Link>
-                                            </td>
-                                            <td class="py-4 align-middle">
-                                                <Link class="completeButton btn border border-2 border-green btn-sm fw-bold">
-                                                    <span class="me-2">Complete</span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-check-circle-fill fs-4 completeIcon" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                                                    </svg>
-                                                </Link>
-                                            </td>
-                                            
-                                        </tr>
-                                        <tr class="text-center">
-                                            <th class="py-4 align-middle">152323234</th>
-                                            <td class="py-4 align-middle">11/4/24</td>
-                                            <td class="py-4 align-middle me-5">$123.23</td>
-                                            <td class="py-4 align-middle">
-                                                <span class="p-2 text-uppercase badge bg-mint">Ongoing</span>
-                                                
-                                            </td>
-                                            <td class="py-4 align-middle">
-                                                <Link class="btn btn-pastelblue btn-sm fw-bold text-white" onClick={() => toggleViewProductsModal()}> 
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-eye fs-4 me-2" viewBox="0 0 16 16">
-                                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                                    </svg>
-                                                    <span class="">View Products</span>
-                                                </Link>
-                                            </td>
-                                            <td class="py-4 align-middle">
-                                            <Link class="completeButton btn border border-2 border-green btn-sm fw-bold">
-                                                    <span class="me-2">Complete</span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-check-circle-fill fs-4 completeIcon" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                                                    </svg>
-                                                </Link>
-                                            </td>
-                                            
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      setFilteredProducts([]);
+    } else if (selectedCategory === "all") {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(
+        products.filter(
+          (product) => product?.CATEGORYID?.toString() === selectedCategory
+        )
+      );
+    }
+  }, [selectedCategory, products]);
+
+  // Toggle modals
+  const toggleEditStatusModal = () => {
+    setEditStatusModal(!editStatusModal);
+  };
+
+  const toggleViewProductsModal = () => {
+    setViewProductsModal(!viewProductsModal);
+  };
+
+  // Handle status update
+  const handleStatusUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/sales/${selectedSaleId}/status`,
+        { newStatus },
+        { withCredentials: true }
+      );
+
+      if (response.status === 200) {
+        setRecentSales((sales) =>
+          sales.map((sale) =>
+            sale.ID === selectedSaleId
+              ? { ...sale, SALE_STATUS: newStatus }
+              : sale
+          )
+        );
+        toggleEditStatusModal();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status");
+    }
+  };
+
+  // Add this new function to fetch sale details
+  const fetchSaleDetails = async (saleId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/sales/${saleId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setSelectedSaleDetails(response.data);
+      setSaleDetailsModal(true);
+    } catch (error) {
+      console.error("Error fetching sale details:", error);
+      alert("Failed to fetch sale details");
+    }
+  };
+
+  // Add toggle function for the details modal
+  const toggleSaleDetailsModal = () => {
+    setSaleDetailsModal(!saleDetailsModal);
+  };
+
+  return (
+    <div className="mt-5 container">
+      <div className="row">
+        <div className="mt-5 mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
+          <div className="h-100 card-lg card border border-2">
+            <h3 className="p-4 my-2 fs-5 text-center">Sales to Fulfill</h3>
+            <div className="p-0 card-body">
+              <div className="table-responsive rounded-1">
+                <table className="mb-0 table-centered text-nowrap table table-borderless table-hover">
+                  <thead className="table-light text-center">
+                    <tr>
+                      <th>
+                        <div className="py-3">Sale ID</div>
+                      </th>
+                      <th>
+                        <div className="py-3">Date</div>
+                      </th>
+
+                      <th>
+                        <div className="py-3">Sale Status</div>
+                      </th>
+
+                      <th>
+                        <div className="py-3">Sale Ready to Ship</div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentSales.map((sale) => (
+                      <tr key={sale.ID} className="text-center">
+                        <th className="py-4 align-middle">
+                          <Link
+                            to={`/saleDetails/${sale.ID}`}
+                            className="text-decoration-none"
+                          >
+                            {sale.ID}
+                          </Link>
+                        </th>
+                        <td className="py-4 align-middle">
+                          {new Date(sale.SALEDATE).toLocaleDateString()}
+                        </td>
+
+                        <td className="py-4 align-middle">
+                          <div className="d-flex align-items-center justify-content-center">
+                            <span
+                              className={`p-2 text-uppercase badge ${
+                                sale.SALE_STATUS === "COMPLETED"
+                                  ? "bg-success"
+                                  : sale.SALE_STATUS === "ONGOING"
+                                  ? "bg-mint"
+                                  : "bg-warning"
+                              }`}
+                            >
+                              {sale.SALE_STATUS}
+                            </span>
+                            <button
+                              className="btn btn-outline-0 btn-sm fw-bold ms-2"
+                              onClick={() => {
+                                setSelectedSaleId(sale.ID);
+                                setNewStatus(sale.SALE_STATUS);
+                                toggleEditStatusModal();
+                              }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                className="bi bi-pencil-square"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path
+                                  fillRule="evenodd"
+                                  d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+
+                        <td className="py-4 align-middle">
+                          <button
+                            className="completeButton btn border border-2 border-green btn-sm fw-bold"
+                            onClick={() => {
+                              setSelectedSaleId(sale.ID);
+                              setNewStatus("COMPLETED");
+                              handleStatusUpdate({ preventDefault: () => {} });
+                            }}
+                            disabled={sale.SALE_STATUS === "COMPLETED"}
+                          >
+                            <span className="me-2">Complete</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="1em"
+                              height="1em"
+                              fill="currentColor"
+                              className="bi bi-check-circle-fill fs-4 completeIcon"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
 
-
-        {viewProductsModal && (
-            <div>
-                <div class="fade modal-backdrop show"></div>
-                <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" style={{paddingLeft: "0px", display: "block"}}>
-                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-content-dialog">
-                                <div class="modal-content-content">
-                                    <div class="p-5 modal-body rounded-3">
-                                        <div class="position-absolute top-0 end-0 me-3 mt-3">
-                                            <button type="button" class="btn-close btn-close-primary close-modal" onClick={toggleViewProductsModal}></button>
-                                        </div>
-                                        
-
-                                        <div class="card-lg card border-0">
-                                            
-                                            <div class="card-body">
-                                                <h3 class="text-center mb-4">Products</h3>
-                                                <div class="table-responsive-xxl border-0">
-                
-                                                    <table
-                                                        id="ordersTable"
-                                                        class="text-nowrap table-centered mt-0 table"
-                                                        style={{ width: "100%" }}>
-                                                        <thead class="">
-                                                        <tr>
-                                                            <th colspan="1">
-                                                                <div class="text-secondary text-center">Product</div>
-                                                            </th>
-                                                            <th colspan="1">
-                                                                <div class="text-secondary text-center">Brand</div>
-                                                            </th>
-                                                            <th colspan="1">
-                                                                <div class="text-secondary text-center">Quantity</div>
-                                                            </th>
-                                                            <th colspan="1">
-                                                                <div class="text-secondary text-center">Price Per Unit</div>
-                                                            </th>
-                                                            <th colspan="1">
-                                                                <div class="text-secondary text-center">Weight Per Unit</div>
-                                                            </th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        
-                                                            <tr>
-                                                            
-                                                                <td class="py-4 align-middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">Oranges</h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 align-middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        Sweet Blossom
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        $1.25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        0.25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr>
-                                                            
-                                                                <td class="py-4 align-middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">Oranges</h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 align-middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        Sweet Blossom
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        $1.25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="py-4 -middle border-top-0">
-                                                                    <a class="text-decoration-none text-black text-center">
-                                                                    <h6 class="mb-0">
-                                                                        0.25
-                                                                    </h6>
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            
-                                        </div>
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      {/* Products Section */}
+      <div className="row mt-5">
+        <div className="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
+          <div className="h-100 card-lg card border border-2">
+            <div className="d-flex justify-content-between align-items-center p-4">
+              <h3 className="fs-5 mb-0">
+                Products
+                {selectedCategory && (
+                  <span className="text-muted ms-2">
+                    ({filteredProducts.length}{" "}
+                    {selectedCategory === "all" ? "total" : "items"})
+                  </span>
+                )}
+              </h3>
+              <div className="d-flex align-items-center">
+                <select
+                  className="form-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  disabled={isLoading}
+                >
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-        )}
+            <div className="p-0 card-body">
+              {isLoading ? (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : !selectedCategory ? (
+                <div className="text-center p-4 text-muted">
+                  Please select a category to view products
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center p-4 text-muted">
+                  No products found in this category
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table-centered text-nowrap table table-hover">
+                    <thead className="table-light text-center">
+                      <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Price per Unit</th>
+                        <th scope="col">Weight Per Unit</th>
+                        <th scope="col">Brand</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Reorder Level</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredProducts.map((product) => (
+                        <tr
+                          key={product.ID}
+                          className={`${
+                            product.QUANTITY <= product.REORDERLEVEL
+                              ? "table-danger"
+                              : ""
+                          }`}
+                        >
+                          <td className="text-center">{product.ID}</td>
+                          <td className="text-center">
+                            <img
+                              src={`/Assets/${product.PICTURE_URL}`}
+                              alt={product.PRODUCTNAME}
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </td>
+                          <td className="text-center">{product.PRODUCTNAME}</td>
+                          <td className="text-center">{product.CATEGORYID}</td>
+                          <td className="text-center">${product.PRICE}</td>
+                          <td className="text-center">{product.WEIGHT} oz</td>
+                          <td className="text-center">{product.BRAND}</td>
+                          <td className="text-center">
+                            {product.PRODUCTDESCRIPTION}
+                          </td>
+                          <td className="text-center">{product.QUANTITY}</td>
+                          <td className="text-center">
+                            {product.REORDERLEVEL}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
-        </>
-    );
+      {/* Edit Status Modal */}
+      {editStatusModal && (
+        <div>
+          <div className="fade modal-backdrop show"></div>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fade modal show"
+            tabIndex="-1"
+            style={{ display: "block" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Update Sale Status</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={toggleEditStatusModal}
+                  ></button>
+                </div>
+                <form onSubmit={handleStatusUpdate}>
+                  <div className="modal-body">
+                    <select
+                      className="form-select"
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                    >
+                      <option value="">Select new status</option>
+                      <option value="NOT STARTED">Not Started</option>
+                      <option value="ONGOING">Ongoing</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={toggleEditStatusModal}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={!newStatus}
+                    >
+                      Update Status
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {saleDetailsModal && selectedSaleDetails && (
+        <div>
+          <div className="fade modal-backdrop show"></div>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fade modal show"
+            tabIndex="-1"
+            style={{ display: "block" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    Sale Details #{selectedSaleDetails.saleId}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={toggleSaleDetailsModal}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {/* Customer Information */}
+                  <div className="mb-3">
+                    <strong>Customer ID:</strong>{" "}
+                    {selectedSaleDetails.customerId}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Customer Name:</strong>{" "}
+                    {selectedSaleDetails.customerFirstName}{" "}
+                    {selectedSaleDetails.customerLastName}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Customer Phone:</strong>{" "}
+                    {selectedSaleDetails.customerPhone}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Shipping Address:</strong>{" "}
+                    {selectedSaleDetails.customerAddress}
+                  </div>
+
+                  {/* Order Information */}
+                  <div className="mb-3">
+                    <strong>Total Amount:</strong> $
+                    {parseFloat(selectedSaleDetails.totalPrice).toFixed(2)}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Order Date:</strong>{" "}
+                    {new Date(
+                      selectedSaleDetails.saleDate
+                    ).toLocaleDateString()}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Payment Details:</strong>{" "}
+                    {selectedSaleDetails.paymentDetails}
+                  </div>
+                  <div className="mb-3">
+                    <strong>Status:</strong>{" "}
+                    <span
+                      className={`badge ${
+                        selectedSaleDetails.saleStatus === "COMPLETED"
+                          ? "bg-success"
+                          : selectedSaleDetails.saleStatus === "ONGOING"
+                          ? "bg-mint"
+                          : "bg-warning"
+                      }`}
+                    >
+                      {selectedSaleDetails.saleStatus}
+                    </span>
+                  </div>
+
+                  {/* Products Information */}
+                  <div>
+                    <strong>Products:</strong>
+                    <ul className="list-group mt-2">
+                      {selectedSaleDetails.products.map((product) => (
+                        <li key={product.productId} className="list-group-item">
+                          <div className="d-flex align-items-center">
+                            {product.pictureUrl && (
+                              <img
+                                src={`Assets/${product.pictureUrl}`}
+                                alt={product.productName}
+                                className="me-3"
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            )}
+                            <div>
+                              <div className="fw-bold">
+                                {product.productName}
+                              </div>
+                              <div className="text-muted">
+                                Quantity: {product.quantity} × ${product.price}
+                                <span className="ms-2">
+                                  Weight: {product.weight}lb
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={toggleSaleDetailsModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+
+export default EmployeeDashboard;

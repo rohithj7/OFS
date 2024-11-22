@@ -770,6 +770,64 @@ export async function getDashboardStatistics() {
   }
 }
 
+// Function to get sale details by sale ID
+export async function getSaleById(saleId) {
+  const sql = `
+      SELECT 
+        S.ID AS saleId,
+        S.CUSTOMERID AS customerId,
+        S.PRICE AS totalPrice,
+        S.SALEDATE AS saleDate,
+        S.PAYMENTDETAILS AS paymentDetails,
+        S.SALE_STATUS AS saleStatus,
+        SP.PRODUCTID AS productId,
+        SP.QUANTITY AS quantity,
+        SP.PRICE AS productPrice,
+        P.PRODUCTNAME AS productName,
+        P.PRICE AS price,
+        P.WEIGHT AS weight,
+        P.PICTURE_URL AS pictureUrl,
+        C.FIRSTNAME AS customerFirstName,
+        C.LASTNAME AS customerLastName,
+        C.ADDRESS AS customerAddress,
+        C.PHONE AS customerPhone
+      FROM SALES S
+      INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
+      INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
+      INNER JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
+      WHERE S.ID = ?
+    `;
+  const [rows] = await pool.execute(sql, [saleId]);
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  // Organize products into a structured format
+  const saleDetails = {
+    saleId: rows[0].saleId,
+    customerId: rows[0].customerId,
+    customerFirstName: rows[0].customerFirstName,
+    customerLastName: rows[0].customerLastName,
+    customerAddress: rows[0].customerAddress,
+    customerPhone: rows[0].customerPhone,
+    totalPrice: rows[0].totalPrice,
+    saleDate: rows[0].saleDate,
+    paymentDetails: rows[0].paymentDetails,
+    saleStatus: rows[0].saleStatus,
+    products: rows.map((row) => ({
+      productId: row.productId,
+      quantity: row.quantity,
+      price: row.price,
+      productName: row.productName,
+      weight: row.weight,
+      pictureUrl: row.pictureUrl,
+    })),
+  };
+
+  return saleDetails;
+}
+
 // Function to get sales by customer ID
 export async function getSalesByCustomerId(customerId) {
   const sql = `
@@ -873,7 +931,7 @@ export async function placeSale(customerId, products, stripePaymentId) {
     const totalPrice = await calculateTotalPrice(products);
     const saleDate = new Date().toISOString().slice(0, 10);
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
-    const saleStatus = "ONGOING";
+    const saleStatus = "NOT STARTED";
 
     const [saleResult] = await connection.execute(saleSql, [
       customerId,

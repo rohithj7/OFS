@@ -117,6 +117,8 @@ function ManagerDashboard() {
   //     }
   //   });
 
+  const [oneTimePassword, setOneTimePassword] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   // Add handler function
   const handleAddAccount = async (e) => {
     e.preventDefault();
@@ -131,12 +133,12 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
+        alert("Supplier added successfully!");
       } else {
-        await axios.post(
+        const response = await axios.post(
           "http://localhost:8080/registerEmployee",
           {
             email: accountFormData.email,
-            password: accountFormData.password,
             firstName: accountFormData.firstName,
             lastName: accountFormData.lastName,
             ssn: accountFormData.ssn,
@@ -145,6 +147,9 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
+        console.log("Registration response:", response.data);
+        setOneTimePassword(response.data.oneTimePassword);
+        setShowPasswordModal(true);
       }
 
       toggleAddModal();
@@ -158,11 +163,6 @@ function ManagerDashboard() {
         salary: "",
         startDate: "",
       });
-      alert(
-        `${
-          accountType === "supplier" ? "Supplier" : "Employee"
-        } added successfully!`
-      );
     } catch (error) {
       console.error("Error adding account:", error);
       alert("Failed to add account. Please try again.");
@@ -912,7 +912,7 @@ function ManagerDashboard() {
                     <tr key={sale.ID} className="text-center">
                       <th className="py-4 align-middle">
                         <Link
-                          to={`/manager/order-details/${sale.ID}`}
+                          to={`/saleDetails/${sale.ID}`}
                           state={{
                             orderDate: new Date(
                               sale.SALEDATE
@@ -1077,7 +1077,7 @@ function ManagerDashboard() {
                           <td className="text-center">{product.PRODUCTNAME}</td>
                           <td className="text-center">{product.CATEGORYID}</td>
                           <td className="text-center">${product.PRICE}</td>
-                          <td className="text-center">{product.WEIGHT} lbs</td>
+                          <td className="text-center">{product.WEIGHT} oz</td>
                           <td className="text-center">{product.BRAND}</td>
                           <td className="text-center">
                             {product.PRODUCTDESCRIPTION}
@@ -1296,22 +1296,7 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
+
                                 <div class="mb-3">
                                   <label class="form-label">First Name</label>
                                   <input
@@ -1416,6 +1401,58 @@ function ManagerDashboard() {
         </div>
       )}
 
+      {showPasswordModal && (
+        <div>
+          <div className="fade modal-backdrop show"></div>
+          <div className="fade modal show d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Employee Added Successfully</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowPasswordModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Please save this one-time password and share it securely
+                    with the employee:
+                  </p>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={oneTimePassword}
+                      readOnly
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(oneTimePassword);
+                        alert("Password copied to clipboard!");
+                      }}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setShowPasswordModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {reOrderProductsModal && (
         <div>
           <div class="fade modal-backdrop show"></div>

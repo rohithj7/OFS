@@ -25,7 +25,7 @@ function OrderDetails() {
       case "ONGOING":
         return "Shipped";
       case "COMPLETED":
-        return "Completed";
+        return "Delivered";
       default:
         return status;
     }
@@ -94,7 +94,7 @@ function OrderDetails() {
               <div class="container text-center">
                 <div class="row row-cols-6">
                   <div class="col border-end">
-                    <p class="fw-bold text-secondary mb-1">Order ID</p>
+                    <p class="fw-bold text-secondary mb-1">Sale ID</p>
                     <p>{id}</p>
                   </div>
                   <div class="col border-end">
@@ -117,7 +117,7 @@ function OrderDetails() {
                   </div>
                   <div class="col">
                     <p class="fw-bold text-secondary mb-1">Order Status</p>
-                    <p>{}</p>
+                    <p>{renderOrderStatus(orderStatus)}</p>
                   </div>
                 </div>
               </div>

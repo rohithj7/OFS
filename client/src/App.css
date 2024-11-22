@@ -211,3 +211,33 @@ html, body {
   
 }
 
+.navbar {
+  position: relative;
+  z-index: 1030;
+}
+
+.dropdown-menu {
+  z-index: 1031;
+}
+
+.navbar .nav-link {
+  cursor: pointer;
+}
+
+/* Ensure dropdowns are clickable on mobile */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: inherit;
+    padding: 0.5rem 1rem;
+  }
+  
+  .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+  }
+}
+

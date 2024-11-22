@@ -57,11 +57,9 @@ export async function registerAdmin(req, res) {
     if (!password) {
       // If password is empty, prompt to update with new password
       if (!newPassword) {
-        return res
-          .status(400)
-          .json({
-            message: "Password is required. Please provide a new password.",
-          });
+        return res.status(400).json({
+          message: "Password is required. Please provide a new password.",
+        });
       }
       hashedPassword = await bcrypt.hash(newPassword, 10);
     } else {

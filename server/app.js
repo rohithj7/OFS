@@ -59,6 +59,7 @@ import {
   updateFirstTimeLogin,
   getDashboardStatistics,
   getOrdersWithDetails,
+  getSaleById,
 } from "./database.js";
 import {
   registerAdmin,
@@ -205,20 +206,20 @@ app.post("/registerEmployee", isAdmin, registerEmployee);
 app.post("/login", passport.authenticate("local"), async (req, res) => {
   try {
     const user = req.user;
+    /*
     if (user.ROLE === "employee" && user.FIRST_TIME_LOGIN) {
-      // Set FIRST_TIME_LOGIN flag to false
-      await updateFirstTimeLogin(user.ID, false);
       return res.json({
         message: "First-time login. Please update your password.",
         firstTimeLogin: true,
-        redirectTo: "/update-password",
         role: user.ROLE,
       });
     }
+    */
     res.json({
       message: "Logged in successfully.",
       loginId: user.ID,
       role: user.ROLE,
+      firstTimeLogin: user.FIRST_TIME_LOGIN,
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -811,6 +812,25 @@ app.get("/all_sales", async (req, res) => {
     res.json(sales);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// Route to get sale details by sale ID, for employee or admin
+app.get("/sales/:saleId", isAuthenticated, async (req, res) => {
+  try {
+    const saleId = req.params.saleId;
+
+    // Get sale details including products
+    const saleDetails = await getSaleById(saleId);
+
+    if (!saleDetails || saleDetails.length === 0) {
+      return res.status(404).json({ message: "Sale not found." });
+    }
+
+    res.json(saleDetails);
+  } catch (error) {
+    console.error("Error fetching sale details:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 

@@ -13,6 +13,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { Dropdown } from "bootstrap";
 
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
@@ -35,7 +36,8 @@ import ManagerDashboard from "./Components/ManagerDashboard";
 import SupplierDashboard from "./Components/SupplierDashboard";
 import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
-import ManagerOrderDetails from "./Components/ManagerOrderDetails";
+import UpdatePassword from "./Components/UpdatePassword";
+import SaleDetails from "./Components/SaleDetails";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -53,6 +55,7 @@ function App() {
   const [clientSecret, setClientSecret] = useState("");
   const navigate = useNavigate();
   const sidebarRef = useRef(null);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -327,13 +330,31 @@ function App() {
     }
   }, [cart]);
 
+  const handleNavCollapse = () => {
+    setIsNavCollapsed(!isNavCollapsed);
+  };
+
+  useEffect(() => {
+    // Initialize all dropdowns
+    const dropdownElementList = document.querySelectorAll(".dropdown-toggle");
+    const dropdownList = [...dropdownElementList].map(
+      (dropdownToggleEl) => new Dropdown(dropdownToggleEl)
+    );
+
+    // Cleanup function
+    return () => {
+      dropdownList.forEach((dropdown) => {
+        if (dropdown && dropdown.dispose) {
+          dropdown.dispose();
+        }
+      });
+    };
+  }, []);
+
   return (
     <div>
       {/* Navbar */}
-      <nav
-        className="navbar navbar-expand-lg bg-green"
-        style={{ zIndex: 1030 }}
-      >
+      <nav className="navbar navbar-expand-lg bg-green">
         <div className="container">
           <Link to="/Home" className="navbar-brand fw-bold">
             GroceryGo
@@ -344,25 +365,36 @@ function App() {
             data-bs-toggle="collapse"
             data-bs-target="#navbarText"
             aria-controls="navbarText"
-            aria-expanded="false"
+            aria-expanded={!isNavCollapsed}
             aria-label="Toggle navigation"
+            onClick={handleNavCollapse}
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-          <div className="collapse navbar-collapse" id="navbarText">
+          <div
+            className={`collapse navbar-collapse ${
+              !isNavCollapsed ? "show" : ""
+            }`}
+            id="navbarText"
+          >
             <ul className="navbar-nav ms-auto">
               {isAuthenticated && userRole === "customer" ? (
                 <>
                   {/* Categories Dropdown */}
                   <li className="nav-item dropdown">
                     <button
-                      className="nav-link dropdown-toggle btn me-2"
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="categoriesDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       Categories
                     </button>
-                    <ul className="dropdown-menu">
+                    <ul
+                      className="dropdown-menu"
+                      aria-labelledby="categoriesDropdown"
+                    >
                       <li>
                         <Link className="dropdown-item" to="/Products/Fruits/1">
                           Fruits
@@ -413,13 +445,18 @@ function App() {
                   {/* My Account Dropdown */}
                   <li className="nav-item dropdown">
                     <button
-                      className="nav-link dropdown-toggle btn me-2"
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="accountDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       My Account
                     </button>
-                    <ul className="dropdown-menu">
+                    <ul
+                      className="dropdown-menu"
+                      aria-labelledby="accountDropdown"
+                    >
                       <li>
                         <Link className="dropdown-item" to="/Account">
                           Account Settings
@@ -459,23 +496,39 @@ function App() {
                     Logout
                   </button>
                 </>
+              ) : isAuthenticated && userRole === "employee" ? (
+                <>
+                  <span className="navbar-text me-3 text-white">
+                    <i className="bi bi-shield-lock-fill me-1"></i>
+                    Employee Mode
+                  </span>
+                  <Link to="/EmployeeDashboard" className="btn me-2">
+                    Dashboard
+                  </Link>
+                  <button
+                    className="btn me-2"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   {/* Dropdown menu for Categories */}
                   <li className="nav-item dropdown">
-                    <a
-                      className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
+                    <button
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="categoriesDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       Categories
-                    </a>
+                    </button>
                     <ul
                       className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
+                      aria-labelledby="categoriesDropdown"
                     >
                       <li>
                         <Link className="dropdown-item" to="/Products/Fruits/1">
@@ -517,19 +570,18 @@ function App() {
                   </button>
                   {/* Dropdown menu for My Account */}
                   <li className="nav-item dropdown">
-                    <a
-                      className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
+                    <button
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="accountDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       My Account
-                    </a>
+                    </button>
                     <ul
                       className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
+                      aria-labelledby="accountDropdown"
                     >
                       <li>
                         <Link className="dropdown-item" to="/Account">
@@ -572,10 +624,6 @@ function App() {
           }
         />
         <Route path="/Signup" element={<Signup />} />
-        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
-        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
-        <Route path="/EmployeeDashboard" element={<EmployeeDashboard />} />
-        <Route path="/" element={<Home />} />
         <Route
           path="/Products/Fruits/:categoryId"
           element={
@@ -618,6 +666,14 @@ function App() {
 
         {/* Protected Routes */}
         <Route
+          path="/update-password"
+          element={
+            <ProtectedRoute allowedRoles={["employee"]}>
+              <UpdatePassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/ManagerDashboard"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
@@ -626,13 +682,24 @@ function App() {
           }
         />
         <Route
-          path="/manager/order-details/:id"
+          path="/EmployeeDashboard"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ManagerOrderDetails />
+            <ProtectedRoute allowedRoles={["employee"]}>
+              <EmployeeDashboard />
             </ProtectedRoute>
           }
         />
+        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
+
+        <Route
+          path="/saleDetails/:id"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <SaleDetails />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/Account"
           element={

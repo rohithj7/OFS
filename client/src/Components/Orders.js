@@ -15,11 +15,11 @@ function Orders() {
   const renderStatusText = (status) => {
     switch (status) {
       case "NOT STARTED":
-        return "Sales Not Started";
+        return "Pending";
       case "ONGOING":
-        return "Sales Ongoing";
+        return "Shipped";
       case "COMPLETED":
-        return "Sales Completed";
+        return "Delivered";
       default:
         return status;
     }
@@ -62,9 +62,12 @@ function Orders() {
   }, []);
 
   // Filter the current and previous orders based on order status
-  const currentOrder = orders.filter((order) => order.saleStatus === "ONGOING"); // Filter all orders with saleStatus COMPLETED to display under Current Orders
+  const currentOrder = orders.filter(
+    (order) =>
+      order.saleStatus === "NOT STARTED" || order.saleStatus === "ONGOING"
+  ); // Filter all orders with saleStatus NOT STARTED or ONGOING to display under Current Orders
   const previousOrders = orders.filter(
-    (order) => order.saleStatus === "..." // need to modify based on the order delivery status
+    (order) => order.saleStatus === "COMPLETED"
   );
 
   return (
