@@ -690,7 +690,7 @@ function App() {
         <Route
           path="/update-password"
           element={
-            <ProtectedRoute allowedRoles={["employee"]}>
+            <ProtectedRoute allowedRoles={["employee", "supplier"]}>
               <UpdatePassword />
             </ProtectedRoute>
           }
@@ -707,7 +707,7 @@ function App() {
           path="/EmployeeDashboard"
           element={
             <ProtectedRoute allowedRoles={["employee"]}>
-              <EmployeeDashboard />
+              <EmployeeDashboard isAuthenticated={isAuthenticated} />
             </ProtectedRoute>
           }
         />
@@ -715,7 +715,7 @@ function App() {
           path="/SupplierDashboard"
           element={
             <ProtectedRoute allowedRoles={["supplier"]}>
-              <SupplierDashboard />
+              <SupplierDashboard isAuthenticated={isAuthenticated} />
             </ProtectedRoute>
           }
         />

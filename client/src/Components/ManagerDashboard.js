@@ -124,15 +124,17 @@ function ManagerDashboard() {
     e.preventDefault();
     try {
       if (accountType === "supplier") {
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:8080/registerSupplier",
           {
             email: accountFormData.email,
-            password: accountFormData.password,
             supplierName: accountFormData.supplierName,
           },
           { withCredentials: true }
         );
+        console.log("Registration response:", res.data);
+        setOneTimePassword(res.data.oneTimePassword);
+        setShowPasswordModal(true);
         alert("Supplier added successfully!");
       } else {
         const response = await axios.post(
@@ -155,7 +157,6 @@ function ManagerDashboard() {
       toggleAddModal();
       setAccountFormData({
         email: "",
-        password: "",
         supplierName: "",
         firstName: "",
         lastName: "",
@@ -1255,22 +1256,7 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
+
                                 <div class="mb-3">
                                   <label class="form-label">
                                     Supplier Name
