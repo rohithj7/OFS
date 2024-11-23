@@ -38,6 +38,7 @@ import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
 import UpdatePassword from "./Components/UpdatePassword";
 import SaleDetails from "./Components/SaleDetails";
+import DeliveryFleetManagement from "./Components/DeliveryFleetManagement";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -212,12 +213,16 @@ function App() {
           console.warn("Sidebar reference or Bootstrap library not available.");
         }
 
-        // Remove the Bootstrap offcanvas backdrop if it exists
+        // Remove backdrop and restore body
         const backdrop = document.querySelector(".offcanvas-backdrop");
         if (backdrop) {
-          backdrop.parentNode.removeChild(backdrop); // Remove the backdrop element
-          document.body.classList.remove("offcanvas-backdrop"); // Remove any lingering classes
+          backdrop.remove();
         }
+
+        // Remove modal-open class from body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
 
         // Proceed/ready to sale placement
         navigate("/Checkout"); // Directly navigate to the checkout page
@@ -513,6 +518,23 @@ function App() {
                     Logout
                   </button>
                 </>
+              ) : isAuthenticated && userRole === "supplier" ? (
+                <>
+                  <span className="navbar-text me-3 text-white">
+                    <i className="bi bi-shield-lock-fill me-1"></i>
+                    Supplier Mode
+                  </span>
+                  <Link to="/SupplierDashboard" className="btn me-2">
+                    Dashboard
+                  </Link>
+                  <button
+                    className="btn me-2"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   {/* Dropdown menu for Categories */}
@@ -689,13 +711,28 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
+        <Route
+          path="/SupplierDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["supplier"]}>
+              <SupplierDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/saleDetails/:id"
           element={
             <ProtectedRoute allowedRoles={["employee", "admin"]}>
               <SaleDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery-fleet/:saleId"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <DeliveryFleetManagement />
             </ProtectedRoute>
           }
         />

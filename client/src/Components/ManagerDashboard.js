@@ -549,12 +549,9 @@ function ManagerDashboard() {
   // Add this function to fetch orders
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/orders-with-details",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get("http://localhost:8080/all-orders", {
+        withCredentials: true,
+      });
       setOrders(response.data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -905,6 +902,9 @@ function ManagerDashboard() {
                     <th>
                       <div className="py-3">Actions</div>
                     </th>
+                    <th>
+                      <div className="py-3">Delivery Fleet</div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -946,7 +946,13 @@ function ManagerDashboard() {
                       </td>
                       <td className="py-4 align-middle">
                         <button
-                          className="btn btn-outline-0 btn-sm fw-bold"
+                          className="btn btn-outline-0 btn-sm fw-bold hover-shadow"
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
                           onClick={() => {
                             setSelectedSaleId(sale.ID);
                             toggleEditStatusModal();
@@ -955,6 +961,15 @@ function ManagerDashboard() {
                           <span className="me-2">Edit Status</span>
                           <i className="bi bi-pencil-square"></i>
                         </button>
+                      </td>
+                      <td className="py-4 align-middle text-center">
+                        <Link
+                          to={`/delivery-fleet/${sale.ID}`}
+                          className="btn btn-green btn-sm d-inline-flex align-items-center justify-content-center"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <span>Track Delivery</span>
+                        </Link>
                       </td>
                     </tr>
                   ))}

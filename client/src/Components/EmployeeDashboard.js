@@ -151,13 +151,14 @@ function EmployeeDashboard() {
                       <th>
                         <div className="py-3">Date</div>
                       </th>
-
                       <th>
-                        <div className="py-3">Sale Status</div>
+                        <div className="py-3">Status</div>
                       </th>
-
                       <th>
-                        <div className="py-3">Sale Ready to Ship</div>
+                        <div className="py-3">Actions</div>
+                      </th>
+                      <th>
+                        <div className="py-3">Delivery Fleet</div>
                       </th>
                     </tr>
                   </thead>
@@ -175,68 +176,45 @@ function EmployeeDashboard() {
                         <td className="py-4 align-middle">
                           {new Date(sale.SALEDATE).toLocaleDateString()}
                         </td>
-
                         <td className="py-4 align-middle">
-                          <div className="d-flex align-items-center justify-content-center">
-                            <span
-                              className={`p-2 text-uppercase badge ${
-                                sale.SALE_STATUS === "COMPLETED"
-                                  ? "bg-success"
-                                  : sale.SALE_STATUS === "ONGOING"
-                                  ? "bg-mint"
-                                  : "bg-warning"
-                              }`}
-                            >
-                              {sale.SALE_STATUS}
-                            </span>
-                            <button
-                              className="btn btn-outline-0 btn-sm fw-bold ms-2"
-                              onClick={() => {
-                                setSelectedSaleId(sale.ID);
-                                setNewStatus(sale.SALE_STATUS);
-                                toggleEditStatusModal();
-                              }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                fill="currentColor"
-                                className="bi bi-pencil-square"
-                                viewBox="0 0 16 16"
-                              >
-                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
-                                <path
-                                  fillRule="evenodd"
-                                  d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
-                                />
-                              </svg>
-                            </button>
-                          </div>
+                          <span
+                            className={`p-2 text-uppercase badge ${
+                              sale.SALE_STATUS === "COMPLETED"
+                                ? "bg-success"
+                                : sale.SALE_STATUS === "ONGOING"
+                                ? "bg-mint"
+                                : "bg-warning"
+                            }`}
+                          >
+                            {sale.SALE_STATUS}
+                          </span>
                         </td>
-
                         <td className="py-4 align-middle">
                           <button
-                            className="completeButton btn border border-2 border-green btn-sm fw-bold"
+                            className="btn btn-outline-0 btn-sm fw-bold hover-shadow"
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.transform = "scale(1.05)";
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}
                             onClick={() => {
                               setSelectedSaleId(sale.ID);
-                              setNewStatus("COMPLETED");
-                              handleStatusUpdate({ preventDefault: () => {} });
+                              setNewStatus(sale.SALE_STATUS);
+                              toggleEditStatusModal();
                             }}
-                            disabled={sale.SALE_STATUS === "COMPLETED"}
                           >
-                            <span className="me-2">Complete</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="1em"
-                              height="1em"
-                              fill="currentColor"
-                              className="bi bi-check-circle-fill fs-4 completeIcon"
-                              viewBox="0 0 16 16"
-                            >
-                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                            </svg>
+                            <i className="bi bi-pencil-square"></i> Edit Status
                           </button>
+                        </td>
+                        <td className="py-4 align-middle text-center">
+                          <Link
+                            to={`/delivery-fleet/${sale.ID}`}
+                            className="btn btn-green btn-sm d-inline-flex align-items-center justify-content-center"
+                            style={{ minWidth: "120px" }}
+                          >
+                            <span>Track Delivery</span>
+                          </Link>
                         </td>
                       </tr>
                     ))}

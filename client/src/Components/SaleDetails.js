@@ -151,6 +151,12 @@ function SaleDetails() {
                 </div>
 
                 {/* Total Amount Footer */}
+                <div className="d-flex align-items-center justify-content-end mb-3">
+                  <div>Delivery Fee:</div>
+                  <div className="fw-bold ms-2">
+                    ${parseFloat(saleDetails.deliveryFee || 0).toFixed(2)}
+                  </div>
+                </div>
                 <div className="card-footer border-0 px-4 py-4 mt-2 bg-white">
                   <h5 className="d-flex align-items-center justify-content-end text-black mb-0">
                     Total paid:{" "}

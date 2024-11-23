@@ -31,6 +31,7 @@ function OrderDetails() {
     }
   };
 
+  const [deliveryFee, setDeliveryFee] = useState(0);
   useEffect(() => {
     const fetchSaleDetails = async () => {
       try {
@@ -48,6 +49,7 @@ function OrderDetails() {
             }))
           );
           setTotalPrice(sale.totalPrice);
+          setDeliveryFee(sale.deliveryFee || 0);
         } else {
           setError("Sale not found.");
         }
@@ -247,14 +249,12 @@ function OrderDetails() {
 
                 <div class="card-footer border-0 px-4 py-4 mt-2 bg-white">
                   <p className="text-end text-muted mb-2">
-                    {/* Delivery Fee: ${deliveryFee?.toFixed(2)} */}
+                    Delivery Fee: ${Number(deliveryFee).toFixed(2)}
                   </p>
                   <h5 class="d-flex align-items-center justify-content-end text-black mb-0 me-2">
                     Total paid:{" "}
                     <span class="h2 mb-0 ms-2">
-                      $
-                      {Number(totalPrice) /*+ (deliveryFee || 0)*/
-                        .toFixed(2)}
+                      ${Number(totalPrice).toFixed(2)}
                     </span>
                   </h5>
                 </div>

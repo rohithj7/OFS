@@ -496,8 +496,8 @@ export async function reorderProduct(productId, supplierId, quantity = null) {
       VALUES (?, ?, ?, ?, ?)
     `;
     const orderDate = new Date().toISOString().slice(0, 10);
-    const paymentDetails = "Paid via Stripe"; // Placeholder
-    const orderStatus = "COMPLETED";
+    const paymentDetails = "Paid"; // Placeholder
+    const orderStatus = "NOT STARTED";
 
     const [orderResult] = await connection.query(orderSql, [
       price,
@@ -543,6 +543,32 @@ export async function getSupplierIdByName(supplierName) {
   const sql = `SELECT ID FROM SUPPLIERS WHERE SUPPLIERNAME = ?`;
   const [result] = await pool.query(sql, [supplierName]);
   return result.length ? result[0].ID : null;
+}
+
+export async function getOrdersWithDetailsBySupplier(loginId) {
+  const sql = `
+    SELECT 
+      O.ID as orderId,
+      O.ORDERDATE,
+      O.ORDER_STATUS,
+      OP.QUANTITY,
+      OP.PRICE as productPrice,
+      OP.PRODUCTID as productId,
+      P.PRODUCTNAME,
+      P.BRAND,
+      P.PICTURE_URL,
+      P.PRICE as pricePerUnit,
+      P.WEIGHT as weightPerUnit,
+      S.SUPPLIERNAME
+    FROM ORDERS O
+    JOIN SUPPLIERS S ON O.SUPPLIERID = S.ID
+    JOIN ORDERS_PRODUCTS OP ON O.ID = OP.ORDERID
+    JOIN PRODUCTS P ON OP.PRODUCTID = P.ID
+    WHERE S.LOGINID = ?
+    ORDER BY O.ORDERDATE DESC`;
+
+  const [rows] = await pool.query(sql, [loginId]);
+  return rows;
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -719,7 +745,7 @@ export async function getDashboardStatistics() {
         COALESCE(SUM(PRICE), 0) as total,
         COUNT(*) as count
       FROM SALES 
-      WHERE SALEDATE >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
+      WHERE SALEDATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
 
     const customerStats = `
       SELECT COUNT(DISTINCT CUSTOMERID) as total
@@ -728,12 +754,19 @@ export async function getDashboardStatistics() {
     const todayCustomers = `
       SELECT COUNT(DISTINCT CUSTOMERID) as count
       FROM SALES 
-      WHERE DATE(SALEDATE) = CURDATE()`;
+      WHERE DATE(SALEDATE) = CURRENT_DATE()`;
 
     const monthlyCustomers = `
       SELECT COUNT(DISTINCT CUSTOMERID) as count
       FROM SALES 
-      WHERE SALEDATE >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
+      WHERE SALEDATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
+
+    // Add console logs for debugging
+    console.log("Current server time:", new Date());
+    const [timeCheck] = await pool.query(
+      "SELECT NOW() as now, CURRENT_DATE() as today"
+    );
+    console.log("Database time:", timeCheck[0]);
 
     // Execute all queries
     const [
@@ -751,6 +784,10 @@ export async function getDashboardStatistics() {
       pool.query(todayCustomers),
       pool.query(monthlyCustomers),
     ]);
+
+    // Log results for debugging
+    console.log("Today's stats:", today[0]);
+    console.log("Monthly stats:", monthly[0]);
 
     // Combine results
     return {
@@ -780,6 +817,7 @@ export async function getSaleById(saleId) {
         S.SALEDATE AS saleDate,
         S.PAYMENTDETAILS AS paymentDetails,
         S.SALE_STATUS AS saleStatus,
+        S.DELIVERYFEE AS deliveryFee,
         SP.PRODUCTID AS productId,
         SP.QUANTITY AS quantity,
         SP.PRICE AS productPrice,
@@ -815,6 +853,7 @@ export async function getSaleById(saleId) {
     saleDate: rows[0].saleDate,
     paymentDetails: rows[0].paymentDetails,
     saleStatus: rows[0].saleStatus,
+    deliveryFee: rows[0].deliveryFee,
     products: rows.map((row) => ({
       productId: row.productId,
       quantity: row.quantity,
@@ -837,6 +876,7 @@ export async function getSalesByCustomerId(customerId) {
         S.SALEDATE AS saleDate,
         S.PAYMENTDETAILS AS paymentDetails,
         S.SALE_STATUS AS saleStatus,
+        S.DELIVERYFEE AS deliveryFee,
         SP.PRODUCTID AS productId,
         SP.QUANTITY AS quantity,
         SP.PRICE AS productPrice,
@@ -865,6 +905,7 @@ export async function getSalesByCustomerId(customerId) {
         saleDate: row.saleDate,
         paymentDetails: row.paymentDetails,
         saleStatus: row.saleStatus,
+        deliveryFee: row.deliveryFee,
         products: [],
       };
     }
@@ -892,6 +933,17 @@ export async function updateSaleStatus(saleId, newStatus) {
         WHERE ID = ?
     `;
   const [result] = await pool.query(sql, [newStatus, saleId]);
+  return result.affectedRows > 0;
+}
+
+// Function to update order status
+export async function updateOrderStatus(orderId, newStatus) {
+  const sql = `
+        UPDATE ORDERS
+        SET ORDER_STATUS = ?
+        WHERE ID = ?
+    `;
+  const [result] = await pool.query(sql, [newStatus, orderId]);
   return result.affectedRows > 0;
 }
 
@@ -926,17 +978,17 @@ export async function placeSale(customerId, products, stripePaymentId) {
     // Insert into SALES table
     const saleSql = `
             INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, CURDATE(), ?, ?)
         `;
     const totalPrice = await calculateTotalPrice(products);
-    const saleDate = new Date().toISOString().slice(0, 10);
+    //const saleDate = new Date().toISOString().slice(0, 10);
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
     const saleStatus = "NOT STARTED";
 
     const [saleResult] = await connection.execute(saleSql, [
       customerId,
       totalPrice,
-      saleDate,
+      //saleDate,
       paymentDetails,
       saleStatus,
     ]);
@@ -988,6 +1040,61 @@ async function getProductPrice(productId) {
     `;
   const [product] = await query(sql, [productId]);
   return product ? product.PRICE : 0;
+}
+
+// update sale delivery fee
+export async function updateSaleDeliveryFee(saleId, deliveryFee) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // First get the current sale price
+    const [currentSale] = await connection.query(
+      "SELECT PRICE FROM SALES WHERE ID = ?",
+      [saleId]
+    );
+
+    if (!currentSale.length) {
+      return null;
+    }
+
+    // Update the sale with delivery fee
+    const sql = `
+      UPDATE SALES 
+      SET PRICE = PRICE + ?,
+          DELIVERYFEE = ?
+      WHERE ID = ?
+    `;
+
+    const [result] = await connection.query(sql, [
+      deliveryFee,
+      deliveryFee,
+      saleId,
+    ]);
+
+    if (result.affectedRows > 0) {
+      // Get the updated total price
+      const [updatedSale] = await connection.query(
+        "SELECT PRICE as totalPrice FROM SALES WHERE ID = ?",
+        [saleId]
+      );
+
+      await connection.commit();
+      return {
+        success: true,
+        totalPrice: updatedSale[0].totalPrice,
+        deliveryFee: deliveryFee,
+      };
+    }
+
+    await connection.rollback();
+    return null;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
