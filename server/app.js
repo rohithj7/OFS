@@ -59,6 +59,10 @@ import {
   updateFirstTimeLogin,
   getDashboardStatistics,
   getOrdersWithDetails,
+  getSaleById,
+  updateOrderStatus,
+  getOrdersWithDetailsBySupplier,
+  updateSaleDeliveryFee,
 } from "./database.js";
 import {
   registerAdmin,
@@ -205,20 +209,20 @@ app.post("/registerEmployee", isAdmin, registerEmployee);
 app.post("/login", passport.authenticate("local"), async (req, res) => {
   try {
     const user = req.user;
+    /*
     if (user.ROLE === "employee" && user.FIRST_TIME_LOGIN) {
-      // Set FIRST_TIME_LOGIN flag to false
-      await updateFirstTimeLogin(user.ID, false);
       return res.json({
         message: "First-time login. Please update your password.",
         firstTimeLogin: true,
-        redirectTo: "/update-password",
         role: user.ROLE,
       });
     }
+    */
     res.json({
       message: "Logged in successfully.",
       loginId: user.ID,
       role: user.ROLE,
+      firstTimeLogin: user.FIRST_TIME_LOGIN,
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -814,6 +818,25 @@ app.get("/all_sales", async (req, res) => {
   }
 });
 
+// Route to get sale details by sale ID, for employee or admin
+app.get("/sales/:saleId", isAuthenticated, async (req, res) => {
+  try {
+    const saleId = req.params.saleId;
+
+    // Get sale details including products
+    const saleDetails = await getSaleById(saleId);
+
+    if (!saleDetails || saleDetails.length === 0) {
+      return res.status(404).json({ message: "Sale not found." });
+    }
+
+    res.json(saleDetails);
+  } catch (error) {
+    console.error("Error fetching sale details:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
 // Route to get all sales for the authenticated customer
 app.get("/sales", isAuthenticated, async (req, res) => {
   try {
@@ -934,6 +957,43 @@ app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
   }
 });
 
+// Route to update sale delivery fee
+app.put("/sales/:id/delivery-fee", isAuthenticated, async (req, res) => {
+  try {
+    const saleId = req.params.id;
+    const { deliveryFee } = req.body;
+
+    // Add validation like other routes
+    if (!saleId || deliveryFee === undefined || isNaN(deliveryFee)) {
+      return res.status(400).json({ message: "Invalid delivery fee data." });
+    }
+
+    // Get the updated sale details
+    const updated = await updateSaleDeliveryFee(saleId, deliveryFee);
+
+    if (updated) {
+      // Return more detailed response like other routes
+      res.json({
+        message: "Delivery fee added successfully.",
+        saleId: saleId,
+        deliveryFee: deliveryFee,
+        updatedTotalPrice: updated.totalPrice, // This will need to be returned from the database function
+      });
+    } else {
+      res.status(404).json({
+        message: "Sale not found.",
+        saleId: saleId,
+      });
+    }
+  } catch (error) {
+    console.error("Error updating sale delivery fee:", error);
+    res.status(500).json({
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+});
+
 // Route to update sale status
 app.put("/sales/:id/status", isAdminOrEmployee, async (req, res) => {
   try {
@@ -974,14 +1034,33 @@ app.get("/statistics", async (req, res) => {
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ---------------------------------------------------------------- ORDERS ------------------------------------------------------------------------//
-// Get all orders from suppliers with details
-app.get("/orders-with-details", async (req, res) => {
+// Get ALL orders with details (for manager)
+app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
   try {
+    console.log("Fetching all orders for manager...");
     const orders = await getOrdersWithDetails();
     res.json(orders);
   } catch (err) {
     console.error("Error fetching orders:", err);
     res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// Get orders for specific supplier
+app.get("/orders-with-details", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID; // Changed from req.user.loginId to req.user.ID
+    console.log("Fetching orders for login ID:", loginId);
+
+    const orders = await getOrdersWithDetailsBySupplier(loginId);
+    console.log("Orders found:", orders);
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({
+      error: "Failed to fetch orders",
+      details: err.message,
+    });
   }
 });
 
@@ -1003,6 +1082,29 @@ app.post("/orders", async (req, res) => {
     res.status(201).json(newOrder);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// Route to update order status
+app.put("/orders/:id/status", async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { newStatus } = req.body;
+
+    if (!newStatus) {
+      return res.status(400).json({ message: "New status is required." });
+    }
+
+    const updated = await updateOrderStatus(orderId, newStatus);
+
+    if (updated) {
+      res.json({ message: "Order status updated successfully." });
+    } else {
+      res.status(404).json({ message: "Order not found." });
+    }
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 

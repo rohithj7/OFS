@@ -43,12 +43,17 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
         setCart([]);
 
         // Handle first-time login for employees
-        /*
-        if (response.data.firstTimeLogin) {
-          navigate(); // Navigate to password update page
+        console.log("Response employeedata:", response.data);
+        if (response.data.role === "employee" && response.data.firstTimeLogin) {
+          console.log("First-time login detected for employee");
+          navigate("/update-password", {
+            state: {
+              email: email,
+              firstTimeLogin: true,
+            },
+          }); // Navigate to password update page
           return;
         }
-        */
 
         switch (response.data.role) {
           case "customer":
@@ -57,12 +62,12 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
           case "admin":
             navigate("/ManagerDashboard");
             break;
-          //case 'employee':
-          //  navigate("/employee-dashboard");
-          //  break;
-          //case 'supplier':
-          //  navigate("/supplier-dashboard");
-          //  break;
+          case "employee":
+            navigate("/EmployeeDashboard");
+            break;
+          case "supplier":
+            navigate("/SupplierDashboard");
+            break;
           default:
             navigate("/Home");
         }
