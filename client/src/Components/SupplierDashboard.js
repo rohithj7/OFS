@@ -144,7 +144,10 @@ function SupplierDashboard() {
     if (orderError) {
       return (
         <div className="text-center p-4 text-danger">
-          <i className="bi bi-exclamation-triangle me-2"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-exclamation-triangle me-2 fs-5 align-middle" viewBox="0 0 16 16">
+            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+          </svg>
           {orderError}
         </div>
       );
@@ -228,7 +231,11 @@ function SupplierDashboard() {
                     toggleEditStatusModal();
                   }}
                 >
-                  <i className="bi bi-pencil-square"></i> Edit Status
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-pencil-square fs-5 me-2" viewBox="0 0 16 16">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                  </svg> 
+                  Edit Status
                 </button>
               </td>
             </tr>
@@ -311,8 +318,8 @@ function SupplierDashboard() {
                   No products found in this category
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <table className="table-centered text-nowrap table table-hover">
+                <div className="table-responsive rounded-0">
+                  <table className="table-centered text-nowrap table table-hover table-borderless mb-0">
                     <thead className="table-light text-center">
                       <tr>
                         <th scope="col">ID</th>
@@ -337,10 +344,10 @@ function SupplierDashboard() {
                               : ""
                           }`}
                         >
-                          <td className="text-center">{product.ID}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">{product.ID}</td>
+                          <td className="text-center align-middle">
                             <img
-                              src={`/Assets/${product.PICTURE_URL}`}
+                              src={`${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
                               style={{
                                 width: "50px",
@@ -349,16 +356,16 @@ function SupplierDashboard() {
                               }}
                             />
                           </td>
-                          <td className="text-center">{product.PRODUCTNAME}</td>
-                          <td className="text-center">{product.CATEGORYID}</td>
-                          <td className="text-center">${product.PRICE}</td>
-                          <td className="text-center">{product.WEIGHT} oz</td>
-                          <td className="text-center">{product.BRAND}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">{product.PRODUCTNAME}</td>
+                          <td className="text-center align-middle">{product.CATEGORYID}</td>
+                          <td className="text-center align-middle">${product.PRICE}</td>
+                          <td className="text-center align-middle">{product.WEIGHT} oz</td>
+                          <td className="text-center align-middle">{product.BRAND}</td>
+                          <td className="text-center align-middle">
                             {product.PRODUCTDESCRIPTION}
                           </td>
-                          <td className="text-center">{product.QUANTITY}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">{product.QUANTITY}</td>
+                          <td className="text-center align-middle">
                             {product.REORDERLEVEL}
                           </td>
                         </tr>
@@ -409,14 +416,14 @@ function SupplierDashboard() {
                   <div className="modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn btn-mint"
                       onClick={toggleEditStatusModal}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-green"
                       disabled={!newStatus}
                     >
                       Update Status

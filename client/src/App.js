@@ -486,8 +486,10 @@ function App() {
                 </>
               ) : isAuthenticated && userRole === "admin" ? (
                 <>
-                  <span className="navbar-text me-3 text-white">
-                    <i className="bi bi-shield-lock-fill me-1"></i>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock-fill me-1" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"/>
+                    </svg>
                     Admin Mode
                   </span>
                   <Link to="/ManagerDashboard" className="btn me-2">
@@ -503,8 +505,10 @@ function App() {
                 </>
               ) : isAuthenticated && userRole === "employee" ? (
                 <>
-                  <span className="navbar-text me-3 text-white">
-                    <i className="bi bi-shield-lock-fill me-1"></i>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock-fill me-1" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"/>
+                    </svg>
                     Employee Mode
                   </span>
                   <Link to="/EmployeeDashboard" className="btn me-2">
@@ -520,8 +524,10 @@ function App() {
                 </>
               ) : isAuthenticated && userRole === "supplier" ? (
                 <>
-                  <span className="navbar-text me-3 text-white">
-                    <i className="bi bi-shield-lock-fill me-1"></i>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock-fill me-1" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"/>
+                    </svg>
                     Supplier Mode
                   </span>
                   <Link to="/SupplierDashboard" className="btn me-2">
@@ -836,7 +842,7 @@ function App() {
               >
                 <div className="col-md-2 col-lg-2 col-4">
                   <img
-                    src={`/Assets/${item.PICTURE_URL}`}
+                    src={`${item.PICTURE_URL}`}
                     className="img-fluid rounded-3"
                     alt={item.PRODUCTNAME}
                   />
@@ -849,7 +855,10 @@ function App() {
                   {productQuantities[item.ID] <= 10 &&
                     productQuantities[item.ID] > 0 && (
                       <div className="small text-warning mt-1">
-                        <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-exclamation-triangle me-2 fs-5 align-middle" viewBox="0 0 16 16">
+                          <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+                          <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                        </svg>
                         Only {productQuantities[item.ID]} left in stock!
                       </div>
                     )}

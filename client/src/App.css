@@ -51,6 +51,7 @@ body.active-modl {
   text-decoration: none;
 }
 
+
 /* .button-minus.btn:hover{
   color: #fff;
   background-color: #99D98C;
@@ -239,5 +240,16 @@ html, body {
     position: static !important;
     transform: none !important;
   }
+}
+
+/* .orderProductButton {
+  border-color: #99D98C;
+} */
+
+.orderProductButton:hover, .orderProductButton:hover:active {
+  border-color: #99D98C;
+  background-color: #99D98C;
+  color: black;
+  
 }
 

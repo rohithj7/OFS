@@ -169,17 +169,19 @@ export default function Meats({ addToCart }) {
                     onClick={() => toggleModal(product)} // Pass product to toggleModal
                     to="#"
                   >
-                    <img
-                      src={`/Assets/${product.PICTURE_URL}`}
-                      className="img-fluid rounded-circle"
-                      style={{
-                        width: "150px",
-                        height: "150px",
-                        objectFit: "cover",
-                      }}
-                      alt={product.PRODUCTNAME}
-                    />
-                    <h5 className="text-dark">{product.PRODUCTNAME}</h5>
+                    <div class="text-center">
+                      <img
+                        src={`${product.PICTURE_URL}`}
+                        className="img-fluid rounded-circle"
+                        style={{
+                          width: "150px",
+                          height: "150px",
+                          objectFit: "cover",
+                        }}
+                        alt={product.PRODUCTNAME}
+                      />
+                    </div>
+                    <h5 className="text-dark mt-2">{product.PRODUCTNAME}</h5>
                   </Link>
                   <div className="text-small mb-1 text-muted text-center">
                     {/* Ensure PRICE is a valid number before calling .toFixed */}
@@ -248,7 +250,7 @@ export default function Meats({ addToCart }) {
               <div className="modal-content">
                 <div className="modal-content-dialog">
                   <div className="modal-content-content">
-                    <div className="p-5 modal-body">
+                    <div className="p-4 py-5 modal-body">
                       <div className="position-absolute top-0 end-0 me-3 mt-3">
                         <button
                           type="button"
@@ -257,12 +259,14 @@ export default function Meats({ addToCart }) {
                         ></button>
                       </div>
                       <div className="row">
-                        <div className="col-lg-6">
-                          <img
-                            src={`/Assets/${selectedProduct.PICTURE_URL}`}
-                            className="img-fluid"
-                            alt={selectedProduct.PRODUCTNAME}
-                          />
+                        <div className="col-lg-6 d-flex align-items-center justify-content-center">
+                          <div class="p-3">
+                            <img
+                              src={`${selectedProduct.PICTURE_URL}`}
+                              className="img-fluid"
+                              alt={selectedProduct.PRODUCTNAME}
+                            />
+                          </div>
                         </div>
                         <div className="col-lg-6">
                           <div className="ps-lg-8 mt-6 mt-lg-0">
@@ -283,7 +287,7 @@ export default function Meats({ addToCart }) {
                                 : "Weight not available"}
                             </div>
                             {/* Quantity control */}
-                            <div className="w-25 mt-4">
+                            <div className="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-3 mt-4">
                               <div className="input-spinner input-group input-group-sm">
                                 <input
                                   className="button-minus btn btn-sm border"

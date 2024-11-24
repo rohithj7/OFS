@@ -178,7 +178,7 @@ function OrderDetails() {
                         <tr key={product.productId}>
                           <td class="align-middle border-top-0 text-center">
                             <img
-                              src={`/Assets/${product.pictureUrl}`}
+                              src={`${product.pictureUrl}`}
                               alt={`Product ${product.productName}`}
                               class="img-fluid"
                               style={{
