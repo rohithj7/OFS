@@ -953,7 +953,7 @@ export async function checkProductAvailability(products) {
 
   for (const { productId, quantity } of products) {
     const sql = `
-            SELECT QUANTITY FROM PRODUCTS
+            SELECT QUANTITY, PRODUCTNAME FROM PRODUCTS
             WHERE ID = ?
         `;
     const [product] = await query(sql, [productId]);
@@ -961,6 +961,7 @@ export async function checkProductAvailability(products) {
     if (!product || product.QUANTITY < quantity) {
       unavailableProducts.push({
         productId,
+        productName: product ? product.PRODUCTNAME : "Unknown Product",
         availableQuantity: product ? product.QUANTITY : 0,
       });
     }
