@@ -10,7 +10,7 @@ Login.propTypes = {
 
 export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",
@@ -42,13 +42,22 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
         setUserRole(response.data.role);
         setCart([]);
 
-        // Handle first-time login for employees
-        /*
-        if (response.data.firstTimeLogin) {
-          navigate(); // Navigate to password update page
+        // Handle first-time login for employees or suppliers
+        console.log("Response data:", response.data);
+        if (
+          (response.data.role === "employee" ||
+            response.data.role === "supplier") &&
+          response.data.firstTimeLogin
+        ) {
+          console.log("First-time login detected for employee");
+          navigate("/update-password", {
+            state: {
+              email: email,
+              firstTimeLogin: true,
+            },
+          }); // Navigate to password update page
           return;
         }
-        */
 
         switch (response.data.role) {
           case "customer":
@@ -57,12 +66,12 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
           case "admin":
             navigate("/ManagerDashboard");
             break;
-          //case 'employee':
-          //  navigate("/employee-dashboard");
-          //  break;
-          //case 'supplier':
-          //  navigate("/supplier-dashboard");
-          //  break;
+          case "employee":
+            navigate("/EmployeeDashboard");
+            break;
+          case "supplier":
+            navigate("/SupplierDashboard");
+            break;
           default:
             navigate("/Home");
         }

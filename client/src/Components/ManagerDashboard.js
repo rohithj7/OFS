@@ -50,7 +50,7 @@ function ManagerDashboard() {
   const [showRecentSales, setShowRecentSales] = useState(false);
 
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
@@ -117,26 +117,30 @@ function ManagerDashboard() {
   //     }
   //   });
 
+  const [oneTimePassword, setOneTimePassword] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   // Add handler function
   const handleAddAccount = async (e) => {
     e.preventDefault();
     try {
       if (accountType === "supplier") {
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:8080/registerSupplier",
           {
             email: accountFormData.email,
-            password: accountFormData.password,
             supplierName: accountFormData.supplierName,
           },
           { withCredentials: true }
         );
+        console.log("Registration response:", res.data);
+        setOneTimePassword(res.data.oneTimePassword);
+        setShowPasswordModal(true);
+        alert("Supplier added successfully!");
       } else {
-        await axios.post(
+        const response = await axios.post(
           "http://localhost:8080/registerEmployee",
           {
             email: accountFormData.email,
-            password: accountFormData.password,
             firstName: accountFormData.firstName,
             lastName: accountFormData.lastName,
             ssn: accountFormData.ssn,
@@ -145,12 +149,14 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
+        console.log("Registration response:", response.data);
+        setOneTimePassword(response.data.oneTimePassword);
+        setShowPasswordModal(true);
       }
 
       toggleAddModal();
       setAccountFormData({
         email: "",
-        password: "",
         supplierName: "",
         firstName: "",
         lastName: "",
@@ -158,11 +164,6 @@ function ManagerDashboard() {
         salary: "",
         startDate: "",
       });
-      alert(
-        `${
-          accountType === "supplier" ? "Supplier" : "Employee"
-        } added successfully!`
-      );
     } catch (error) {
       console.error("Error adding account:", error);
       alert("Failed to add account. Please try again.");
@@ -549,12 +550,9 @@ function ManagerDashboard() {
   // Add this function to fetch orders
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/orders-with-details",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get("http://localhost:8080/all-orders", {
+        withCredentials: true,
+      });
       setOrders(response.data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -570,7 +568,7 @@ function ManagerDashboard() {
 
   const renderOrdersTable = () => {
     return (
-      <div className="table-responsive">
+      <div className="table-responsive mt-3 mx-3">
         <table className="table table-striped table-bordered">
           <thead>
             <tr>
@@ -735,7 +733,11 @@ function ManagerDashboard() {
                       <p className="fs-5 fw-bold mb-0">
                         $
                         {(statistics?.todayEarnings || 0).toLocaleString(
-                          "en-US"
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
                         )}
                       </p>
                     </div>
@@ -744,7 +746,11 @@ function ManagerDashboard() {
                       <p className="fs-5 fw-bold mb-0">
                         $
                         {(statistics?.monthlyEarnings || 0).toLocaleString(
-                          "en-US"
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
                         )}
                       </p>
                     </div>
@@ -860,7 +866,7 @@ function ManagerDashboard() {
       {showOrders && (
         <div className="card mb-4">
           <div className="card-header">
-            <h3 className="card-title mb-0">Supplier Orders</h3>
+            <h3 className="card-title mb-0 py-2">Supplier Orders</h3>
           </div>
           <div className="card-body">{renderOrdersTable()}</div>
         </div>
@@ -880,10 +886,10 @@ function ManagerDashboard() {
       {showRecentSales && (
         <div className="card mb-4">
           <div className="card-header">
-            <h3 className="card-title mb-0">Customer Orders</h3>
+            <h3 className="card-title mb-0 py-2">Customer Orders</h3>
           </div>
           <div className="card-body">
-            <div className="table-responsive">
+            <div className="table-responsive mt-3 mx-3">
               <table className="table-centered text-nowrap table table-borderless table-hover">
                 <thead className="table-light text-center">
                   <tr>
@@ -905,6 +911,9 @@ function ManagerDashboard() {
                     <th>
                       <div className="py-3">Actions</div>
                     </th>
+                    <th>
+                      <div className="py-3">Delivery Fleet</div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -912,7 +921,7 @@ function ManagerDashboard() {
                     <tr key={sale.ID} className="text-center">
                       <th className="py-4 align-middle">
                         <Link
-                          to={`/manager/order-details/${sale.ID}`}
+                          to={`/saleDetails/${sale.ID}`}
                           state={{
                             orderDate: new Date(
                               sale.SALEDATE
@@ -946,15 +955,45 @@ function ManagerDashboard() {
                       </td>
                       <td className="py-4 align-middle">
                         <button
-                          className="btn btn-outline-0 btn-sm fw-bold"
+                          className="btn btn-outline-0 btn-sm fw-bold hover-shadow"
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
                           onClick={() => {
                             setSelectedSaleId(sale.ID);
                             toggleEditStatusModal();
                           }}
                         >
-                          <span className="me-2">Edit Status</span>
-                          <i className="bi bi-pencil-square"></i>
+                          <span className="me-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="1em"
+                              height="1em"
+                              fill="currentColor"
+                              class="bi bi-pencil-square fs-5 me-2"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                              <path
+                                fill-rule="evenodd"
+                                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                              />
+                            </svg>
+                            Edit Status
+                          </span>
                         </button>
+                      </td>
+                      <td className="py-4 align-middle text-center">
+                        <Link
+                          to={`/delivery-fleet/${sale.ID}`}
+                          className="btn btn-green btn-sm d-inline-flex align-items-center justify-content-center"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <span>Track Delivery</span>
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -1013,8 +1052,8 @@ function ManagerDashboard() {
                   No products found in this category
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <table className="table-centered text-nowrap table table-hover">
+                <div className="table-responsive rounded-1">
+                  <table className="table-centered text-nowrap table table-hover table-borderless mb-0">
                     <thead className="table-light text-center">
                       <tr className="text-center">
                         <th scope="col" className="text-center">
@@ -1062,10 +1101,12 @@ function ManagerDashboard() {
                               : ""
                           }`}
                         >
-                          <td className="text-center">{product.ID}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.ID}
+                          </td>
+                          <td className="text-center align-middle">
                             <img
-                              src={`/Assets/${product.PICTURE_URL}`}
+                              src={`${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
                               style={{
                                 width: "50px",
@@ -1074,36 +1115,82 @@ function ManagerDashboard() {
                               }}
                             />
                           </td>
-                          <td className="text-center">{product.PRODUCTNAME}</td>
-                          <td className="text-center">{product.CATEGORYID}</td>
-                          <td className="text-center">${product.PRICE}</td>
-                          <td className="text-center">{product.WEIGHT} lbs</td>
-                          <td className="text-center">{product.BRAND}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.PRODUCTNAME}
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.CATEGORYID}
+                          </td>
+                          <td className="text-center align-middle">
+                            ${product.PRICE}
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.WEIGHT} oz
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.BRAND}
+                          </td>
+                          <td className="text-center align-middle">
                             {product.PRODUCTDESCRIPTION}
                           </td>
-                          <td className="text-center">{product.QUANTITY}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.QUANTITY}
+                          </td>
+                          <td className="text-center align-middle">
                             {product.REORDERLEVEL}
                           </td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
                             <button
                               className="btn btn-outline-primary btn-sm me-2"
                               onClick={() => handleEditClick(product)}
                             >
-                              <i className="bi bi-pencil-square"></i> Edit
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-pencil-square fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                                />
+                              </svg>
+                              Edit
                             </button>
                             <button
                               className="btn btn-outline-danger btn-sm me-2"
                               onClick={() => handleDeleteProduct(product.ID)}
                             >
-                              <i className="bi bi-trash"></i> Delete
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-trash3 fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                              </svg>
+                              Delete
                             </button>
                             <button
-                              className="btn btn-outline-success btn-sm"
+                              className="btn btn-outline-darkergreen btn-sm orderProductButton"
                               onClick={() => handleOrderClick(product)}
                             >
-                              <i className="bi bi-cart"></i> Order Product
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-box-seam fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.596 5 8 5.961 14.154 3.5zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464z" />
+                              </svg>
+                              Order Product
                             </button>
                           </td>
                         </tr>
@@ -1152,14 +1239,14 @@ function ManagerDashboard() {
                 <div className="modal-footer">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-mint"
                     onClick={toggleEditStatusModal}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-green"
                     onClick={() =>
                       handleStatusUpdate(selectedSaleId, newStatus)
                     }
@@ -1240,22 +1327,7 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
+
                                 <div class="mb-3">
                                   <label class="form-label">
                                     Supplier Name
@@ -1296,22 +1368,7 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
+
                                 <div class="mb-3">
                                   <label class="form-label">First Name</label>
                                   <input
@@ -1416,6 +1473,58 @@ function ManagerDashboard() {
         </div>
       )}
 
+      {showPasswordModal && (
+        <div>
+          <div className="fade modal-backdrop show"></div>
+          <div className="fade modal show d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Employee Added Successfully</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowPasswordModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Please save this one-time password and share it securely
+                    with the employee:
+                  </p>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={oneTimePassword}
+                      readOnly
+                    />
+                    <button
+                      className="btn btn-mint"
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(oneTimePassword);
+                        alert("Password copied to clipboard!");
+                      }}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-green"
+                    onClick={() => setShowPasswordModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {reOrderProductsModal && (
         <div>
           <div class="fade modal-backdrop show"></div>
@@ -1827,7 +1936,7 @@ function ManagerDashboard() {
                     <div className="modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-mint"
                         onClick={() => {
                           setShowEditProductModal(false);
                           setEditingProduct(null);
@@ -1835,7 +1944,7 @@ function ManagerDashboard() {
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" className="btn btn-green">
                         Save Changes
                       </button>
                     </div>
@@ -1908,12 +2017,12 @@ function ManagerDashboard() {
                     <div className="modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-mint"
                         onClick={() => setShowOrderModal(false)}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" className="btn btn-green">
                         Place Order
                       </button>
                     </div>
@@ -1950,7 +2059,7 @@ function ManagerDashboard() {
                     <div className="mb-3">
                       <label className="form-label">New Password</label>
                       <input
-                        type="text"
+                        type="password"
                         className="form-control"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
@@ -1963,14 +2072,14 @@ function ManagerDashboard() {
                   <div className="modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn btn-mint"
                       onClick={toggleResetPasswordModal}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-green"
                       disabled={!newPassword}
                     >
                       Reset Password
