@@ -171,7 +171,7 @@ export default function Snacks({ addToCart }) {
                   >
                     <div class="text-center">
                       <img
-                        src={`/Assets/${product.PICTURE_URL}`}
+                        src={`${product.PICTURE_URL}`}
                         className="img-fluid rounded-circle"
                         style={{
                           width: "150px",
@@ -262,7 +262,7 @@ export default function Snacks({ addToCart }) {
                         <div className="col-lg-6 d-flex align-items-center justify-content-center">
                           <div class="p-3">
                             <img
-                              src={`/Assets/${selectedProduct.PICTURE_URL}`}
+                              src={`${selectedProduct.PICTURE_URL}`}
                               className="img-fluid"
                               alt={selectedProduct.PRODUCTNAME}
                             />

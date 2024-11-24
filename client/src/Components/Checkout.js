@@ -455,7 +455,7 @@ export default function Checkout({
                         <div className="align-items-center row">
                           <div className="col-md-2 col-2">
                             <img
-                              src={`/Assets/${item.PICTURE_URL}`}
+                              src={`${item.PICTURE_URL}`}
                               alt={item.PRODUCTNAME}
                               className="img-fluid"
                             />

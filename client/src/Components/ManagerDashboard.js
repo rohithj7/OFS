@@ -50,7 +50,7 @@ function ManagerDashboard() {
   const [showRecentSales, setShowRecentSales] = useState(false);
 
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
@@ -1086,7 +1086,7 @@ function ManagerDashboard() {
                           <td className="text-center align-middle">{product.ID}</td>
                           <td className="text-center align-middle">
                             <img
-                              src={`/Assets/${product.PICTURE_URL}`}
+                              src={`${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
                               style={{
                                 width: "50px",

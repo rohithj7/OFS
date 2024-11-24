@@ -20,7 +20,7 @@ export default function Home() {
                     to="/Products/Fruits/1"
                   >
                     <img
-                      src={`/Assets/fruits.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/fruits.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -43,7 +43,7 @@ export default function Home() {
                   >
                     
                     <img
-                      src={`/Assets/vegetables.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/vegetables.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -65,7 +65,7 @@ export default function Home() {
                     to="/Products/Meats/3"
                   >
                     <img
-                      src={`/Assets/meats.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/meats.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -87,7 +87,7 @@ export default function Home() {
                     to="/Products/Dairy/4"
                   >
                     <img
-                      src={`/Assets/dairy.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/dairy.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -109,7 +109,7 @@ export default function Home() {
                     to="/Products/Snacks/5"
                   >
                     <img
-                      src={`/Assets/snacks.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/snacks.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -131,7 +131,7 @@ export default function Home() {
                     to="/Products/Meals/6"
                   >
                     <img
-                      src={`/Assets/meals.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/meals.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -160,7 +160,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/apples.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/apples.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -182,7 +182,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/coconut milk.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/coconut%20milk.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -204,7 +204,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/ribeye steak.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/ribeye%20steak.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -226,7 +226,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/bell peppers.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/bell%20peppers.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -248,7 +248,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/corn.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/corn.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",
@@ -270,7 +270,7 @@ export default function Home() {
                     to=""
                   >
                     <img
-                      src={`/Assets/raspberries.jpeg`}
+                      src={`https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/raspberries.jpeg?raw=true`}
                       className="img-fluid rounded-circle justify-content-center mx-auto d-block"
                       style={{
                         width: "150px",

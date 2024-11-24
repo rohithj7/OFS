@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`, // Relative to public folder
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`, // Relative to public folder
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",

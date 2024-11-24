@@ -304,7 +304,7 @@ function EmployeeDashboard() {
                           <td className="text-center align-middle">{product.ID}</td>
                           <td className="text-center align-middle">
                             <img
-                              src={`/Assets/${product.PICTURE_URL}`}
+                              src={`${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
                               style={{
                                 width: "50px",
@@ -474,7 +474,7 @@ function EmployeeDashboard() {
                           <div className="d-flex align-items-center">
                             {product.pictureUrl && (
                               <img
-                                src={`Assets/${product.pictureUrl}`}
+                                src={`${product.pictureUrl}`}
                                 alt={product.productName}
                                 className="me-3"
                                 style={{

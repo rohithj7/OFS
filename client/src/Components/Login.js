@@ -10,7 +10,7 @@ Login.propTypes = {
 
 export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",

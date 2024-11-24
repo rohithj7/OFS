@@ -842,7 +842,7 @@ function App() {
               >
                 <div className="col-md-2 col-lg-2 col-4">
                   <img
-                    src={`/Assets/${item.PICTURE_URL}`}
+                    src={`${item.PICTURE_URL}`}
                     className="img-fluid rounded-3"
                     alt={item.PRODUCTNAME}
                   />

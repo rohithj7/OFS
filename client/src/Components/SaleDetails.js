@@ -100,7 +100,7 @@ function SaleDetails() {
                             <div className="d-flex align-items-center">
                               {product.pictureUrl && (
                                 <img
-                                  src={`/Assets/${product.pictureUrl}`}
+                                  src={`${product.pictureUrl}`}
                                   alt={product.productName}
                                   className="me-3"
                                   style={{
