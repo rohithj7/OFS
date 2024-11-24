@@ -27,7 +27,7 @@ function SaleDetails() {
   return (
     <div className="container mt-5">
       <div className="row">
-        <div className="col-12">
+        <div className="col-12 mb-5">
           <div className="card border border-2">
             <div className="card-header bg-white p-4 d-flex justify-content-between align-items-center">
               <h3 className="fs-4 mb-0">Sale Details #{saleDetails.saleId}</h3>
@@ -85,7 +85,7 @@ function SaleDetails() {
                   <table className="table text-nowrap table-centered">
                     <thead>
                       <tr>
-                        <th className="text-center">Product(ID)</th>
+                        <th className="text-center">Product (ID)</th>
                         <th className="text-center">Price Per Unit</th>
                         <th className="text-center">Weight Per Unit</th>
                         <th className="text-center">Quantity</th>
@@ -110,7 +110,7 @@ function SaleDetails() {
                                   }}
                                 />
                               )}
-                              <h6 className="mb-0">{product.productName}</h6>
+                              <h6 className="mb-0 me-1">{product.productName}</h6>
                               <span className="text-muted">
                                 (ID: {product.productId})
                               </span>

@@ -204,7 +204,11 @@ function EmployeeDashboard() {
                               toggleEditStatusModal();
                             }}
                           >
-                            <i className="bi bi-pencil-square"></i> Edit Status
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-pencil-square fs-5 me-2" viewBox="0 0 16 16">
+                                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                            </svg>
+                            Edit Status
                           </button>
                         </td>
                         <td className="py-4 align-middle text-center">
@@ -271,8 +275,8 @@ function EmployeeDashboard() {
                   No products found in this category
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <table className="table-centered text-nowrap table table-hover">
+                <div className="table-responsive rounded-1">
+                  <table className="table-centered text-nowrap table table-hover table-borderless mb-0">
                     <thead className="table-light text-center">
                       <tr>
                         <th scope="col">ID</th>
@@ -297,8 +301,8 @@ function EmployeeDashboard() {
                               : ""
                           }`}
                         >
-                          <td className="text-center">{product.ID}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">{product.ID}</td>
+                          <td className="text-center align-middle">
                             <img
                               src={`/Assets/${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
@@ -309,12 +313,12 @@ function EmployeeDashboard() {
                               }}
                             />
                           </td>
-                          <td className="text-center">{product.PRODUCTNAME}</td>
-                          <td className="text-center">{product.CATEGORYID}</td>
-                          <td className="text-center">${product.PRICE}</td>
-                          <td className="text-center">{product.WEIGHT} oz</td>
-                          <td className="text-center">{product.BRAND}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">{product.PRODUCTNAME}</td>
+                          <td className="text-center align-middle">{product.CATEGORYID}</td>
+                          <td className="text-center align-middle">${product.PRICE}</td>
+                          <td className="text-center align-middle">{product.WEIGHT} oz</td>
+                          <td className="text-center align-middle">{product.BRAND}</td>
+                          <td className="text-center align-middle">
                             {product.PRODUCTDESCRIPTION}
                           </td>
                           <td className="text-center">{product.QUANTITY}</td>
@@ -369,14 +373,14 @@ function EmployeeDashboard() {
                   <div className="modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn btn-mint"
                       onClick={toggleEditStatusModal}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-green"
                       disabled={!newStatus}
                     >
                       Update Status
