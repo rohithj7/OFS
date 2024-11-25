@@ -92,7 +92,6 @@ const PersonalInfo = () => {
       });
     }
   };
-=
   function normalizeAddressComponent(component) {
     return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g, match => {
       switch (match) {
