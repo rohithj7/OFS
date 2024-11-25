@@ -32,14 +32,14 @@ import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
 import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
-import DeliveryRoutePage from "./Components/DeliveryRoutePage";
 import ManagerDashboard from "./Components/ManagerDashboard";
 import SupplierDashboard from "./Components/SupplierDashboard";
 import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
 import UpdatePassword from "./Components/UpdatePassword";
 import SaleDetails from "./Components/SaleDetails";
-import DeliveryFleetManagement from "./Components/DeliveryFleetManagement";
+import ManagerOrderDetails from "./Components/ManagerOrderDetails";
+import AdminDeliveryManagement from "./Components/AdminDeliveryManagement";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
@@ -746,6 +746,14 @@ function App() {
           }
         />
         <Route
+          path="/ManagerDashboard/DeliveryManagement"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "employee"]}>
+              <AdminDeliveryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/EmployeeDashboard"
           element={
             <ProtectedRoute allowedRoles={["employee"]}>
@@ -838,7 +846,6 @@ function App() {
         {/* Other Routes */}
         <Route path="/personal-info" element={<PersonalInfo />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/delivery-route" element={<DeliveryRoutePage />} />
         <Route path="/admin-register" element={<AdminRegister />} />
       </Routes>
 

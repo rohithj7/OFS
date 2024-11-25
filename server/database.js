@@ -1,4 +1,5 @@
 import mysql from "mysql2/promise";
+import moment from 'moment';
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -10,13 +11,14 @@ const pool = mysql.createPool({
   database: process.env.MYSQL_DATABASE,
 });
 
-import { geocodeAddress, getOptimizedRoute } from "./route.js";
-
 // Helper function to execute queries
 async function query(sql, params) {
   const [rows] = await pool.execute(sql, params);
   return rows;
 }
+
+import { dispatchSales } from './dispatchService.js';
+import { geocodeAddress } from './route.js';
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -95,6 +97,23 @@ export async function updateFirstTimeLogin(userId, firstTimeLogin) {
   return result.affectedRows > 0;
 }
 
+export async function getUserRoleById(loginId) {
+  try {
+    const [rows] = await pool.query(
+      "SELECT ROLE FROM LOGIN WHERE ID = ?",
+      [loginId]
+    );
+
+    if (rows.length > 0) {
+      return rows[0].ROLE;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Database error fetching user role:", error);
+    throw error;
+  }
+}
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ------------------------------------------------------------- ADMIN INFO -----------------------------------------------------------------------//
@@ -652,20 +671,24 @@ export async function createCustomer(
   latitude = null,
   longitude = null
 ) {
-  const sql = `
+  try {
+    const sql = `
       INSERT INTO CUSTOMERS (LOGINID, FIRSTNAME, LASTNAME, PHONE, ADDRESS, LATITUDE, LONGITUDE)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-  const [result] = await pool.execute(sql, [
-    loginId,
-    firstName,
-    lastName,
-    phone,
-    address,
-    latitude,
-    longitude,
-  ]);
-  return result.insertId;
+    await pool.execute(sql, [
+      loginId,
+      firstName,
+      lastName,
+      phone,
+      address,
+      latitude,
+      longitude,
+    ]);
+  } catch (error) {
+    console.error('Error creating customer:', error.message);
+    throw error;
+  }
 }
 
 export async function getCustomers() {
@@ -681,25 +704,43 @@ export async function getCustomerById(loginId) {
   return result[0];
 }
 
+//get customer's location by login id
+export async function getCustomerLocationById(loginId) {
+  const sql = `SELECT LATITUDE, LONGITUDE FROM CUSTOMERS WHERE LOGINID = ?`;
+  const [result] = await pool.query(sql, [loginId]);
+  return result[0];
+}
+
 // Update Customer Info
 export async function updateCustomerInfo(loginId, customerInfo) {
-  const { firstName, lastName, phone, address, latitude, longitude } =
-    customerInfo;
+  try {
+    const { firstName, lastName, phone, address } = customerInfo;
+    let { latitude, longitude } = customerInfo; // Use let instead of const
 
-  const sql = `
+    const coords = await geocodeAddress(address);
+    latitude = coords.latitude;
+    longitude = coords.longitude;
+    console.log(`Geocoded Address: ${address} => Latitude: ${latitude}, Longitude: ${longitude}`);
+
+    const sql = `
       UPDATE CUSTOMERS
       SET FIRSTNAME = ?, LASTNAME = ?, PHONE = ?, ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?
       WHERE LOGINID = ?
     `;
-  await query(sql, [
-    firstName,
-    lastName,
-    phone,
-    address,
-    latitude,
-    longitude,
-    loginId,
-  ]);
+    await query(sql, [
+      firstName,
+      lastName,
+      phone,
+      address,
+      latitude,
+      longitude,
+      loginId,
+    ]);
+    console.log(`Customer with LOGINID ${loginId} updated successfully.`);
+  } catch (error) {
+    console.error('Error updating customer:', error.message);
+    throw error;
+  }
 }
 
 export async function deleteCustomer(id) {
@@ -976,13 +1017,13 @@ export async function placeSale(customerId, products, stripePaymentId) {
   try {
     await connection.beginTransaction();
 
-    // Insert into SALES table
     const saleSql = `
             INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
-            VALUES (?, ?, CURDATE(), ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         `;
     const totalPrice = await calculateTotalPrice(products);
-    //const saleDate = new Date().toISOString().slice(0, 10);
+    const totalPrice = await calculateTotalPrice(products);
+    const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
     const saleStatus = "NOT STARTED";
 
@@ -996,11 +1037,10 @@ export async function placeSale(customerId, products, stripePaymentId) {
 
     const saleId = saleResult.insertId;
 
-    // Insert into SALES_PRODUCTS table
     const saleProductSql = `
-            INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
-            VALUES (?, ?, ?, ?)
-        `;
+      INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
+      VALUES (?, ?, ?, ?)
+    `;
 
     for (const { productId, quantity } of products) {
       const productPrice = await getProductPrice(productId);
@@ -1014,6 +1054,10 @@ export async function placeSale(customerId, products, stripePaymentId) {
     }
 
     await connection.commit();
+
+    // Check for dispatch after placing a sale
+    await dispatchSales([saleId]);
+
     return { saleId, totalPrice };
   } catch (error) {
     await connection.rollback();
@@ -1223,31 +1267,135 @@ export async function storeBalance(balance) {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
-// Starting coordinates locked in for now on school coords
-const START_LAT = 37.337214;
-const START_LNG = -121.882696;
+export async function getLatestSaleStatus(loginId) {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        CASE WHEN s.SALE_STATUS = 'ONGOING' THEN TRUE ELSE FALSE END AS isOngoing
+      FROM LOGIN l
+      INNER JOIN CUSTOMERS c ON l.ID = c.LOGINID
+      INNER JOIN SALES s ON c.ID = s.CUSTOMERID
+      WHERE l.ID = ?
+      ORDER BY s.SALEDATE DESC
+      LIMIT 1
+      `,
+      [loginId]
+    );
 
-export async function planDeliveryRoute() {
-  const startCoord = { latitude: START_LAT, longitude: START_LNG };
+    // If no sale found, return null
+    if (rows.length === 0) {
+      return null;
+    }
 
-  const deliveryAddresses = [
-    "1016 Johnson Ave, San Jose, CA 95129",
-    "2430 Newhall St, San Jose, CA 95128",
-    // Add more addresses
-  ];
-
-  const deliveryCoords = [];
-  for (const address of deliveryAddresses) {
-    const coord = await geocodeAddress(address);
-    deliveryCoords.push(coord);
+    return rows[0].isOngoing;
+  } catch (err) {
+    console.error('Error fetching latest sale status:', err);
+    throw err;
+  } finally {
+    connection.release();
   }
+}
 
-  const routeData = await getOptimizedRoute(startCoord, deliveryCoords);
+export async function getLatestOngoingSaleId(loginId) {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `
+      SELECT s.ID AS saleId
+      FROM LOGIN l
+      INNER JOIN CUSTOMERS c ON l.ID = c.LOGINID
+      INNER JOIN SALES s ON c.ID = s.CUSTOMERID
+      WHERE l.ID = ? AND s.SALE_STATUS = 'ONGOING'
+      ORDER BY s.SALEDATE DESC
+      LIMIT 1
+      `,
+      [loginId]
+    );
 
-  return routeData;
+    // If no 'ONGOING' sale is found, return null
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0].saleId; // Return the saleId of the latest 'ONGOING' sale
+  } catch (err) {
+    console.error('Error fetching latest ongoing sale ID:', err);
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Updates the status of a sale.
+ * If the new status is 'ONGOING', triggers the dispatching process.
+ * 
+ * @param {number} saleId - The ID of the sale to update.
+ * @param {string} newStatus - The new status ('STARTED', 'ONGOING', 'COMPLETED').
+ * @returns {boolean} - Returns true if the update was successful.
+ */
+export async function updateSaleStatus(saleId, newStatus) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Update the sale status
+    const [result] = await connection.query(
+      `UPDATE SALES
+       SET SALE_STATUS = ?
+       WHERE ID = ?`,
+      [newStatus, saleId]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error(`Sale with ID ${saleId} not found.`);
+    }
+
+    await connection.commit();
+
+    // If the status was updated to 'ONGOING', trigger dispatching
+    if (newStatus === 'ONGOING') {
+      // Pass specific saleId to dispatchSales
+      await dispatchSales([saleId]);
+    }
+
+    return true;
+  } catch (err) {
+    await connection.rollback();
+    console.error('Error in updateSaleStatus:', err);
+    throw err; // Re-throw the error after rollback
+  } finally {
+    connection.release();
+  }
+}
+
+export async function completeRoute(routeId) {
+  try {
+    const sql = `
+      UPDATE ROUTES
+      SET STATUS = 'COMPLETED', END_TIME = NOW()
+      WHERE ID = ?
+    `;
+    
+    const result = await query(sql, [routeId]);
+    
+    if (result.affectedRows === 0) {
+      // No rows were affected, meaning the route ID does not exist
+      return false;
+    }
+    
+    // Update was successful
+    return true;
+  } catch (error) {
+    console.error("Error in completeRoute:", error.message);
+    throw error; // Propagate the error to be handled by the caller
+  }
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ---------------------------------------------------------------- STUFF -------------------------------------------------------------------------//
+
 export default pool;

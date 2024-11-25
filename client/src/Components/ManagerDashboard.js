@@ -887,9 +887,11 @@ function ManagerDashboard() {
                     </button>
                   </div>
                   <div className="btn-group me-2" role="group">
-                    <button type="button" className="btn btn-green p-2 mb-3">
-                      Delivery Fleet Management
-                    </button>
+                    <Link to="/ManagerDashboard/DeliveryManagement">
+                      <button type="button" className="btn btn-green p-2 mb-3">
+                        Delivery Fleet Management
+                      </button>
+                    </Link>
                   </div>
                   <div className="btn-group me-2" role="group">
                     <button
