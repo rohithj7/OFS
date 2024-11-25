@@ -301,7 +301,7 @@ export default function Dairy({ addToCart }) {
                             </span>
                             <div className="fs-5 text-dark mt-2">
                               {selectedProduct.WEIGHT
-                                ? `${selectedProduct.WEIGHT} ounce per unit`
+                                ? `${selectedProduct.WEIGHT} ounce(s) per unit`
                                 : "Weight not available"}
                             </div>
                             {/* Quantity control */}

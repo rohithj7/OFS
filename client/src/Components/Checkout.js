@@ -464,7 +464,7 @@ export default function Checkout({
                             <h6 className="mb-0">{item.PRODUCTNAME}</h6>
                             <span>
                               <small className="text-muted">
-                                {parseFloat(item.WEIGHT).toFixed(2)}oz.
+                                {parseFloat(item.WEIGHT).toFixed(2)} oz
                               </small>
                             </span>
                           </div>

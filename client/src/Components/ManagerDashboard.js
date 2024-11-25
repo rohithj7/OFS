@@ -1418,7 +1418,7 @@ function ManagerDashboard() {
                                   />
                                 </div>
                                 <div class="mb-3">
-                                  <label class="form-label">Salary</label>
+                                  <label class="form-label">Salary ($)</label>
                                   <input
                                     type="number"
                                     step="0.01"
@@ -1761,7 +1761,7 @@ function ManagerDashboard() {
                             </div>
 
                             <div className="mb-3">
-                              <label className="form-label">Price</label>
+                              <label className="form-label">Price ($)</label>
                               <input
                                 type="number"
                                 name="price"
@@ -1774,7 +1774,7 @@ function ManagerDashboard() {
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Weight (in lbs)
+                                Weight (in oz)
                               </label>
                               <input
                                 type="number"
