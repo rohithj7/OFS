@@ -144,9 +144,16 @@ function SupplierDashboard() {
     if (orderError) {
       return (
         <div className="text-center p-4 text-danger">
-          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-exclamation-triangle me-2 fs-5 align-middle" viewBox="0 0 16 16">
-            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
-            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
+            fill="currentColor"
+            class="bi bi-exclamation-triangle me-2 fs-5 align-middle"
+            viewBox="0 0 16 16"
+          >
+            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z" />
+            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z" />
           </svg>
           {orderError}
         </div>
@@ -231,10 +238,20 @@ function SupplierDashboard() {
                     toggleEditStatusModal();
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-pencil-square fs-5 me-2" viewBox="0 0 16 16">
-                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                  </svg> 
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    class="bi bi-pencil-square fs-5 me-2"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                    />
+                  </svg>
                   Edit Status
                 </button>
               </td>
@@ -272,112 +289,6 @@ function SupplierDashboard() {
           </div>
         </div>
       )}
-
-      {/* Products Section */}
-      <div className="row mt-5">
-        <div className="mb-5 col-xl-12 col-lg-12 col-md-12 col-12">
-          <div className="h-100 card-lg card border border-2">
-            <div className="d-flex justify-content-between align-items-center p-4">
-              <h3 className="fs-5 mb-0">
-                Products
-                {selectedCategory && (
-                  <span className="text-muted ms-2">
-                    ({filteredProducts.length}{" "}
-                    {selectedCategory === "all" ? "total" : "items"})
-                  </span>
-                )}
-              </h3>
-              <div className="d-flex align-items-center">
-                <select
-                  className="form-select"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  disabled={isLoading}
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="p-0 card-body">
-              {isLoading ? (
-                <div className="text-center p-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                </div>
-              ) : !selectedCategory ? (
-                <div className="text-center p-4 text-muted">
-                  Please select a category to view products
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="text-center p-4 text-muted">
-                  No products found in this category
-                </div>
-              ) : (
-                <div className="table-responsive rounded-0">
-                  <table className="table-centered text-nowrap table table-hover table-borderless mb-0">
-                    <thead className="table-light text-center">
-                      <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Price per Unit</th>
-                        <th scope="col">Weight Per Unit</th>
-                        <th scope="col">Brand</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Reorder Level</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredProducts.map((product) => (
-                        <tr
-                          key={product.ID}
-                          className={`${
-                            product.QUANTITY <= product.REORDERLEVEL
-                              ? "table-danger"
-                              : ""
-                          }`}
-                        >
-                          <td className="text-center align-middle">{product.ID}</td>
-                          <td className="text-center align-middle">
-                            <img
-                              src={`${product.PICTURE_URL}`}
-                              alt={product.PRODUCTNAME}
-                              style={{
-                                width: "50px",
-                                height: "50px",
-                                objectFit: "cover",
-                              }}
-                            />
-                          </td>
-                          <td className="text-center align-middle">{product.PRODUCTNAME}</td>
-                          <td className="text-center align-middle">{product.CATEGORYID}</td>
-                          <td className="text-center align-middle">${product.PRICE}</td>
-                          <td className="text-center align-middle">{product.WEIGHT} oz</td>
-                          <td className="text-center align-middle">{product.BRAND}</td>
-                          <td className="text-center align-middle">
-                            {product.PRODUCTDESCRIPTION}
-                          </td>
-                          <td className="text-center align-middle">{product.QUANTITY}</td>
-                          <td className="text-center align-middle">
-                            {product.REORDERLEVEL}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Edit Status Modal */}
       {editStatusModal && (

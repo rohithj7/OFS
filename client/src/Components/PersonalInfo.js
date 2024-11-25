@@ -35,7 +35,6 @@ const PersonalInfo = () => {
   ];
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-
   useEffect(() => {
     const isPhoneValid = formData.phone.replace(/[^\d]/g, "").length === 10;
     const isZipCodeValid = formData.zipCode.replace(/[^\d]/g, "").length === 5;
@@ -93,7 +92,7 @@ const PersonalInfo = () => {
       });
     }
   };
-
+=
   function normalizeAddressComponent(component) {
     return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g, match => {
       switch (match) {
@@ -154,6 +153,7 @@ const PersonalInfo = () => {
       });
   }
 
+ 
   const getInvalidAddressComponents = () => {
     const invalidComponents = [];
     if (formData.addressLine1.trim() === "") {
