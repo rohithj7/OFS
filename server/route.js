@@ -16,7 +16,7 @@ export async function geocodeAddress(address) {
 
 export async function getOptimizedRoute(startCoord, deliveryCoords) {
     // Combine coordinates: [startCoord, ...deliveryCoords]
-    const coordinates = [startCoord, ...deliveryCoords, { latitude: 37.339062, longitude: -121.886124 }, startCoord]
+    const coordinates = [startCoord, ...deliveryCoords, startCoord]
         .map((coord) => `${coord.longitude},${coord.latitude}`)
         .join(';');
 
