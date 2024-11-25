@@ -8,11 +8,13 @@ import {
   Link,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { Dropdown } from "bootstrap";
 
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
@@ -34,6 +36,8 @@ import ManagerDashboard from "./Components/ManagerDashboard";
 import SupplierDashboard from "./Components/SupplierDashboard";
 import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
+import UpdatePassword from "./Components/UpdatePassword";
+import SaleDetails from "./Components/SaleDetails";
 import ManagerOrderDetails from "./Components/ManagerOrderDetails";
 import AdminDeliveryManagement from "./Components/AdminDeliveryManagement";
 
@@ -53,6 +57,7 @@ function App() {
   const [clientSecret, setClientSecret] = useState("");
   const navigate = useNavigate();
   const sidebarRef = useRef(null);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -209,12 +214,16 @@ function App() {
           console.warn("Sidebar reference or Bootstrap library not available.");
         }
 
-        // Remove the Bootstrap offcanvas backdrop if it exists
+        // Remove backdrop and restore body
         const backdrop = document.querySelector(".offcanvas-backdrop");
         if (backdrop) {
-          backdrop.parentNode.removeChild(backdrop); // Remove the backdrop element
-          document.body.classList.remove("offcanvas-backdrop"); // Remove any lingering classes
+          backdrop.remove();
         }
+
+        // Remove modal-open class from body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
 
         // Proceed/ready to sale placement
         navigate("/Checkout"); // Directly navigate to the checkout page
@@ -228,11 +237,11 @@ function App() {
           const unavailableItems = data.unavailableProducts
             .map(
               (item) =>
-                `Product ID: ${item.productId} (Available: ${item.availableQuantity})`
+                `${item.productName} (ID: ${item.productId}) has ${item.availableQuantity} units available`
             )
             .join(", ");
           alert(
-            `Some products are unavailable or have insufficient quantity: ${unavailableItems}`
+            `Some products are unavailable or have insufficient quantity: ${unavailableItems} \n\n`
           );
         } else {
           alert(data.message || "There was an error processing your request.");
@@ -327,42 +336,76 @@ function App() {
     }
   }, [cart]);
 
+  const handleNavCollapse = () => {
+    setIsNavCollapsed(!isNavCollapsed);
+  };
+
+  useEffect(() => {
+    // Initialize all dropdowns
+    const dropdownElementList = document.querySelectorAll(".dropdown-toggle");
+    const dropdownList = [...dropdownElementList].map(
+      (dropdownToggleEl) => new Dropdown(dropdownToggleEl)
+    );
+
+    // Cleanup function
+    return () => {
+      dropdownList.forEach((dropdown) => {
+        if (dropdown && dropdown.dispose) {
+          dropdown.dispose();
+        }
+      });
+    };
+  }, []);
+
   return (
     <div>
       {/* Navbar */}
-      <nav
-        className="navbar navbar-expand-lg bg-green"
-        style={{ zIndex: 1030 }}
-      >
+      <nav className="navbar navbar-expand-lg bg-green">
         <div className="container">
-          <Link to="/Home" className="navbar-brand fw-bold">
-            GroceryGo
-          </Link>
+          {isAuthenticated && userRole === "supplier" ? (
+            // For supplier non-clickable
+            <span className="navbar-brand fw-bold">GroceryGo</span>
+          ) : (
+            <Link to="/Home" className="navbar-brand fw-bold">
+              GroceryGo
+            </Link>
+          )}
           <button
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarText"
             aria-controls="navbarText"
-            aria-expanded="false"
+            aria-expanded={!isNavCollapsed}
             aria-label="Toggle navigation"
+            onClick={handleNavCollapse}
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-          <div className="collapse navbar-collapse" id="navbarText">
+          <div
+            className={`collapse navbar-collapse ${
+              !isNavCollapsed ? "show" : ""
+            }`}
+            id="navbarText"
+          >
             <ul className="navbar-nav ms-auto">
               {isAuthenticated && userRole === "customer" ? (
                 <>
                   {/* Categories Dropdown */}
                   <li className="nav-item dropdown">
                     <button
-                      className="nav-link dropdown-toggle btn me-2"
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="categoriesDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       Categories
                     </button>
-                    <ul className="dropdown-menu">
+                    <ul
+                      className="dropdown-menu"
+                      aria-labelledby="categoriesDropdown"
+                    >
                       <li>
                         <Link className="dropdown-item" to="/Products/Fruits/1">
                           Fruits
@@ -413,13 +456,18 @@ function App() {
                   {/* My Account Dropdown */}
                   <li className="nav-item dropdown">
                     <button
-                      className="nav-link dropdown-toggle btn me-2"
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="accountDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       My Account
                     </button>
-                    <ul className="dropdown-menu">
+                    <ul
+                      className="dropdown-menu"
+                      aria-labelledby="accountDropdown"
+                    >
                       <li>
                         <Link className="dropdown-item" to="/Account">
                           Account Settings
@@ -444,11 +492,81 @@ function App() {
                 </>
               ) : isAuthenticated && userRole === "admin" ? (
                 <>
-                  <span className="navbar-text me-3 text-white">
-                    <i className="bi bi-shield-lock-fill me-1"></i>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      class="bi bi-shield-lock-fill me-1"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"
+                      />
+                    </svg>
                     Admin Mode
                   </span>
                   <Link to="/ManagerDashboard" className="btn me-2">
+                    Dashboard
+                  </Link>
+                  <button
+                    className="btn me-2"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : isAuthenticated && userRole === "employee" ? (
+                <>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      class="bi bi-shield-lock-fill me-1"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"
+                      />
+                    </svg>
+                    Employee Mode
+                  </span>
+                  <Link to="/EmployeeDashboard" className="btn me-2">
+                    Dashboard
+                  </Link>
+                  <button
+                    className="btn me-2"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : isAuthenticated && userRole === "supplier" ? (
+                <>
+                  <span className="navbar-text me-3 text-white fw-bold">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      class="bi bi-shield-lock-fill me-1"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"
+                      />
+                    </svg>
+                    Supplier Mode
+                  </span>
+                  <Link to="/SupplierDashboard" className="btn me-2">
                     Dashboard
                   </Link>
                   <button
@@ -463,19 +581,18 @@ function App() {
                 <>
                   {/* Dropdown menu for Categories */}
                   <li className="nav-item dropdown">
-                    <a
-                      className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
+                    <button
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="categoriesDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       Categories
-                    </a>
+                    </button>
                     <ul
                       className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
+                      aria-labelledby="categoriesDropdown"
                     >
                       <li>
                         <Link className="dropdown-item" to="/Products/Fruits/1">
@@ -517,19 +634,18 @@ function App() {
                   </button>
                   {/* Dropdown menu for My Account */}
                   <li className="nav-item dropdown">
-                    <a
-                      className="nav-link dropdown-toggle btn me-2"
-                      href="#"
-                      id="navbarDropdown"
-                      role="button"
+                    <button
+                      className="nav-link dropdown-toggle btn btn-link"
+                      type="button"
+                      id="accountDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                     >
                       My Account
-                    </a>
+                    </button>
                     <ul
                       className="dropdown-menu"
-                      aria-labelledby="navbarDropdown"
+                      aria-labelledby="accountDropdown"
                     >
                       <li>
                         <Link className="dropdown-item" to="/Account">
@@ -560,7 +676,7 @@ function App() {
         {/* Set the default route to home page */}
         <Route path="/" element={<Navigate to="/home" />} />
         {/* Public Routes */}
-        <Route path="/Home" element={<Home />} />
+        <Route path="/Home" element={<HomeWithProps />} />
         <Route
           path="/Login"
           element={
@@ -572,10 +688,6 @@ function App() {
           }
         />
         <Route path="/Signup" element={<Signup />} />
-        <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
-        <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
-        <Route path="/EmployeeDashboard" element={<EmployeeDashboard />} />
-        <Route path="/" element={<Home />} />
         <Route
           path="/Products/Fruits/:categoryId"
           element={
@@ -618,6 +730,14 @@ function App() {
 
         {/* Protected Routes */}
         <Route
+          path="/update-password"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "supplier"]}>
+              <UpdatePassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/ManagerDashboard"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
@@ -628,19 +748,45 @@ function App() {
         <Route
           path="/ManagerDashboard/DeliveryManagement"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin", "employee"]}>
               <AdminDeliveryManagement />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/manager/order-details/:id"
+          path="/EmployeeDashboard"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ManagerOrderDetails />
+            <ProtectedRoute allowedRoles={["employee"]}>
+              <EmployeeDashboard isAuthenticated={isAuthenticated} />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/SupplierDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["supplier"]}>
+              <SupplierDashboard isAuthenticated={isAuthenticated} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/saleDetails/:id"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <SaleDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery-fleet/:saleId"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <DeliveryFleetManagement />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/Account"
           element={
@@ -739,7 +885,7 @@ function App() {
               >
                 <div className="col-md-2 col-lg-2 col-4">
                   <img
-                    src={`/Assets/${item.PICTURE_URL}`}
+                    src={`${item.PICTURE_URL}`}
                     className="img-fluid rounded-3"
                     alt={item.PRODUCTNAME}
                   />
@@ -747,15 +893,27 @@ function App() {
                 <div className="col-md-3 col-lg-3 col-xl-3">
                   <h6 className="text-muted">{item.CATEGORY}</h6>
                   <h6 className="mb-0">{item.PRODUCTNAME}</h6>
-
+                  {/* Out of stock warning */}
+                  {item.QUANTITY === 0 && (
+                    <div className="small text-danger mt-1">Out of stock!</div>
+                  )}
                   {/* Add low stock warning */}
-                  {productQuantities[item.ID] <= 10 &&
-                    productQuantities[item.ID] > 0 && (
-                      <div className="small text-warning mt-1">
-                        <i className="bi bi-exclamation-triangle-fill me-1"></i>
-                        Only {productQuantities[item.ID]} left in stock!
-                      </div>
-                    )}
+                  {item.QUANTITY <= 10 && item.QUANTITY > 0 && (
+                    <div className="small text-warning mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        class="bi bi-exclamation-triangle me-2 fs-5 align-middle"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z" />
+                        <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z" />
+                      </svg>
+                      Only {item.QUANTITY} left in stock!
+                    </div>
+                  )}
 
                   <div className="mt-2 small lh-1">
                     <a
@@ -907,6 +1065,13 @@ function App() {
     </div>
   );
 }
+
+function HomeWithProps() {
+  const location = useLocation();
+  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  return <Home firstName={firstName} lastName={lastName} />;
+}
+
 const styles = {
   linkContainer: {
     padding: "10px",

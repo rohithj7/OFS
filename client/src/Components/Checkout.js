@@ -27,7 +27,15 @@ const CheckoutWrapper = ({ cart, setCart, deliveryFee }) => {
 };
 
 // Create a separate PaymentForm component
-const PaymentForm = ({ cart, setCart, setError, clientSecret, error }) => {
+const PaymentForm = ({
+  cart,
+  setCart,
+  setError,
+  clientSecret,
+  error,
+  deliveryFee,
+  setDeliveryFee,
+}) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -93,6 +101,12 @@ const PaymentForm = ({ cart, setCart, setError, clientSecret, error }) => {
           );
 
           if (saleResponse.status === 200) {
+            // update the sale with delivery fee
+            await axios.put(
+              `http://localhost:8080/sales/${saleResponse.data.saleId}/delivery-fee`,
+              { deliveryFee },
+              { withCredentials: true }
+            );
             setCart([]); // Clear cart after successful sale
             navigate("/Order-confirmation");
             alert("Payment successful! Your order has been placed.");
@@ -120,6 +134,15 @@ const PaymentForm = ({ cart, setCart, setError, clientSecret, error }) => {
 
   return (
     <form onSubmit={handleSubmit}>
+      <div className="mb-3">
+        <label className="form-label fw-bold">Card Holder Name</label>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Name on card"
+          required
+        />
+      </div>
       <div className="mb-4">
         <label className="form-label fw-bold">Card Information</label>
         <div className="card p-3 bg-light">
@@ -196,16 +219,45 @@ PaymentForm.propTypes = {
   cart: PropTypes.array.isRequired,
   setCart: PropTypes.func.isRequired,
   setError: PropTypes.func.isRequired,
+  deliveryFee: PropTypes.number.isRequired,
+  setDeliveryFee: PropTypes.func.isRequired,
 };
 
 // Main Checkout component
-export default function Checkout({ cart = [], setCart, deliveryFee }) {
+export default function Checkout({
+  cart = [],
+  setCart,
+  deliveryFee,
+  setDeliveryFee,
+}) {
   const [error, setError] = useState(null);
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
   const [clientSecret, setClientSecret] = useState("");
+
+  useEffect(() => {
+    // Clean up modal effects when component mounts
+    const cleanup = () => {
+      // Remove modal classes and inline styles from body
+      document.body.classList.remove("modal-open");
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+
+      // Remove any lingering backdrops
+      const backdrops = document.querySelectorAll(
+        ".modal-backdrop, .offcanvas-backdrop"
+      );
+      backdrops.forEach((backdrop) => backdrop.remove());
+    };
+
+    // Execute cleanup immediately
+    cleanup();
+
+    // Also return cleanup function for component unmount
+    return cleanup;
+  }, []);
 
   useEffect(() => {
     console.log("Stripe object:", stripe);
@@ -299,7 +351,10 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                       aria-controls="flush-collapseOne"
                     >
                       <div class="d-flex justify-content-between align-items-center">
-                        <a class="fs-4 text-inherit h4 text-decoration-none" href="">
+                        <a
+                          class="fs-4 text-inherit h4 text-decoration-none"
+                          href=""
+                        >
                           {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-muted">
                                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                                  <circle cx="12" cy="10" r="3"></circle>
@@ -381,6 +436,8 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                         setError={setError}
                         cart={cart}
                         setCart={setCart}
+                        deliveryFee={deliveryFee}
+                        setDeliveryFee={setDeliveryFee}
                       />
                     </div>
                   </div>
@@ -398,7 +455,7 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                         <div className="align-items-center row">
                           <div className="col-md-2 col-2">
                             <img
-                              src={`/Assets/${item.PICTURE_URL}`}
+                              src={`${item.PICTURE_URL}`}
                               alt={item.PRODUCTNAME}
                               className="img-fluid"
                             />
@@ -407,7 +464,7 @@ export default function Checkout({ cart = [], setCart, deliveryFee }) {
                             <h6 className="mb-0">{item.PRODUCTNAME}</h6>
                             <span>
                               <small className="text-muted">
-                                {parseFloat(item.WEIGHT).toFixed(2)}oz.
+                                {parseFloat(item.WEIGHT).toFixed(2)} oz
                               </small>
                             </span>
                           </div>
@@ -493,4 +550,5 @@ Checkout.propTypes = {
   cart: PropTypes.array.isRequired,
   setCart: PropTypes.func.isRequired,
   deliveryFee: PropTypes.number.isRequired,
+  setDeliveryFee: PropTypes.func.isRequired,
 };

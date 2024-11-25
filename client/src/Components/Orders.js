@@ -16,11 +16,11 @@ function Orders() {
   const renderStatusText = (status) => {
     switch (status) {
       case "NOT STARTED":
-        return "Sales Not Started";
+        return "Pending";
       case "ONGOING":
-        return "Sales Ongoing";
+        return "Shipped";
       case "COMPLETED":
-        return "Sales Completed";
+        return "Delivered";
       default:
         return status;
     }
@@ -63,9 +63,12 @@ function Orders() {
   }, []);
 
   // Filter the current and previous orders based on order status
-  const currentOrder = orders.filter((order) => order.saleStatus === "ONGOING");
+  const currentOrder = orders.filter(
+    (order) =>
+      order.saleStatus === "NOT STARTED" || order.saleStatus === "ONGOING"
+  ); // Filter all orders with saleStatus NOT STARTED or ONGOING to display under Current Orders
   const previousOrders = orders.filter(
-    (order) => order.saleStatus === "COMPLETED" // Adjusted based on delivery status
+    (order) => order.saleStatus === "COMPLETED"
   );
 
   return (
@@ -181,10 +184,9 @@ function Orders() {
 
       {showPreviousOrders && (
         <div className="previous-orders container my-5">
-          <div className="d-flex justify-content-between">
-            <div className="h3 text-center mt-4">Order History</div>
-            {/* Button to Toggle between Current and Previous Orders */}
-            <div className="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
+          <div class="d-flex justify-content-between">
+            <div class="h3 text-center mt-4">Order History</div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-3">
               <button
                 className="btn btn-lg bg-mint text-light fw-bold mt-3 ms-1 w-md-100"
                 onClick={() => setShowPreviousOrders(!showPreviousOrders)}
@@ -200,74 +202,69 @@ function Orders() {
             </div>
           </div>
 
-          {previousOrders.length > 0 ? (
-            previousOrders.map((order) => (
-              <div className="table-responsive mb-4" key={order.saleId}>
-                <table className="table-responsive-md table table-borderless border border-2 table-hover">
-                  <thead className="table-light">
-                    <tr className="text-center">
-                      <th>
-                        <div className="py-4 text-uppercase">Order ID</div>
-                      </th>
-                      <th>
-                        <div className="py-4 text-uppercase">Order Total</div>
-                      </th>
-                      <th>
-                        <div className="py-4 text-uppercase">Date</div>
-                      </th>
-                      <th>
-                        <div className="py-4 text-uppercase">Shipping Address</div>
-                      </th>
-                      <th>
-                        <div className="py-4 text-uppercase">Order Status</div>
-                      </th>
-                      <th>
-                        <div className="py-4 text-uppercase">View Order</div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="text-center" key={order.saleId}>
-                      <th className="py-4 align-middle">{customerInfo.id}</th>
-                      <td className="py-4 align-middle">
-                        $
-                        {Number(order.totalPrice).toFixed(2)}
-                      </td>
-                      <td className="py-4 align-middle">
-                        {new Date(order.saleDate).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 align-middle">
-                        <span className="small">
-                          Shipping Address: {shippingAddress || "Loading..."}
-                        </span>
-                      </td>
-                      <td className="py-4 align-middle">
-                        <span className="p-2 text-uppercase badge bg-green">
-                          {renderStatusText(order.saleStatus)}
-                        </span>
-                      </td>
-                      <td className="py-4 align-middle">
-                        <Link
-                          className="btn btn-pastelblue btn-sm fw-bold text-white"
-                          to={`/OrderDetails/${order.saleId}`}
-                          state={{
-                            orderDate: order.saleDate,
-                            orderStatus: order.saleStatus,
-                            orderAmount: order.totalPrice,
-                            shippingAddress: shippingAddress,
-                          }}
-                        >
-                          View Order
-                        </Link>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ))
-          ) : (
-            <p>No previous orders</p>
-          )}
+          <div class="table-responsive">
+            <table class="table-responsive-md table table-borderless border border-2 table-hover">
+              <thead class="table-light">
+                <tr class="text-center">
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">Order ID</div>
+                  </th>
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">Order Total</div>
+                  </th>
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">Date</div>
+                  </th>
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">Shipping Address</div>
+                  </th>
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">Order Status</div>
+                  </th>
+                  <th colspan="1">
+                    <div class="py-4 text-uppercase">View Order</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {previousOrders.map((order) => (
+                  <tr class="text-center" key={order.saleId}>
+                    <th class="py-4 align-middle">{order.saleId}</th>
+                    <td class="py-4 align-middle">
+                      ${Number(order.totalPrice).toFixed(2)}
+                    </td>
+                    <td class="py-4 align-middle">
+                      {new Date(order.saleDate).toLocaleDateString()}
+                    </td>
+                    <td class="py-4 align-middle">
+                      <span class="small">
+                        Shipping Address: {shippingAddress || "Loading..."}
+                      </span>
+                    </td>
+                    <td class="py-4 align-middle">
+                      <span class="p-2 text-uppercase badge bg-green">
+                        {renderStatusText(order.saleStatus)}
+                      </span>
+                    </td>
+                    <td class="py-4 align-middle">
+                      <Link
+                        class="btn btn-pastelblue btn-sm fw-bold text-white"
+                        to={`/OrderDetails/${order.saleId}`}
+                        state={{
+                          orderDate: order.saleDate,
+                          orderStatus: order.saleStatus,
+                          orderAmount: order.totalPrice,
+                          shippingAddress: shippingAddress,
+                        }}
+                      >
+                        View Order
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </>

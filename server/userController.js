@@ -57,11 +57,9 @@ export async function registerAdmin(req, res) {
     if (!password) {
       // If password is empty, prompt to update with new password
       if (!newPassword) {
-        return res
-          .status(400)
-          .json({
-            message: "Password is required. Please provide a new password.",
-          });
+        return res.status(400).json({
+          message: "Password is required. Please provide a new password.",
+        });
       }
       hashedPassword = await bcrypt.hash(newPassword, 10);
     } else {
@@ -141,10 +139,10 @@ export async function registerCustomer(req, res) {
 }
 
 export async function registerSupplier(req, res) {
-  const { email, password, supplierName } = req.body;
+  const { email, supplierName } = req.body;
 
   // Input validation
-  if (!email || !password || !supplierName) {
+  if (!email || !supplierName) {
     return res
       .status(400)
       .json({ message: "Email, password, and supplier name are required." });
@@ -159,9 +157,9 @@ export async function registerSupplier(req, res) {
         .json({ message: "Email already exists. Please log in." });
     }
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const oneTimePassword = generateOneTimePassword(); // Generate a one-time password
+    const saltRounds = 10; // Hash the password
+    const hashedPassword = await bcrypt.hash(oneTimePassword, saltRounds);
 
     // Get the current date
     const accountCreationDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
@@ -180,7 +178,10 @@ export async function registerSupplier(req, res) {
     // Create an entry in the SUPPLIERS table
     await createSupplier(loginId, supplierName, email);
 
-    res.status(201).json({ message: "Supplier registered successfully." });
+    res.status(201).json({
+      message: "Supplier registered successfully.",
+      oneTimePassword, // Include the unhashed one-time password in the response
+    });
   } catch (error) {
     console.error("Error registering supplier:", error.message);
     res.status(500).json({ message: "Internal server error." });

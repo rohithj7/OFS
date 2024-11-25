@@ -25,12 +25,13 @@ function OrderDetails() {
       case "ONGOING":
         return "Shipped";
       case "COMPLETED":
-        return "Completed";
+        return "Delivered";
       default:
         return status;
     }
   };
 
+  const [deliveryFee, setDeliveryFee] = useState(0);
   useEffect(() => {
     const fetchSaleDetails = async () => {
       try {
@@ -48,6 +49,7 @@ function OrderDetails() {
             }))
           );
           setTotalPrice(sale.totalPrice);
+          setDeliveryFee(sale.deliveryFee || 0);
         } else {
           setError("Sale not found.");
         }
@@ -94,7 +96,7 @@ function OrderDetails() {
               <div class="container text-center">
                 <div class="row row-cols-6">
                   <div class="col border-end">
-                    <p class="fw-bold text-secondary mb-1">Order ID</p>
+                    <p class="fw-bold text-secondary mb-1">Sale ID</p>
                     <p>{id}</p>
                   </div>
                   <div class="col border-end">
@@ -109,7 +111,13 @@ function OrderDetails() {
                   </div>
                   <div class="col border-end">
                     <p class="fw-bold text-secondary mb-1">Order Date</p>
-                    <p>{orderDate}</p>
+                    <p>
+                      {new Date(orderDate).toLocaleDateString("en-US", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
                   <div class="col border-end">
                     <p class="fw-bold text-secondary mb-1">Shipping Address</p>
@@ -117,7 +125,7 @@ function OrderDetails() {
                   </div>
                   <div class="col">
                     <p class="fw-bold text-secondary mb-1">Order Status</p>
-                    <p>{}</p>
+                    <p>{renderOrderStatus(orderStatus)}</p>
                   </div>
                 </div>
               </div>
@@ -176,7 +184,7 @@ function OrderDetails() {
                         <tr key={product.productId}>
                           <td class="align-middle border-top-0 text-center">
                             <img
-                              src={`/Assets/${product.pictureUrl}`}
+                              src={`${product.pictureUrl}`}
                               alt={`Product ${product.productName}`}
                               class="img-fluid"
                               style={{
@@ -247,14 +255,12 @@ function OrderDetails() {
 
                 <div class="card-footer border-0 px-4 py-4 mt-2 bg-white">
                   <p className="text-end text-muted mb-2">
-                    {/* Delivery Fee: ${deliveryFee?.toFixed(2)} */}
+                    Delivery Fee: ${Number(deliveryFee).toFixed(2)}
                   </p>
                   <h5 class="d-flex align-items-center justify-content-end text-black mb-0 me-2">
                     Total paid:{" "}
                     <span class="h2 mb-0 ms-2">
-                      $
-                      {Number(totalPrice) /*+ (deliveryFee || 0)*/
-                        .toFixed(2)}
+                      ${Number(totalPrice).toFixed(2)}
                     </span>
                   </h5>
                 </div>

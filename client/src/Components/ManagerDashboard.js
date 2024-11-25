@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import { validatePassword } from "./Signup";
+import Tooltip from "./Tooltip"; // Add this line
 
 function ManagerDashboard() {
   const [editStatusModal, setEditStatusModal] = useState(false);
@@ -34,6 +36,12 @@ function ManagerDashboard() {
   });
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
+  const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] =
+    useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [statistics, setStatistics] = useState({
     totalEarnings: 0,
     todayEarnings: 0,
@@ -50,7 +58,7 @@ function ManagerDashboard() {
   const [showRecentSales, setShowRecentSales] = useState(false);
 
   const backgroundStyle = {
-    backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
+    backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
@@ -117,40 +125,95 @@ function ManagerDashboard() {
   //     }
   //   });
 
-  // Add handler function
-  const handleAddAccount = async (e) => {
+  const [oneTimePassword, setOneTimePassword] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showSSNTooltip, setShowSSNTooltip] = useState(false);
+  const [ssnFocused, setSSNFocused] = useState(false);
+  const [showSalaryTooltip, setShowSalaryTooltip] = useState(false);
+  const [salaryFocused, setSalaryFocused] = useState(false);
+  const [showStartDateTooltip, setShowStartDateTooltip] = useState(false);
+  const [showEmailTooltip, setShowEmailTooltip] = useState(false);
+  const [showSupplierNameTooltip, setShowSupplierNameTooltip] = useState(false);
+  const [supplierNameFocused, setSupplierNameFocused] = useState(false);
+
+  const validateSSN = (ssn) => {
+    const regex = /^\d{3}-\d{2}-\d{4}$/;
+    return regex.test(ssn);
+  };
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validateSalary = (salary) => {
+    const regex = /^\d{1,6}(\.\d{1,2})?$/;
+    return regex.test(salary) && parseFloat(salary) > 0;
+  };
+
+  const handleSalaryChange = (e) => {
+    let value = e.target.value;
+    const regex = /^\d{0,6}(\.\d{0,2})?$/;
+    if (regex.test(value)) {
+      // Trim leading zeroes
+      value = value.replace(/^0+(?!\.|$)/, "");
+      setAccountFormData({
+        ...accountFormData,
+        salary: value,
+      });
+    }
+  };
+
+  const validateStartDate = (date) => {
+    const today = new Date();
+    const startDate = new Date(date); // Ensure the date is in YYYY-MM-DD format
+    const oneYearAhead = new Date(today);
+    oneYearAhead.setFullYear(today.getFullYear() + 1);
+    const fiveYearsPrior = new Date(today);
+    fiveYearsPrior.setFullYear(today.getFullYear() - 5);
+
+    return startDate >= fiveYearsPrior && startDate <= oneYearAhead;
+  };
+
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
     try {
-      if (accountType === "supplier") {
-        await axios.post(
-          "http://localhost:8080/registerSupplier",
-          {
-            email: accountFormData.email,
-            password: accountFormData.password,
-            supplierName: accountFormData.supplierName,
-          },
-          { withCredentials: true }
-        );
-      } else {
-        await axios.post(
-          "http://localhost:8080/registerEmployee",
-          {
-            email: accountFormData.email,
-            password: accountFormData.password,
-            firstName: accountFormData.firstName,
-            lastName: accountFormData.lastName,
-            ssn: accountFormData.ssn,
-            salary: parseFloat(accountFormData.salary),
-            startDate: accountFormData.startDate,
-          },
-          { withCredentials: true }
-        );
+      if (!validateEmail(accountFormData.email)) {
+        alert("Please enter a valid email address.");
+        return;
       }
-
+      if (!validateSalary(accountFormData.salary)) {
+        alert(
+          "Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal."
+        );
+        return;
+      }
+      if (!validateStartDate(accountFormData.startDate)) {
+        alert(
+          "Start date must be within the last 5 years and not more than 1 year ahead."
+        );
+        return;
+      }
+      const response = await axios.post(
+        "http://localhost:8080/registerEmployee",
+        {
+          email: accountFormData.email,
+          firstName: accountFormData.firstName,
+          lastName: accountFormData.lastName,
+          ssn: accountFormData.ssn,
+          salary: parseFloat(accountFormData.salary),
+          startDate: accountFormData.startDate,
+          password: accountFormData.password,
+        },
+        { withCredentials: true }
+      );
+      console.log("Registration response:", response.data);
+      setOneTimePassword(response.data.oneTimePassword);
+      setShowPasswordModal(true);
+      alert("Employee added successfully!");
       toggleAddModal();
       setAccountFormData({
         email: "",
-        password: "",
         supplierName: "",
         firstName: "",
         lastName: "",
@@ -158,11 +221,110 @@ function ManagerDashboard() {
         salary: "",
         startDate: "",
       });
-      alert(
-        `${
-          accountType === "supplier" ? "Supplier" : "Employee"
-        } added successfully!`
+    } catch (error) {
+      console.error("Error adding employee:", error);
+      alert("Failed to add employee. Please try again.");
+    }
+  };
+
+  const handleAddSupplier = async (e) => {
+    e.preventDefault();
+    try {
+      if (!validateEmail(accountFormData.email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      const res = await axios.post(
+        "http://localhost:8080/registerSupplier",
+        {
+          email: accountFormData.email,
+          supplierName: accountFormData.supplierName,
+        },
+        { withCredentials: true }
       );
+      console.log("Registration response:", res.data);
+      setOneTimePassword(res.data.oneTimePassword);
+      setShowPasswordModal(true);
+      alert("Supplier added successfully!");
+      toggleAddModal();
+      setAccountFormData({
+        email: "",
+        supplierName: "",
+        firstName: "",
+        lastName: "",
+        ssn: "",
+        salary: "",
+        startDate: "",
+      });
+    } catch (error) {
+      console.error("Error adding supplier:", error);
+      alert("Failed to add supplier. Please try again.");
+    }
+  };
+
+  // Add handler function
+  const handleAddAccount = async (e) => {
+    e.preventDefault();
+    try {
+      if (!validateEmail(accountFormData.email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      if (!validateSalary(accountFormData.salary)) {
+        alert(
+          "Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal."
+        );
+        return;
+      }
+      if (!validateStartDate(accountFormData.startDate)) {
+        alert(
+          "Start date must be within the last 5 years and not more than 1 year ahead."
+        );
+        return;
+      }
+      if (accountType === "supplier") {
+        const res = await axios.post(
+          "http://localhost:8080/registerSupplier",
+          {
+            email: accountFormData.email,
+            supplierName: accountFormData.supplierName,
+          },
+          { withCredentials: true }
+        );
+        console.log("Registration response:", res.data);
+        setOneTimePassword(res.data.oneTimePassword);
+        setShowPasswordModal(true);
+        alert("Supplier added successfully!");
+      } else {
+        const response = await axios.post(
+          "http://localhost:8080/registerEmployee",
+          {
+            email: accountFormData.email,
+            firstName: accountFormData.firstName,
+            lastName: accountFormData.lastName, // Ensure last name is included
+            ssn: accountFormData.ssn,
+            salary: parseFloat(accountFormData.salary),
+            startDate: accountFormData.startDate,
+            password: accountFormData.password, // Ensure password is included
+          },
+          { withCredentials: true }
+        );
+        console.log("Registration response:", response.data);
+        setOneTimePassword(response.data.oneTimePassword);
+        setShowPasswordModal(true);
+        alert("Employee added successfully!");
+      }
+
+      toggleAddModal();
+      setAccountFormData({
+        email: "",
+        supplierName: "",
+        firstName: "",
+        lastName: "",
+        ssn: "",
+        salary: "",
+        startDate: "",
+      });
     } catch (error) {
       console.error("Error adding account:", error);
       alert("Failed to add account. Please try again.");
@@ -516,6 +678,19 @@ function ManagerDashboard() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+
+    const passwordErrors = validatePassword(newPassword);
+    const passwordError = passwordErrors.find((error) => !error.valid);
+    if (passwordError) {
+      alert(passwordError.text);
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
     try {
       const response = await axios.put(
         "http://localhost:8080/admin/reset-password",
@@ -549,12 +724,9 @@ function ManagerDashboard() {
   // Add this function to fetch orders
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/orders-with-details",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.get("http://localhost:8080/all-orders", {
+        withCredentials: true,
+      });
       setOrders(response.data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -570,7 +742,7 @@ function ManagerDashboard() {
 
   const renderOrdersTable = () => {
     return (
-      <div className="table-responsive">
+      <div className="table-responsive mt-3 mx-3">
         <table className="table table-striped table-bordered">
           <thead>
             <tr>
@@ -621,6 +793,50 @@ function ManagerDashboard() {
         </table>
       </div>
     );
+  };
+
+  const passwordErrors = validatePassword(newPassword);
+  const passwordError = passwordErrors.find((error) => !error.valid);
+  const passwordsMatch = newPassword === confirmNewPassword;
+  const isPasswordValid = passwordErrors.every((error) => error.valid);
+
+  const handleSSNChange = (e) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digit characters
+    if (value.length > 9) {
+      value = value.slice(0, 9); // Limit to 9 digits
+    }
+    if (value.length > 3 && value.length <= 5) {
+      value = value.replace(/(\d{3})(\d+)/, "$1-$2");
+    } else if (value.length > 5) {
+      value = value.replace(/(\d{3})(\d{2})(\d+)/, "$1-$2-$3");
+    }
+    setAccountFormData({
+      ...accountFormData,
+      ssn: value,
+    });
+  };
+
+  const handleEmailFocus = () => {
+    setShowEmailTooltip(true);
+  };
+
+  const handleEmailBlur = () => {
+    setShowEmailTooltip(false);
+  };
+
+  const isEmployeeFormValid = () => {
+    return (
+      validateEmail(accountFormData.email) &&
+      accountFormData.firstName &&
+      accountFormData.lastName &&
+      validateSSN(accountFormData.ssn) &&
+      validateSalary(accountFormData.salary) &&
+      validateStartDate(accountFormData.startDate)
+    );
+  };
+
+  const isSupplierFormValid = () => {
+    return validateEmail(accountFormData.email) && accountFormData.supplierName;
   };
 
   return (
@@ -737,7 +953,11 @@ function ManagerDashboard() {
                       <p className="fs-5 fw-bold mb-0">
                         $
                         {(statistics?.todayEarnings || 0).toLocaleString(
-                          "en-US"
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
                         )}
                       </p>
                     </div>
@@ -746,7 +966,11 @@ function ManagerDashboard() {
                       <p className="fs-5 fw-bold mb-0">
                         $
                         {(statistics?.monthlyEarnings || 0).toLocaleString(
-                          "en-US"
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
                         )}
                       </p>
                     </div>
@@ -862,7 +1086,7 @@ function ManagerDashboard() {
       {showOrders && (
         <div className="card mb-4">
           <div className="card-header">
-            <h3 className="card-title mb-0">Supplier Orders</h3>
+            <h3 className="card-title mb-0 py-2">Supplier Orders</h3>
           </div>
           <div className="card-body">{renderOrdersTable()}</div>
         </div>
@@ -882,10 +1106,10 @@ function ManagerDashboard() {
       {showRecentSales && (
         <div className="card mb-4">
           <div className="card-header">
-            <h3 className="card-title mb-0">Customer Orders</h3>
+            <h3 className="card-title mb-0 py-2">Customer Orders</h3>
           </div>
           <div className="card-body">
-            <div className="table-responsive">
+            <div className="table-responsive mt-3 mx-3">
               <table className="table-centered text-nowrap table table-borderless table-hover">
                 <thead className="table-light text-center">
                   <tr>
@@ -907,6 +1131,9 @@ function ManagerDashboard() {
                     <th>
                       <div className="py-3">Actions</div>
                     </th>
+                    {/* <th>
+                      <div className="py-3">Delivery Fleet</div>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -914,7 +1141,7 @@ function ManagerDashboard() {
                     <tr key={sale.ID} className="text-center">
                       <th className="py-4 align-middle">
                         <Link
-                          to={`/manager/order-details/${sale.ID}`}
+                          to={`/saleDetails/${sale.ID}`}
                           state={{
                             orderDate: new Date(
                               sale.SALEDATE
@@ -948,16 +1175,48 @@ function ManagerDashboard() {
                       </td>
                       <td className="py-4 align-middle">
                         <button
-                          className="btn btn-outline-0 btn-sm fw-bold"
+                          className="btn btn-outline-0 btn-sm fw-bold hover-shadow"
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
                           onClick={() => {
                             setSelectedSaleId(sale.ID);
                             toggleEditStatusModal();
                           }}
                         >
-                          <span className="me-2">Edit Status</span>
-                          <i className="bi bi-pencil-square"></i>
+                          <span className="me-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="1em"
+                              height="1em"
+                              fill="currentColor"
+                              class="bi bi-pencil-square fs-5 me-2"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                              <path
+                                fill-rule="evenodd"
+                                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                              />
+                            </svg>
+                            Edit Status
+                          </span>
                         </button>
                       </td>
+                      {/* <th>
+                      <td className="py-4 align-middle text-center">
+                        <Link
+                          to={`/delivery-fleet/${sale.ID}`}
+                          className="btn btn-green btn-sm d-inline-flex align-items-center justify-content-center"
+                          style={{ minWidth: "120px" }}
+                        >
+                          <span>Track Delivery</span>
+                        </Link>
+                      </td>
+                    </th> */}
                     </tr>
                   ))}
                 </tbody>
@@ -1015,8 +1274,8 @@ function ManagerDashboard() {
                   No products found in this category
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <table className="table-centered text-nowrap table table-hover">
+                <div className="table-responsive rounded-1">
+                  <table className="table-centered text-nowrap table table-hover table-borderless mb-0">
                     <thead className="table-light text-center">
                       <tr className="text-center">
                         <th scope="col" className="text-center">
@@ -1064,10 +1323,12 @@ function ManagerDashboard() {
                               : ""
                           }`}
                         >
-                          <td className="text-center">{product.ID}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.ID}
+                          </td>
+                          <td className="text-center align-middle">
                             <img
-                              src={`/Assets/${product.PICTURE_URL}`}
+                              src={`${product.PICTURE_URL}`}
                               alt={product.PRODUCTNAME}
                               style={{
                                 width: "50px",
@@ -1076,36 +1337,82 @@ function ManagerDashboard() {
                               }}
                             />
                           </td>
-                          <td className="text-center">{product.PRODUCTNAME}</td>
-                          <td className="text-center">{product.CATEGORYID}</td>
-                          <td className="text-center">${product.PRICE}</td>
-                          <td className="text-center">{product.WEIGHT} lbs</td>
-                          <td className="text-center">{product.BRAND}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.PRODUCTNAME}
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.CATEGORYID}
+                          </td>
+                          <td className="text-center align-middle">
+                            ${product.PRICE}
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.WEIGHT} oz
+                          </td>
+                          <td className="text-center align-middle">
+                            {product.BRAND}
+                          </td>
+                          <td className="text-center align-middle">
                             {product.PRODUCTDESCRIPTION}
                           </td>
-                          <td className="text-center">{product.QUANTITY}</td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
+                            {product.QUANTITY}
+                          </td>
+                          <td className="text-center align-middle">
                             {product.REORDERLEVEL}
                           </td>
-                          <td className="text-center">
+                          <td className="text-center align-middle">
                             <button
                               className="btn btn-outline-primary btn-sm me-2"
                               onClick={() => handleEditClick(product)}
                             >
-                              <i className="bi bi-pencil-square"></i> Edit
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-pencil-square fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                                />
+                              </svg>
+                              Edit
                             </button>
                             <button
                               className="btn btn-outline-danger btn-sm me-2"
                               onClick={() => handleDeleteProduct(product.ID)}
                             >
-                              <i className="bi bi-trash"></i> Delete
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-trash3 fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                              </svg>
+                              Delete
                             </button>
                             <button
-                              className="btn btn-outline-success btn-sm"
+                              className="btn btn-outline-darkergreen btn-sm orderProductButton"
                               onClick={() => handleOrderClick(product)}
                             >
-                              <i className="bi bi-cart"></i> Order Product
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="1em"
+                                height="1em"
+                                fill="currentColor"
+                                class="bi bi-box-seam fs-5 me-1"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.596 5 8 5.961 14.154 3.5zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464z" />
+                              </svg>
+                              Order Product
                             </button>
                           </td>
                         </tr>
@@ -1154,14 +1461,14 @@ function ManagerDashboard() {
                 <div className="modal-footer">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-mint"
                     onClick={toggleEditStatusModal}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-green"
                     onClick={() =>
                       handleStatusUpdate(selectedSaleId, newStatus)
                     }
@@ -1220,17 +1527,29 @@ function ManagerDashboard() {
                             </select>
                           </div>
 
-                          <form onSubmit={handleAddAccount}>
+                          <form
+                            onSubmit={
+                              accountType === "supplier"
+                                ? handleAddSupplier
+                                : handleAddEmployee
+                            }
+                          >
                             {accountType === "supplier" ? (
                               // Supplier Form
                               <>
-                                <div class="mb-3">
+                                <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Email address
+                                    Email address{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="email"
-                                    class="form-control"
+                                    class={`form-control ${
+                                      !validateEmail(accountFormData.email) &&
+                                      showEmailTooltip
+                                        ? "invalid-background"
+                                        : ""
+                                    }`}
                                     placeholder="supplier@example.com"
                                     value={accountFormData.email}
                                     onChange={(e) =>
@@ -1239,28 +1558,26 @@ function ManagerDashboard() {
                                         email: e.target.value,
                                       })
                                     }
-                                    required
+                                    onFocus={handleEmailFocus}
+                                    onBlur={handleEmailBlur}
+                                  />
+                                  <Tooltip
+                                    messages={[
+                                      {
+                                        text: "Please enter a valid email address.",
+                                        valid: validateEmail(
+                                          accountFormData.email
+                                        ),
+                                      },
+                                    ]}
+                                    visible={showEmailTooltip}
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
-                                <div class="mb-3">
+
+                                <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Supplier Name
+                                    Supplier Name{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="text"
@@ -1273,7 +1590,26 @@ function ManagerDashboard() {
                                         supplierName: e.target.value,
                                       })
                                     }
-                                    required
+                                    onFocus={() => {
+                                      setSupplierNameFocused(true);
+                                    }}
+                                    onBlur={() => {
+                                      setSupplierNameFocused(false);
+                                    }}
+                                  />
+                                  <Tooltip
+                                    messages={[
+                                      {
+                                        text: "Supplier name is required.",
+                                        valid:
+                                          accountFormData.supplierName.length >
+                                          0,
+                                      },
+                                    ]}
+                                    visible={
+                                      supplierNameFocused &&
+                                      accountFormData.supplierName.length > 0
+                                    }
                                   />
                                 </div>
                               </>
@@ -1282,7 +1618,8 @@ function ManagerDashboard() {
                               <>
                                 <div class="mb-3">
                                   <label class="form-label">
-                                    Email address
+                                    Email address{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="email"
@@ -1298,24 +1635,12 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
+
                                 <div class="mb-3">
-                                  <label class="form-label">Password</label>
-                                  <input
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Enter password"
-                                    value={accountFormData.password}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        password: e.target.value,
-                                      })
-                                    }
-                                    required
-                                  />
-                                </div>
-                                <div class="mb-3">
-                                  <label class="form-label">First Name</label>
+                                  <label class="form-label">
+                                    First Name{" "}
+                                    <span className="text-danger">*</span>
+                                  </label>
                                   <input
                                     type="text"
                                     class="form-control"
@@ -1331,7 +1656,10 @@ function ManagerDashboard() {
                                   />
                                 </div>
                                 <div class="mb-3">
-                                  <label class="form-label">Last Name</label>
+                                  <label class="form-label">
+                                    Last Name{" "}
+                                    <span className="text-danger">*</span>
+                                  </label>
                                   <input
                                     type="text"
                                     class="form-control"
@@ -1346,41 +1674,87 @@ function ManagerDashboard() {
                                     required
                                   />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">SSN</label>
+                                <div class="mb-3 position-relative">
+                                  <label class="form-label">
+                                    SSN <span className="text-danger">*</span>
+                                  </label>
                                   <input
                                     type="text"
-                                    class="form-control"
+                                    class={`form-control ${
+                                      !validateSSN(accountFormData.ssn) &&
+                                      ssnFocused
+                                        ? "invalid-background"
+                                        : ""
+                                    }`}
                                     placeholder="XXX-XX-XXXX"
                                     value={accountFormData.ssn}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        ssn: e.target.value,
-                                      })
-                                    }
+                                    onChange={handleSSNChange}
+                                    onFocus={() => {
+                                      setShowSSNTooltip(true);
+                                      setSSNFocused(true);
+                                    }}
+                                    onBlur={() => {
+                                      setShowSSNTooltip(false);
+                                      setSSNFocused(false);
+                                    }}
                                     required
                                   />
+                                  <Tooltip
+                                    messages={[
+                                      {
+                                        text: "SSN must be in the format XXX-XX-XXXX",
+                                        valid: validateSSN(accountFormData.ssn),
+                                      },
+                                    ]}
+                                    visible={showSSNTooltip}
+                                  />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Salary</label>
+                                <div class="mb-3 position-relative">
+                                  <label class="form-label">
+                                    Salary{" "}
+                                    <span className="text-danger">*</span>
+                                  </label>
                                   <input
-                                    type="number"
-                                    step="0.01"
-                                    class="form-control"
+                                    type="text"
+                                    class={`form-control ${
+                                      !validateSalary(accountFormData.salary) &&
+                                      salaryFocused
+                                        ? "invalid-background"
+                                        : ""
+                                    }`}
                                     placeholder="Enter salary"
                                     value={accountFormData.salary}
-                                    onChange={(e) =>
-                                      setAccountFormData({
-                                        ...accountFormData,
-                                        salary: e.target.value,
-                                      })
-                                    }
+                                    onChange={handleSalaryChange}
+                                    onFocus={() => {
+                                      setShowSalaryTooltip(true);
+                                      setSalaryFocused(true);
+                                    }}
+                                    onBlur={() => {
+                                      setShowSalaryTooltip(false);
+                                      setSalaryFocused(false);
+                                    }}
                                     required
                                   />
+                                  <Tooltip
+                                    messages={[
+                                      {
+                                        text: "Salary must be greater than zero",
+                                        valid:
+                                          parseFloat(accountFormData.salary) >
+                                          0,
+                                      },
+                                    ]}
+                                    visible={
+                                      showSalaryTooltip &&
+                                      !validateSalary(accountFormData.salary)
+                                    }
+                                  />
                                 </div>
-                                <div class="mb-3">
-                                  <label class="form-label">Start Date</label>
+                                <div class="mb-3 position-relative">
+                                  <label class="form-label">
+                                    Start Date{" "}
+                                    <span className="text-danger">*</span>
+                                  </label>
                                   <input
                                     type="date"
                                     class="form-control"
@@ -1391,7 +1765,34 @@ function ManagerDashboard() {
                                         startDate: e.target.value,
                                       })
                                     }
+                                    onBlur={(e) => {
+                                      const date = e.target.value;
+                                      if (date && !validateStartDate(date)) {
+                                        setShowStartDateTooltip(true);
+                                        alert(
+                                          "Start date must be within the last 5 years and not more than 1 year ahead."
+                                        );
+                                      } else {
+                                        setShowStartDateTooltip(false);
+                                      }
+                                    }}
+                                    onFocus={() => {
+                                      if (accountFormData.startDate) {
+                                        setShowStartDateTooltip(true);
+                                      }
+                                    }}
                                     required
+                                  />
+                                  <Tooltip
+                                    messages={[
+                                      {
+                                        text: "Start date must be within the last 5 years and not more than 1 year ahead.",
+                                        valid: validateStartDate(
+                                          accountFormData.startDate
+                                        ),
+                                      },
+                                    ]}
+                                    visible={showStartDateTooltip}
                                   />
                                 </div>
                               </>
@@ -1400,6 +1801,17 @@ function ManagerDashboard() {
                             <button
                               type="submit"
                               class="btn btn-lightergreen mt-3 w-100"
+                              onClick={(e) => {
+                                if (!validateEmail(accountFormData.email)) {
+                                  e.preventDefault();
+                                  setShowEmailTooltip(true);
+                                }
+                              }}
+                              disabled={
+                                accountType === "supplier"
+                                  ? !isSupplierFormValid()
+                                  : !isEmployeeFormValid()
+                              }
                             >
                               Add{" "}
                               {accountType === "supplier"
@@ -1418,6 +1830,58 @@ function ManagerDashboard() {
         </div>
       )}
 
+      {showPasswordModal && (
+        <div>
+          <div className="fade modal-backdrop show"></div>
+          <div className="fade modal show d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Employee Added Successfully</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowPasswordModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Please save this one-time password and share it securely
+                    with the employee:
+                  </p>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={oneTimePassword}
+                      readOnly
+                    />
+                    <button
+                      className="btn btn-mint"
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(oneTimePassword);
+                        alert("Password copied to clipboard!");
+                      }}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-green"
+                    onClick={() => setShowPasswordModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {reOrderProductsModal && (
         <div>
           <div class="fade modal-backdrop show"></div>
@@ -1654,7 +2118,7 @@ function ManagerDashboard() {
                             </div>
 
                             <div className="mb-3">
-                              <label className="form-label">Price</label>
+                              <label className="form-label">Price ($)</label>
                               <input
                                 type="number"
                                 name="price"
@@ -1667,7 +2131,7 @@ function ManagerDashboard() {
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Weight (in lbs)
+                                Weight (in oz)
                               </label>
                               <input
                                 type="number"
@@ -1764,7 +2228,7 @@ function ManagerDashboard() {
                         />
                       </div>
                       <div className="col-md-4">
-                        <label className="form-label">Weight (lbs)</label>
+                        <label className="form-label">Weight (ounces)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -1829,7 +2293,7 @@ function ManagerDashboard() {
                     <div className="modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-mint"
                         onClick={() => {
                           setShowEditProductModal(false);
                           setEditingProduct(null);
@@ -1837,7 +2301,7 @@ function ManagerDashboard() {
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" className="btn btn-green">
                         Save Changes
                       </button>
                     </div>
@@ -1910,12 +2374,12 @@ function ManagerDashboard() {
                     <div className="modal-footer">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-mint"
                         onClick={() => setShowOrderModal(false)}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" className="btn btn-green">
                         Place Order
                       </button>
                     </div>
@@ -1949,31 +2413,85 @@ function ManagerDashboard() {
                 </div>
                 <form onSubmit={handleResetPassword}>
                   <div className="modal-body">
-                    <div className="mb-3">
-                      <label className="form-label">New Password</label>
+                    <div className="mb-3 position-relative">
+                      <label className="form-label">
+                        New Password <span className="text-danger">*</span>
+                      </label>
                       <input
-                        type="text"
-                        className="form-control"
+                        type="password"
+                        className={`form-control ${
+                          passwordError && passwordFocused
+                            ? "invalid-background"
+                            : ""
+                        }`}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
+                        onFocus={() => {
+                          setShowPasswordTooltip(true);
+                          setPasswordFocused(true);
+                        }}
+                        onBlur={() => {
+                          setShowPasswordTooltip(false);
+                          setPasswordFocused(false);
+                        }}
                         required
-                        minLength="6"
+                        minLength="14"
                         placeholder="Enter new password"
+                      />
+                      <Tooltip
+                        messages={validatePassword(newPassword)}
+                        visible={showPasswordTooltip}
+                      />
+                    </div>
+                    <div className="mb-3 position-relative">
+                      <label className="form-label">
+                        Confirm New Password{" "}
+                        <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        className={`form-control ${
+                          !passwordsMatch && confirmPasswordFocused
+                            ? "invalid-background"
+                            : ""
+                        }`}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        onFocus={() => {
+                          setShowConfirmPasswordTooltip(true);
+                          setConfirmPasswordFocused(true);
+                        }}
+                        onBlur={() => {
+                          setShowConfirmPasswordTooltip(false);
+                          setConfirmPasswordFocused(false);
+                        }}
+                        required
+                        disabled={!isPasswordValid}
+                        placeholder="Confirm new password"
+                      />
+                      <Tooltip
+                        messages={[
+                          {
+                            text: "Passwords must match",
+                            valid: passwordsMatch,
+                          },
+                        ]}
+                        visible={showConfirmPasswordTooltip}
                       />
                     </div>
                   </div>
                   <div className="modal-footer">
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn btn-mint"
                       onClick={toggleResetPasswordModal}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
-                      disabled={!newPassword}
+                      className="btn btn-green"
+                      disabled={!newPassword || !passwordsMatch}
                     >
                       Reset Password
                     </button>
