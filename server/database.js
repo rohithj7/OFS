@@ -966,17 +966,6 @@ export async function getSalesByCustomerId(customerId) {
   return sales;
 }
 
-// Function to update sale status
-export async function updateSaleStatus(saleId, newStatus) {
-  const sql = `
-        UPDATE SALES
-        SET SALE_STATUS = ?
-        WHERE ID = ?
-    `;
-  const [result] = await pool.query(sql, [newStatus, saleId]);
-  return result.affectedRows > 0;
-}
-
 // Function to update order status
 export async function updateOrderStatus(orderId, newStatus) {
   const sql = `
@@ -1022,7 +1011,6 @@ export async function placeSale(customerId, products, stripePaymentId) {
             VALUES (?, ?, ?, ?, ?)
         `;
     const totalPrice = await calculateTotalPrice(products);
-    const totalPrice = await calculateTotalPrice(products);
     const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
     const saleStatus = "NOT STARTED";
@@ -1030,7 +1018,7 @@ export async function placeSale(customerId, products, stripePaymentId) {
     const [saleResult] = await connection.execute(saleSql, [
       customerId,
       totalPrice,
-      //saleDate,
+      saleDate,
       paymentDetails,
       saleStatus,
     ]);

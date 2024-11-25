@@ -38,8 +38,8 @@ import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
 import UpdatePassword from "./Components/UpdatePassword";
 import SaleDetails from "./Components/SaleDetails";
-import ManagerOrderDetails from "./Components/ManagerOrderDetails";
 import AdminDeliveryManagement from "./Components/AdminDeliveryManagement";
+import DeliveryFleetManagement from "./Components/DeliveryFleetManagement";
 
 import "./main.scss"; // Custom styles
 import "./App.css";
