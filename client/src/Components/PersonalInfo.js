@@ -95,7 +95,7 @@ const PersonalInfo = () => {
   };
 
   function normalizeAddressComponent(component) {
-    return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir)\b/g, match => {
+    return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g, match => {
       switch (match) {
         case 'dr': return 'drive';
         case 'st': return 'street';
@@ -109,6 +109,8 @@ const PersonalInfo = () => {
         case 'ter': return 'terrace';
         case 'pkwy': return 'parkway';
         case 'cir': return 'circle';
+        case 'apt': return 'apartment';
+        case 'ste': return 'suite';
         default: return match;
       }
     });
@@ -130,10 +132,11 @@ const PersonalInfo = () => {
           const city = addressComponents.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'))?.long_name.toLowerCase() === formData.city.toLowerCase();
           const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
           const addressLine1 = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine1));
+          const addressLine2 = formData.addressLine2 ? normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine2)) : true;
 
-          console.log('Validation results:', { country, state, city, postalCode, addressLine1 });
+          console.log('Validation results:', { country, state, city, postalCode, addressLine1, addressLine2 });
 
-          if (country && state && city && postalCode && addressLine1) {
+          if (country && state && city && postalCode && addressLine1 && addressLine2) {
             console.log('Address is valid:', address);
             return true;
           } else {
