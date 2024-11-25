@@ -163,7 +163,7 @@ export default function Home() {
         <div className="row row-cols-xl-6 row-cols-lg-4 row-cols-md-3 row-cols-sm-2 row-cols-xs-2 row-cols-12 justify-content-center g-6 mt-2">
           {/* rows-col-xl-6 => there should be six columns when the user's screen size is xl (≥1200px); rows-col-lg-4 => there should be four columns when the user's screen size is l (≥992px) */}
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
@@ -184,7 +184,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
@@ -205,7 +205,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
@@ -226,7 +226,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
@@ -247,7 +247,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
@@ -268,7 +268,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col mb-4">
-            <div className="card-product card border-2">
+            <div className="card-product card border-2 pe-none">
               <div className="card-body">
                 <Link className="text-decoration-none text-center" to="">
                   <img
