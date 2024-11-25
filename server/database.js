@@ -1,4 +1,5 @@
 import mysql from "mysql2/promise";
+import moment from 'moment';
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -866,17 +867,6 @@ export async function getSalesByCustomerId(customerId) {
   return sales;
 }
 
-// // Function to update sale status
-// export async function updateSaleStatus(saleId, newStatus) {
-//   const sql = `
-//         UPDATE SALES
-//         SET SALE_STATUS = ?
-//         WHERE ID = ?
-//     `;
-//   const [result] = await pool.query(sql, [newStatus, saleId]);
-//   return result.affectedRows > 0;
-// }
-
 // Check Product Availability
 export async function checkProductAvailability(products) {
   const unavailableProducts = [];
@@ -910,7 +900,7 @@ export async function placeSale(customerId, products, stripePaymentId) {
       VALUES (?, ?, ?, ?, ?)
     `;
     const totalPrice = await calculateTotalPrice(products);
-    const saleDate = new Date().toISOString().slice(0, 10);
+    const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
     const saleStatus = "ONGOING";
 
@@ -1099,6 +1089,67 @@ export async function storeBalance(balance) {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
+export async function getLatestSaleStatus(loginId) {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        CASE WHEN s.SALE_STATUS = 'ONGOING' THEN TRUE ELSE FALSE END AS isOngoing
+      FROM LOGIN l
+      INNER JOIN CUSTOMERS c ON l.ID = c.LOGINID
+      INNER JOIN SALES s ON c.ID = s.CUSTOMERID
+      WHERE l.ID = ?
+      ORDER BY s.SALEDATE DESC
+      LIMIT 1
+      `,
+      [loginId]
+    );
+
+    // If no sale found, return null
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0].isOngoing;
+  } catch (err) {
+    console.error('Error fetching latest sale status:', err);
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
+export async function getLatestOngoingSaleId(loginId) {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `
+      SELECT s.ID AS saleId
+      FROM LOGIN l
+      INNER JOIN CUSTOMERS c ON l.ID = c.LOGINID
+      INNER JOIN SALES s ON c.ID = s.CUSTOMERID
+      WHERE l.ID = ? AND s.SALE_STATUS = 'ONGOING'
+      ORDER BY s.SALEDATE DESC
+      LIMIT 1
+      `,
+      [loginId]
+    );
+
+    // If no 'ONGOING' sale is found, return null
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0].saleId; // Return the saleId of the latest 'ONGOING' sale
+  } catch (err) {
+    console.error('Error fetching latest ongoing sale ID:', err);
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+
 /**
  * Updates the status of a sale.
  * If the new status is 'ONGOING', triggers the dispatching process.
@@ -1139,6 +1190,29 @@ export async function updateSaleStatus(saleId, newStatus) {
     throw err; // Re-throw the error after rollback
   } finally {
     connection.release();
+  }
+}
+
+export async function completeRoute(routeId) {
+  try {
+    const sql = `
+      UPDATE ROUTES
+      SET STATUS = 'COMPLETED', END_TIME = NOW()
+      WHERE ID = ?
+    `;
+    
+    const result = await query(sql, [routeId]);
+    
+    if (result.affectedRows === 0) {
+      // No rows were affected, meaning the route ID does not exist
+      return false;
+    }
+    
+    // Update was successful
+    return true;
+  } catch (error) {
+    console.error("Error in completeRoute:", error.message);
+    throw error; // Propagate the error to be handled by the caller
   }
 }
 

@@ -16,12 +16,12 @@ export async function geocodeAddress(address) {
 
 export async function getOptimizedRoute(startCoord, deliveryCoords) {
     // Combine coordinates: [startCoord, ...deliveryCoords]
-    const coordinates = [startCoord, { latitude: 37.339062, longitude: -121.886124 }, ...deliveryCoords]
+    const coordinates = [startCoord, ...deliveryCoords, { latitude: 37.339062, longitude: -121.886124 }, startCoord]
         .map((coord) => `${coord.longitude},${coord.latitude}`)
         .join(';');
 
     // Build the API request URL
-    const url = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}` +
+    const url = `https://api.mapbox.com/optimized-trips/v1/mapbox/cycling/${coordinates}` +
         `?access_token=${process.env.MAPBOX_ACCESS_TOKEN}` +
         `&geometries=geojson` +
         `&overview=full` +

@@ -169,7 +169,7 @@ function Orders() {
                 </div>
                 <div className="h3 text-center mt-4 mb-3">Delivery Map</div>
                 <div className="card m-1 border-2">
-                  <div className="card-body p-4" style={{ height: "650px" }}>
+                  <div className="card-body p-4" style={{ height: "670px" }}>
                     <DeliveryMap /> {/* Replaced MapComponent with DeliveryMap */}
                   </div>
                 </div>

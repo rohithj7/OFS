@@ -59,7 +59,9 @@ import {
   updateFirstTimeLogin,
   getDashboardStatistics,
   getOrdersWithDetails,
-  getCustomerLocationById
+  getCustomerLocationById,
+  getLatestSaleStatus,
+  getLatestOngoingSaleId
 } from "./database.js";
 import {
   registerAdmin,
@@ -1076,6 +1078,51 @@ app.post("/balance", async (req, res) => {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
+// Route to update the customer's earliest 'ONGOING' sale to 'COMPLETED'
+app.put("/update-sale-status", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    console.log(loginId);
+
+    // Fetch the saleId of the latest 'ONGOING' sale
+    const saleId = await getLatestOngoingSaleId(loginId);
+
+    if (!saleId) {
+      return res.status(404).json({ message: "No ongoing sales found to update." });
+    }
+
+    // Call the database function to update the sale status
+    const updatedSale = await updateSaleStatus(saleId, 'COMPLETED');
+
+    if (updatedSale) {
+      res.json({ message: "Sale status updated to 'COMPLETED' successfully.", saleId });
+    } else {
+      res.status(404).json({ message: "Failed to update sale status." });
+    }
+  } catch (error) {
+    console.error("Error updating sale status:", error);
+    res.status(500).json({ message: error.message || "Internal server error." });
+  }
+});
+
+app.get("/sale-status", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+
+    // Fetch the latest sale status for the customer
+    const isOngoing = await getLatestSaleStatus(loginId);
+
+    if (isOngoing === null) {
+      res.status(404).json({ message: "No sales found for the customer." });
+    } else {
+      res.json({ ongoing: isOngoing });
+    }
+  } catch (error) {
+    console.error("Error fetching sale status:", error);
+    res.status(500).json({ message: error.message || "Internal server error." });
+  }
+});
+
 wss.on('connection', (ws, req) => {
   const parameters = new URLSearchParams(req.url.replace('/?', ''));
   const role = parameters.get('role') || 'customer';
@@ -1146,14 +1193,9 @@ export function notifyClientsAboutNewRoute(routeId) {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
-app.put("/routes/:id/complete", isAuthenticated, async (req, res) => {
+app.put("/routes/:id/complete", isAdminOrEmployee, async (req, res) => {
   try {
     const routeId = req.params.id;
-
-    // Optional: Only allow admins or specific roles to complete routes
-    if (req.user.ROLE !== 'admin' && req.user.ROLE !== 'employee') {
-      return res.status(403).json({ message: "Forbidden: Insufficient permissions." });
-    }
 
     const [result] = await pool.query(
       `UPDATE ROUTES

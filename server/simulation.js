@@ -1,6 +1,7 @@
 import { broadcastBotPosition } from './websocket.js';
+import { completeRoute } from './database.js';
 
-export function simulateBotMovement(routeData) {
+export function simulateBotMovement(routeData, routeId) {
   const coordinates = routeData.trips[0].geometry.coordinates;
   let index = 0;
 
@@ -13,8 +14,7 @@ export function simulateBotMovement(routeData) {
     } else {
       clearInterval(interval);
       console.log('Simulation complete.');
-      // Optionally, update route status to 'COMPLETED'
-      // updateRouteStatus(routeId, 'COMPLETED');
+      completeRoute(routeId);
     }
   }, 1000); // Update every 1 second
 }

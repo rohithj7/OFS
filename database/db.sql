@@ -118,7 +118,7 @@ CREATE TABLE SALES (
     CUSTOMERID INT,
     ROUTE_ID INT,
     PRICE DECIMAL(10, 2), -- TOTAL PRICE
-    SALEDATE DATE,
+    SALEDATE DATETIME,
     PAYMENTDETAILS VARCHAR(255),
     SALE_STATUS ENUM('STARTED', 'ONGOING', 'COMPLETED') NOT NULL,
         -- STARTED is when the emplyee/admin has filled cart but it's not left yet
