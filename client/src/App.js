@@ -8,9 +8,10 @@ import {
   Link,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Dropdown } from "bootstrap";
@@ -640,7 +641,7 @@ function App() {
         {/* Set the default route to home page */}
         <Route path="/" element={<Navigate to="/home" />} />
         {/* Public Routes */}
-        <Route path="/Home" element={<Home />} />
+        <Route path="/Home" element={<HomeWithProps />} />
         <Route
           path="/Login"
           element={
@@ -1013,6 +1014,13 @@ function App() {
     </div>
   );
 }
+
+function HomeWithProps() {
+  const location = useLocation();
+  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  return <Home firstName={firstName} lastName={lastName} />;
+}
+
 const styles = {
   linkContainer: {
     padding: "10px",
