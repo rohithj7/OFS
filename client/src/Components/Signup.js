@@ -92,7 +92,7 @@ export default function SignUp() {
 
         if (loginResponse.status === 200) {
           // Redirect to PersonalInfo page
-          navigate("/personal-info");
+          navigate("/personal-info", { state: { email } });
         }
       }
     } catch (error) {

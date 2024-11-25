@@ -34,6 +34,8 @@ const PersonalInfo = () => {
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
   ];
 
+  const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
   useEffect(() => {
     const isPhoneValid = formData.phone.replace(/[^\d]/g, "").length === 10;
     const isZipCodeValid = formData.zipCode.replace(/[^\d]/g, "").length === 5;
@@ -68,15 +70,15 @@ const PersonalInfo = () => {
         [e.target.name]: formatPhoneNumber(e.target.value),
       });
     } else if (e.target.name === "zipCode") {
-      const zipCodeRegex = /^\d*$/;
+      const zipCodeRegex = /^\d{0,5}$/;
       if (!zipCodeRegex.test(e.target.value.replace(/[^\d]/g, ""))) {
-        setZipCodeError("Zip code must contain only digits.");
+        setZipCodeError("Zip code must contain only digits and be up to 5 digits long.");
       } else {
         setZipCodeError("");
       }
       setFormData({
         ...formData,
-        [e.target.name]: e.target.value,
+        [e.target.name]: e.target.value.replace(/[^\d]/g, "").slice(0, 5),
       });
     } else if (e.target.name === "state") {
       const stateValue = e.target.value.toUpperCase();
@@ -92,12 +94,78 @@ const PersonalInfo = () => {
     }
   };
 
-  const validateAddress = async (address) => {
-    const accessToken = "pk.eyJ1IjoiZWtoYW50IiwiYSI6ImNtMHpvZ2NwYjA4YzQybHB1NGNwenh2cWUifQ.M2By1tcbrItisdMMMnYV3g";
-    const response = await axios.get(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${accessToken}`
-    );
-    return response.data.features.length > 0;
+  function normalizeAddressComponent(component) {
+    return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir)\b/g, match => {
+      switch (match) {
+        case 'dr': return 'drive';
+        case 'st': return 'street';
+        case 'rd': return 'road';
+        case 'ave': return 'avenue';
+        case 'blvd': return 'boulevard';
+        case 'ln': return 'lane';
+        case 'ct': return 'court';
+        case 'pl': return 'place';
+        case 'sq': return 'square';
+        case 'ter': return 'terrace';
+        case 'pkwy': return 'parkway';
+        case 'cir': return 'circle';
+        default: return match;
+      }
+    });
+  }
+
+  function validateAddress(address, formData) {
+    const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
+
+    return fetch(geocodingUrl)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Geocoding API response:', data);
+        if (data.status === 'OK' && data.results.length > 0) {
+          const firstResult = data.results[0];
+          const addressComponents = firstResult.address_components;
+
+          const country = addressComponents.find(c => c.types.includes('country'))?.short_name === 'US';
+          const state = addressComponents.find(c => c.types.includes('administrative_area_level_1'))?.short_name === formData.state;
+          const city = addressComponents.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'))?.long_name.toLowerCase() === formData.city.toLowerCase();
+          const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
+          const addressLine1 = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine1));
+
+          console.log('Validation results:', { country, state, city, postalCode, addressLine1 });
+
+          if (country && state && city && postalCode && addressLine1) {
+            console.log('Address is valid:', address);
+            return true;
+          } else {
+            console.log('Address may be invalid or ambiguous:', address);
+            return false;
+          }
+        } else {
+          console.log('Address not found:', address);
+          return false;
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching geocoding data:', error);
+        return false;
+      });
+  }
+
+  const getInvalidAddressComponents = () => {
+    const invalidComponents = [];
+    if (formData.addressLine1.trim() === "") {
+      invalidComponents.push("Address Line 1");
+    }
+    if (formData.city.trim() === "") {
+      invalidComponents.push("City");
+    }
+    if (formData.state.trim() === "") {
+      invalidComponents.push("State");
+    }
+    if (formData.zipCode.replace(/[^\d]/g, "").length !== 5) {
+      invalidComponents.push("Zip Code");
+    }
+    return invalidComponents;
   };
 
   const handleSubmit = async (e) => {
@@ -124,17 +192,14 @@ const PersonalInfo = () => {
     }
 
     // Concatenate address fields
-    const fullAddress = `${formData.addressLine1} ${formData.addressLine2}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
+    const fullAddress = `${formData.addressLine1}${formData.addressLine2 ? ' ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
 
     // Validate address
-    const isAddressValid = await validateAddress(fullAddress);
+    const isAddressValid = await validateAddress(fullAddress, formData);
     if (!isAddressValid) {
-      setAddressError("Invalid address. Please enter a valid address.");
-      setShowAddressTooltip(true);
-      navigate("/personal-info");
+      const invalidComponents = getInvalidAddressComponents();
+      alert(`Invalid address. Please review the following fields: ${invalidComponents.join(", ")}.`);
       return;
-    } else {
-      setShowAddressTooltip(false);
     }
 
     try {
@@ -346,7 +411,7 @@ const PersonalInfo = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="United States">United States</option>
+                <option value="US">United States</option>
               </select>
             </div>
 
