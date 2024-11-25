@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import moment from 'moment';
 dotenv.config();
 
-const TIME_LIMIT_MINUTES = 2;
+const TIME_LIMIT_MINUTES = 0;
 const WEIGHT_LIMIT_LBS = 200;
 const WAREHOUSE_LATITUDE = parseFloat(process.env.WAREHOUSE_LATITUDE);
 const WAREHOUSE_LONGITUDE = parseFloat(process.env.WAREHOUSE_LONGITUDE);

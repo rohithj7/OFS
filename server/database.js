@@ -1043,9 +1043,6 @@ export async function placeSale(customerId, products, stripePaymentId) {
 
     await connection.commit();
 
-    // Check for dispatch after placing a sale
-    await dispatchSales([saleId]);
-
     return { saleId, totalPrice };
   } catch (error) {
     await connection.rollback();
@@ -1343,8 +1340,7 @@ export async function updateSaleStatus(saleId, newStatus) {
 
     await connection.commit();
 
-    // If the status was updated to 'ONGOING', trigger dispatching
-    if (newStatus === 'ONGOING') {
+    if (newStatus === 'STARTED') {
       // Pass specific saleId to dispatchSales
       await dispatchSales([saleId]);
     }
