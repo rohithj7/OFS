@@ -24,7 +24,8 @@
     "nodemon": "^3.1.7",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "stripe": "^17.3.1"
+    "stripe": "^17.3.1",
+    "ws": "^8.18.0"
   },
   "description": ""
 }

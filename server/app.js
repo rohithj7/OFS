@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
 import Stripe from "stripe";
+import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ import {
   getUserInfoByLoginId,
   updateUserInfo,
   getUserInfo,
-  // TODO: Add delete function with keeping authentication in mind
+  getUserRoleById,
   getEmployees,
   getEmployeeById,
   createEmployee,
@@ -49,7 +50,6 @@ import {
   updateCustomerInfo,
   searchProductsByName,
   getProductsByCategory,
-  planDeliveryRoute,
   getProductsBelowReorderLevel,
   reorderProduct,
   getProductIdByName,
@@ -59,6 +59,7 @@ import {
   updateFirstTimeLogin,
   getDashboardStatistics,
   getOrdersWithDetails,
+  getCustomerLocationById
 } from "./database.js";
 import {
   registerAdmin,
@@ -69,9 +70,13 @@ import {
   updatePassword,
 } from "./userController.js";
 
+import './dispatch.js';
+
 const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(stripeSecretKey);
+
+const wss = new WebSocketServer({ port: 8081 });
 
 // Configure CORS
 app.use(
@@ -238,6 +243,27 @@ app.get("/logout", (req, res, next) => {
     res.json({ message: "Logged out successfully." });
   });
 });
+
+// Route to get user role
+app.get("/getUserRole", isAuthenticated, async (req, res) => {
+  try {
+    // Get the user ID from the authenticated session
+    const loginId = req.user.ID;
+
+    // Call a function to fetch the role from the database
+    const role = await getUserRoleById(loginId);
+
+    if (role) {
+      res.status(200).json({ role });
+    } else {
+      res.status(404).json({ message: "Role not found for user" });
+    }
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -767,6 +793,22 @@ app.get("/customerinfo", isAuthenticated, async (req, res) => {
   }
 });
 
+//get customer info
+app.get("/customerlocation", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    const customer = await getCustomerLocationById(loginId);
+    if (customer) {
+      res.json(customer);
+    } else {
+      res.status(404).json({ message: "Customer location not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching customer location:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Update customer info
 app.put("/customerinfo", isAuthenticated, async (req, res) => {
   try {
@@ -1034,13 +1076,100 @@ app.post("/balance", async (req, res) => {
 
 // ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
 
-app.get("/route", async (req, res) => {
+wss.on('connection', (ws, req) => {
+  const parameters = new URLSearchParams(req.url.replace('/?', ''));
+  const role = parameters.get('role') || 'customer';
+  ws.role = role;
+
+  console.log('New client connected with role:', role);
+
+  ws.on('message', (message) => {
+    try {
+      const parsedMessage = JSON.parse(message);
+      console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
+      // Handle different message types if needed
+    } catch (err) {
+      console.error('Error parsing WebSocket message:', err);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+export function notifyClientsAboutNewRoute(routeId) {
+  getRouteData(routeId)
+    .then((routeData) => {
+      if (!routeData || !routeData.points || !routeData.sales) {
+        console.error('Invalid route data:', routeData);
+        return;
+      }
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          let dataToSend;
+
+          if (client.role === 'customer') {
+            dataToSend = {
+              type: 'NEW_ROUTE',
+              data: {
+                route: { ID: routeData.route?.ID || 'Unknown' }, // Fallback if ID is missing
+                points: routeData.points.map((point) => ({
+                  latitude: point.LATITUDE,
+                  longitude: point.LONGITUDE,
+                  sequence: point.SEQUENCE,
+                })),
+                sales: routeData.sales.map((sale) => ({
+                  saleId: sale.SALE_ID,
+                  sequence: sale.SEQUENCE,
+                })),
+              },
+            };
+          } else {
+            dataToSend = {
+              type: 'NEW_ROUTE',
+              data: routeData,
+            };
+          }
+
+          client.send(JSON.stringify(dataToSend));
+        }
+      });
+    })
+    .catch((error) => {
+      console.error('Error fetching route data:', error);
+    });
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
+
+app.put("/routes/:id/complete", isAuthenticated, async (req, res) => {
   try {
-    const routeData = await planDeliveryRoute();
-    res.json(routeData);
+    const routeId = req.params.id;
+
+    // Optional: Only allow admins or specific roles to complete routes
+    if (req.user.ROLE !== 'admin' && req.user.ROLE !== 'employee') {
+      return res.status(403).json({ message: "Forbidden: Insufficient permissions." });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE ROUTES
+       SET STATUS = 'COMPLETED', END_TIME = NOW()
+       WHERE ID = ?`,
+      [routeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Route not found." });
+    }
+
+    res.json({ message: "Route marked as completed." });
   } catch (error) {
-    console.error("Error generating route:", error);
-    res.status(500).json({ message: "Error generating route" });
+    console.error("Error updating route status:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 

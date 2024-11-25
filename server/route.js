@@ -1,4 +1,4 @@
-import fetch from "node-fetch"
+import fetch from "node-fetch";
 
 export async function geocodeAddress(address) {
     const encodedAddress = encodeURIComponent(address);
@@ -15,19 +15,19 @@ export async function geocodeAddress(address) {
 }
 
 export async function getOptimizedRoute(startCoord, deliveryCoords) {
-    // Combine coordinates: [startCoord, ...deliveryCoords, endCoord]
-    const coordinates = [startCoord, ...deliveryCoords, startCoord]
+    // Combine coordinates: [startCoord, ...deliveryCoords]
+    const coordinates = [startCoord, { latitude: 37.339062, longitude: -121.886124 }, ...deliveryCoords]
         .map((coord) => `${coord.longitude},${coord.latitude}`)
         .join(';');
 
-    // Build the API request URL with fixed source and destination
+    // Build the API request URL
     const url = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${coordinates}` +
         `?access_token=${process.env.MAPBOX_ACCESS_TOKEN}` +
         `&geometries=geojson` +
         `&overview=full` +
-        `&roundtrip=true` +          // Not returning to starting point unless endCoord is same as startCoord
-        `&source=first` +             // Fix the starting point
-        `&destination=last`;          // Fix the end point
+        `&source=first` +
+        `&destination=last` +
+        `&roundtrip=false`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -39,4 +39,4 @@ export async function getOptimizedRoute(startCoord, deliveryCoords) {
     }
 
     return data;
-}  
+}

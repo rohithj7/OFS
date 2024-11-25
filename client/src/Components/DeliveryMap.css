@@ -1,0 +1,28 @@
+.map-container {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.marker {
+    width: 12px;
+    height: 12px;
+    background-color: red; /* This will be overridden by inline styles */
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white !important;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3) !important;
+}
+
+.bot-marker {
+    cursor: pointer;
+    background-color: #FF0000; /* Ensure the background color is set */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white !important;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5) !important;
+}
