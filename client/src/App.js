@@ -8,9 +8,10 @@ import {
   Link,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Ensure Bootstrap JS is loaded
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Dropdown } from "bootstrap";
@@ -31,13 +32,13 @@ import Snacks from "./Components/Products/Snacks";
 import Meals from "./Components/Products/Meals";
 import Checkout from "./Components/Checkout";
 import OrderConfirmation from "./Components/OrderConfirmation";
-import DeliveryRoutePage from "./Components/DeliveryRoutePage";
 import ManagerDashboard from "./Components/ManagerDashboard";
 import SupplierDashboard from "./Components/SupplierDashboard";
 import EmployeeDashboard from "./Components/EmployeeDashboard";
 import AdminRegister from "./Components/AdminRegister";
 import UpdatePassword from "./Components/UpdatePassword";
 import SaleDetails from "./Components/SaleDetails";
+import AdminDeliveryManagement from "./Components/AdminDeliveryManagement";
 import DeliveryFleetManagement from "./Components/DeliveryFleetManagement";
 
 import "./main.scss"; // Custom styles
@@ -675,7 +676,7 @@ function App() {
         {/* Set the default route to home page */}
         <Route path="/" element={<Navigate to="/home" />} />
         {/* Public Routes */}
-        <Route path="/Home" element={<Home />} />
+        <Route path="/Home" element={<HomeWithProps />} />
         <Route
           path="/Login"
           element={
@@ -741,6 +742,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <ManagerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ManagerDashboard/DeliveryManagement"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "employee"]}>
+              <AdminDeliveryManagement />
             </ProtectedRoute>
           }
         />
@@ -837,7 +846,6 @@ function App() {
         {/* Other Routes */}
         <Route path="/personal-info" element={<PersonalInfo />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/delivery-route" element={<DeliveryRoutePage />} />
         <Route path="/admin-register" element={<AdminRegister />} />
       </Routes>
 
@@ -1057,6 +1065,13 @@ function App() {
     </div>
   );
 }
+
+function HomeWithProps() {
+  const location = useLocation();
+  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  return <Home firstName={firstName} lastName={lastName} />;
+}
+
 const styles = {
   linkContainer: {
     padding: "10px",
