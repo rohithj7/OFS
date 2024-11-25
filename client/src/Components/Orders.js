@@ -17,6 +17,8 @@ function Orders() {
     switch (status) {
       case "NOT STARTED":
         return "Pending";
+      case "STARTED":
+        return "Getting ready to ship";
       case "ONGOING":
         return "Shipped";
       case "COMPLETED":
@@ -65,8 +67,8 @@ function Orders() {
   // Filter the current and previous orders based on order status
   const currentOrder = orders.filter(
     (order) =>
-      order.saleStatus === "NOT STARTED" || order.saleStatus === "ONGOING"
-  ); // Filter all orders with saleStatus NOT STARTED or ONGOING to display under Current Orders
+      order.saleStatus === "NOT STARTED" || order.saleStatus === "STARTED" || order.saleStatus === "ONGOING"
+  ); // Filter all orders with saleStatus NOT STARTED, STARTED, or ONGOING to display under Current Orders
   const previousOrders = orders.filter(
     (order) => order.saleStatus === "COMPLETED"
   );

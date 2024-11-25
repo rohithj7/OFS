@@ -122,6 +122,7 @@ CREATE TABLE SALES (
     PAYMENTDETAILS VARCHAR(255),
     DELIVERYFEE DECIMAL(10, 2) DEFAULT 0.00,
     SALE_STATUS ENUM('NOT STARTED', 'STARTED', 'ONGOING', 'COMPLETED') NOT NULL,
+        -- NOT STARTED is when the employee/admin has not filled the cart
         -- STARTED is when the emplyee/admin has filled cart but it's not left yet
         -- ONGOING is when the cart is dispatched with that sale and is en route
         -- COMPLETED is when the cart delivers the stuff to the customer
