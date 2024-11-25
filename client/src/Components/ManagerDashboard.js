@@ -911,9 +911,9 @@ function ManagerDashboard() {
                     <th>
                       <div className="py-3">Actions</div>
                     </th>
-                    <th>
+                    {/* <th>
                       <div className="py-3">Delivery Fleet</div>
-                    </th>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -986,6 +986,7 @@ function ManagerDashboard() {
                           </span>
                         </button>
                       </td>
+                      {/* <th>
                       <td className="py-4 align-middle text-center">
                         <Link
                           to={`/delivery-fleet/${sale.ID}`}
@@ -995,6 +996,7 @@ function ManagerDashboard() {
                           <span>Track Delivery</span>
                         </Link>
                       </td>
+                    </th> */}
                     </tr>
                   ))}
                 </tbody>
@@ -1774,7 +1776,7 @@ function ManagerDashboard() {
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Weight (in lbs)
+                                Weight (in ounces)
                               </label>
                               <input
                                 type="number"
@@ -1871,7 +1873,7 @@ function ManagerDashboard() {
                         />
                       </div>
                       <div className="col-md-4">
-                        <label className="form-label">Weight (lbs)</label>
+                        <label className="form-label">Weight (ounces)</label>
                         <input
                           type="number"
                           step="0.01"
