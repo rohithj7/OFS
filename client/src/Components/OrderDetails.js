@@ -111,7 +111,13 @@ function OrderDetails() {
                   </div>
                   <div class="col border-end">
                     <p class="fw-bold text-secondary mb-1">Order Date</p>
-                    <p>{orderDate}</p>
+                    <p>
+                      {new Date(orderDate).toLocaleDateString("en-US", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
                   <div class="col border-end">
                     <p class="fw-bold text-secondary mb-1">Shipping Address</p>
