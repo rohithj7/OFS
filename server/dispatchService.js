@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import moment from 'moment';
 dotenv.config();
 
-const TIME_LIMIT_MINUTES = 2;
+const TIME_LIMIT_MINUTES = 10;
 const WEIGHT_LIMIT_LBS = 3200;
 const WAREHOUSE_LATITUDE = parseFloat(process.env.WAREHOUSE_LATITUDE);
 const WAREHOUSE_LONGITUDE = parseFloat(process.env.WAREHOUSE_LONGITUDE);
@@ -40,7 +40,12 @@ export async function dispatchSales(saleIds = null) {
         }
 
         // **Corrected Query Construction**
-        let salesQuery = `SELECT ID, SALEDATE FROM SALES WHERE SALE_STATUS = 'STARTED'`;
+        let salesQuery = `
+            SELECT ID, SALEDATE 
+            FROM SALES 
+            WHERE SALE_STATUS = 'STARTED' 
+            LIMIT 10;
+            `;
         let salesParams = [];
 
         if (saleIds && saleIds.length > 0) {
@@ -82,7 +87,7 @@ export async function dispatchSales(saleIds = null) {
         console.log(`totalWeight = ${totalWeight} ounces`)
 
         // Determine if dispatching criteria are met
-        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight >= WEIGHT_LIMIT_LBS;
+        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight <= WEIGHT_LIMIT_LBS;
 
         if (shouldDispatch) {
             const saleIdsToDispatch = sales.map(sale => sale.ID);
