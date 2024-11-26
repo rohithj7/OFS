@@ -43,9 +43,8 @@ export async function dispatchSales(saleIds = null) {
         let salesQuery = `
             SELECT ID, SALEDATE 
             FROM SALES 
-            WHERE SALE_STATUS = 'STARTED' 
-            LIMIT 10;
-            `;
+            WHERE SALE_STATUS = 'STARTED'
+        `;
         let salesParams = [];
 
         if (saleIds && saleIds.length > 0) {
@@ -53,7 +52,8 @@ export async function dispatchSales(saleIds = null) {
             salesParams.push(saleIds);
         }
 
-        salesQuery += ` ORDER BY SALEDATE ASC`; // Add ORDER BY at the end
+        salesQuery += ` ORDER BY SALEDATE ASC
+        LIMIT 10;`; // Add ORDER BY at the end
 
         // Get 'STARTED' sales, optionally filtered by saleIds
         const [sales] = await connection.query(salesQuery, salesParams);
