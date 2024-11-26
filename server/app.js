@@ -5,6 +5,8 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
+import Stripe from "stripe";
+import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
@@ -14,7 +16,7 @@ import {
   getUserInfoByLoginId,
   updateUserInfo,
   getUserInfo,
-  // TODO: Add delete function with keeping authentication in mind
+  getUserRoleById,
   getEmployees,
   getEmployeeById,
   createEmployee,
@@ -37,7 +39,7 @@ import {
   deleteSupplier,
   getCustomers,
   getCustomerById,
-  createCustomer,
+  getSalesByCustomerId,
   deleteCustomer,
   getSales,
   getBalance,
@@ -48,10 +50,39 @@ import {
   updateCustomerInfo,
   searchProductsByName,
   getProductsByCategory,
+  getProductsBelowReorderLevel,
+  reorderProduct,
+  getProductIdByName,
+  getSupplierIdByName,
+  updateSaleStatus,
+  resetPassword,
+  updateFirstTimeLogin,
+  getDashboardStatistics,
+  getOrdersWithDetails,
+  getSaleById,
+  updateOrderStatus,
+  getOrdersWithDetailsBySupplier,
+  updateSaleDeliveryFee,
+  getCustomerLocationById,
+  getLatestSaleStatus,
+  getLatestOngoingSaleId
 } from "./database.js";
-import { registerAdmin, registerCustomer } from "./userController.js";
+import {
+  registerAdmin,
+  registerCustomer,
+  registerSupplier,
+  registerEmployee,
+  generateOneTimePassword,
+  updatePassword,
+} from "./userController.js";
+
+import './dispatch.js';
 
 const app = express();
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = new Stripe(stripeSecretKey);
+
+const wss = new WebSocketServer({ port: 8081 });
 
 // Configure CORS
 app.use(
@@ -131,6 +162,40 @@ function isAuthenticated(req, res, next) {
   res.status(401).json({ message: "Unauthorized" });
 }
 
+// Middleware to check admin authentication
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.ROLE === "admin") {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden for non-admins" });
+}
+
+// Middleware to check if the user is either an admin or an employee
+function isAdminOrEmployee(req, res, next) {
+  if (
+    req.isAuthenticated() &&
+    (req.user.ROLE === "admin" || req.user.ROLE === "employee")
+  ) {
+    return next();
+  }
+  res
+    .status(403)
+    .json({ message: "Forbidden for non-admins and non-employees" });
+}
+
+// Middleware to check if the user is either an admin or a supplier
+function isAdminOrSupplier(req, res, next) {
+  if (
+    req.isAuthenticated() &&
+    (req.user.ROLE === "admin" || req.user.ROLE === "supplier")
+  ) {
+    return next();
+  }
+  res
+    .status(403)
+    .json({ message: "Forbidden for non-admins and non-suppliers" });
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // -------------------------------------------------------- REGISTER AND LOGIN --------------------------------------------------------------------//
@@ -141,10 +206,39 @@ app.post("/registerAdmin", registerAdmin);
 // Customer registration route
 app.post("/registerCustomer", registerCustomer);
 
+// Supplier registration route; requires admin logged in
+app.post("/registerSupplier", isAdmin, registerSupplier);
+
+// Employee registration route; requires admin logged in
+app.post("/registerEmployee", isAdmin, registerEmployee);
+
 // Login route
-app.post("/login", passport.authenticate("local"), (req, res) => {
-  res.json({ message: "Logged in successfully.", loginId: req.user.ID });
+app.post("/login", passport.authenticate("local"), async (req, res) => {
+  try {
+    const user = req.user;
+    /*
+    if (user.ROLE === "employee" && user.FIRST_TIME_LOGIN) {
+      return res.json({
+        message: "First-time login. Please update your password.",
+        firstTimeLogin: true,
+        role: user.ROLE,
+      });
+    }
+    */
+    res.json({
+      message: "Logged in successfully.",
+      loginId: user.ID,
+      role: user.ROLE,
+      firstTimeLogin: user.FIRST_TIME_LOGIN,
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
 });
+
+// Route to update password for first-time login
+app.put("/update-password", isAuthenticated, updatePassword);
 
 // Logout route
 app.get("/logout", (req, res, next) => {
@@ -155,6 +249,27 @@ app.get("/logout", (req, res, next) => {
     res.json({ message: "Logged out successfully." });
   });
 });
+
+// Route to get user role
+app.get("/getUserRole", isAuthenticated, async (req, res) => {
+  try {
+    // Get the user ID from the authenticated session
+    const loginId = req.user.ID;
+
+    // Call a function to fetch the role from the database
+    const role = await getUserRoleById(loginId);
+
+    if (role) {
+      res.status(200).json({ role });
+    } else {
+      res.status(404).json({ message: "Role not found for user" });
+    }
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -197,6 +312,100 @@ app.post("/userinfo", isAuthenticated, async (req, res) => {
     res.json({ message: "User info updated successfully." });
   } catch (error) {
     console.error("Error updating user info:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Admin routes
+app.get("/admin/users", isAdmin, async (req, res) => {
+  try {
+    const users = await getUserInfo();
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+app.delete("/admin/users/:id", isAdmin, async (req, res) => {
+  try {
+    const deletedUser = await deleteCustomer(req.params.id);
+    if (deletedUser) {
+      res.json(deletedUser);
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Admin PRODUCTS
+// Admin route to get products below reorder level
+app.get("/admin/products-below-reorder-level", isAdmin, async (req, res) => {
+  try {
+    const products = await getProductsBelowReorderLevel();
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products below reorder level:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Admin PRODUCTS
+// Admin route to reorder products
+app.post("/admin/reorder-product", isAdmin, async (req, res) => {
+  try {
+    const { productName, supplierName, quantity } = req.body;
+
+    // Get product ID and supplier ID
+    const productId = await getProductIdByName(productName);
+    const supplierId = await getSupplierIdByName(supplierName);
+
+    if (!productId || !supplierId) {
+      return res
+        .status(400)
+        .json({ message: "Invalid product or supplier name." });
+    }
+
+    // Reorder product
+    const reorderResult = await reorderProduct(productId, supplierId, quantity);
+
+    res.json({
+      message: "Product reordered successfully.",
+      orderId: reorderResult.orderId,
+      reorderQuantity: reorderResult.reorderQuantity,
+      price: reorderResult.price,
+    });
+  } catch (error) {
+    console.error("Error reordering product:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to reset password for admin
+app.put("/admin/reset-password", isAdmin, async (req, res) => {
+  try {
+    const adminId = req.user.ID;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required." });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password in the database
+    const updated = await resetPassword(adminId, hashedPassword);
+
+    if (updated) {
+      res.json({ message: "Password reset successfully." });
+    } else {
+      res.status(500).json({ message: "Failed to reset password." });
+    }
+  } catch (error) {
+    console.error("Error resetting password:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 });
@@ -367,8 +576,8 @@ app.delete("/employee-hours/:id", async (req, res) => {
 
 // --------------------------------------------------------------- PRODUCTS -----------------------------------------------------------------------//
 
-// Get all products (authenticated route)
-app.get("/products", isAuthenticated, async (req, res) => {
+// Get all products
+app.get("/products", async (req, res) => {
   try {
     const products = await getProducts();
     res.json(products);
@@ -391,16 +600,60 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
-app.post("/products", async (req, res) => {
+// Apply authentication middleware to the routes
+app.post("/products", isAuthenticated, async (req, res) => {
   try {
-    const newProduct = await createProduct(req.body);
+    console.log("Received product data:", req.body);
+
+    const {
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight,
+    } = req.body;
+
+    console.log("Extracted values:", {
+      // Debug log
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight,
+    });
+    // Create the product
+    const newProduct = await createProduct(
+      categoryId,
+      productName,
+      productDescription,
+      brand,
+      pictureUrl,
+      quantity,
+      reorderLevel,
+      reorderQuantity,
+      price,
+      weight
+    );
+
+    console.log("Created product:", newProduct);
     res.status(201).json(newProduct);
   } catch (err) {
+    console.error("Error creating product:", err);
     res.status(500).send(err.message);
   }
 });
 
-app.put("/products/:id", async (req, res) => {
+app.put("/products/:id", isAuthenticated, async (req, res) => {
   try {
     const updatedProduct = await updateProduct(req.params.id, req.body);
     if (updatedProduct) {
@@ -413,7 +666,7 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", isAuthenticated, async (req, res) => {
   try {
     const deletedProduct = await deleteProduct(req.params.id);
     if (deletedProduct) {
@@ -427,7 +680,7 @@ app.delete("/products/:id", async (req, res) => {
 });
 
 // Product search by name
-app.get("/products/search", async (req, res) => {
+app.get("/product-search", async (req, res) => {
   try {
     const searchTerm = req.query.q;
     if (!searchTerm) {
@@ -520,8 +773,8 @@ app.delete("/suppliers/:id", async (req, res) => {
 
 // -------------------------------------------------------------- CUSTOMERS -----------------------------------------------------------------------//
 
-// CUSTOMERS routes
-app.get("/customers", async (req, res) => {
+// Get all customers
+app.get("/customers", isAuthenticated, async (req, res) => {
   try {
     const customers = await getCustomers();
     res.json(customers);
@@ -531,27 +784,34 @@ app.get("/customers", async (req, res) => {
 });
 
 //get cusotmer info
-app.get('/customerinfo', isAuthenticated, async (req, res) => {
+app.get("/customerinfo", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID;
     const customer = await getCustomerById(loginId);
     if (customer) {
       res.json(customer);
     } else {
-      res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: "Customer not found" });
     }
   } catch (error) {
-    console.error('Error fetching customer info:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching customer info:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
-app.post("/customers", async (req, res) => {
+//get customer info
+app.get("/customerlocation", isAuthenticated, async (req, res) => {
   try {
-    const newCustomer = await createCustomer(req.body);
-    res.status(201).json(newCustomer);
-  } catch (err) {
-    res.status(500).send(err.message);
+    const loginId = req.user.ID;
+    const customer = await getCustomerLocationById(loginId);
+    if (customer) {
+      res.json(customer);
+    } else {
+      res.status(404).json({ message: "Customer location not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching customer location:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -593,7 +853,7 @@ app.delete("/customers/:id", async (req, res) => {
 // ---------------------------------------------------------------- SALES -------------------------------------------------------------------------//
 
 // SALES routes
-app.get("/sales", async (req, res) => {
+app.get("/all_sales", async (req, res) => {
   try {
     const sales = await getSales();
     res.json(sales);
@@ -602,25 +862,45 @@ app.get("/sales", async (req, res) => {
   }
 });
 
-app.get("/sales/:id", async (req, res) => {
+// Route to get sale details by sale ID, for employee or admin
+app.get("/sales/:saleId", isAuthenticated, async (req, res) => {
   try {
-    const sale = await getSaleById(req.params.id);
-    if (sale) {
-      res.json(sale);
-    } else {
-      res.status(404).send("Sale not found");
+    const saleId = req.params.saleId;
+
+    // Get sale details including products
+    const saleDetails = await getSaleById(saleId);
+
+    if (!saleDetails || saleDetails.length === 0) {
+      return res.status(404).json({ message: "Sale not found." });
     }
-  } catch (err) {
-    res.status(500).send(err.message);
+
+    res.json(saleDetails);
+  } catch (error) {
+    console.error("Error fetching sale details:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
-app.post("/sales", async (req, res) => {
+// Route to get all sales for the authenticated customer
+app.get("/sales", isAuthenticated, async (req, res) => {
   try {
-    const newSale = await createSale(req.body);
-    res.status(201).json(newSale);
-  } catch (err) {
-    res.status(500).send(err.message);
+    const loginId = req.user.ID;
+
+    // Get the customer associated with this loginId
+    const customer = await getCustomerById(loginId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found." });
+    }
+
+    const customerId = customer.ID;
+
+    // Get all sales for this customer
+    const sales = await getSalesByCustomerId(customerId);
+
+    res.json(sales);
+  } catch (error) {
+    console.error("Error fetching sales:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
@@ -653,9 +933,15 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
 // Protected route to place a sale
 app.post("/place-sale", isAuthenticated, async (req, res) => {
   try {
-    const products = req.body.products; // [{ productId, quantity }, ...]
-    if (!products || !Array.isArray(products)) {
+    const { products, stripePaymentId } = req.body; // [{ productId, quantity }, ...]
+    if (!products || !Array.isArray(products) || products.length <= 0) {
       return res.status(400).json({ message: "Invalid products data." });
+    }
+
+    if (!stripePaymentId) {
+      return res
+        .status(400)
+        .json({ message: "Stripe payment(ID) is required." });
     }
 
     // Check product availability
@@ -667,13 +953,12 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
         unavailableProducts,
       });
     }
-
     // Get customer ID
     const loginId = req.user.ID;
-    const customer = await getCustomerByLoginId(loginId);
+    const customer = await getCustomerById(loginId);
 
     // Place the sale
-    const saleResult = await placeSale(customer.ID, products);
+    const saleResult = await placeSale(customer.ID, products, stripePaymentId);
 
     res.json({
       message: "Sale placed successfully.",
@@ -686,32 +971,142 @@ app.post("/place-sale", isAuthenticated, async (req, res) => {
   }
 });
 
-// ------------------------------------------------------------------------------------------------------------------------------------------------//
-
-// ------------------------------------------------------------ SALES PRODUCTS --------------------------------------------------------------------//
-
-// SALES_PRODUCTS routes
-app.get("/sales-products", async (req, res) => {
+// Protected route to handle Stripe payment
+app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
   try {
-    const salesProducts = await getSalesProducts();
-    res.json(salesProducts);
-  } catch (err) {
-    res.status(500).send(err.message);
+    const { amount } = req.body;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invalid payment amount." });
+    }
+    // Create a PaymentIntent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    console.log("PaymentIntent created successfully:", paymentIntent.id);
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+  } catch (error) {
+    console.error("Error creating PaymentIntent:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error while creating payment." });
   }
 });
 
-app.post("/sales-products", async (req, res) => {
+// Route to update sale delivery fee
+app.put("/sales/:id/delivery-fee", isAuthenticated, async (req, res) => {
   try {
-    const newSalesProduct = await createSalesProduct(req.body);
-    res.status(201).json(newSalesProduct);
+    const saleId = req.params.id;
+    const { deliveryFee } = req.body;
+
+    // Add validation like other routes
+    if (!saleId || deliveryFee === undefined || isNaN(deliveryFee)) {
+      return res.status(400).json({ message: "Invalid delivery fee data." });
+    }
+
+    // Get the updated sale details
+    const updated = await updateSaleDeliveryFee(saleId, deliveryFee);
+
+    if (updated) {
+      // Return more detailed response like other routes
+      res.json({
+        message: "Delivery fee added successfully.",
+        saleId: saleId,
+        deliveryFee: deliveryFee,
+        updatedTotalPrice: updated.totalPrice, // This will need to be returned from the database function
+      });
+    } else {
+      res.status(404).json({
+        message: "Sale not found.",
+        saleId: saleId,
+      });
+    }
+  } catch (error) {
+    console.error("Error updating sale delivery fee:", error);
+    res.status(500).json({
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+});
+
+// Route to update sale status
+app.put("/sales/:id/status", isAdminOrEmployee, async (req, res) => {
+  try {
+    const saleId = req.params.id;
+    const { newStatus } = req.body;
+
+    if (!newStatus) {
+      return res.status(400).json({ message: "New status is required." });
+    }
+
+    const updated = await updateSaleStatus(saleId, newStatus);
+
+    if (updated) {
+      res.json({ message: "Sale status updated successfully." });
+    } else {
+      res.status(404).json({ message: "Sale not found." });
+    }
+  } catch (error) {
+    console.error("Error updating sale status:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+// Route to get dashboard statistics
+app.get("/statistics", async (req, res) => {
+  try {
+    const statistics = await getDashboardStatistics();
+    res.json(statistics);
   } catch (err) {
-    res.status(500).send(err.message);
+    console.error("Error in /statistics endpoint:", err);
+    res.status(500).json({
+      error: "Failed to fetch statistics",
+      details: err.message,
+    });
   }
 });
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
 // ---------------------------------------------------------------- ORDERS ------------------------------------------------------------------------//
+// Get ALL orders with details (for manager)
+app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
+  try {
+    console.log("Fetching all orders for manager...");
+    const orders = await getOrdersWithDetails();
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// Get orders for specific supplier
+app.get("/orders-with-details", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID; // Changed from req.user.loginId to req.user.ID
+    console.log("Fetching orders for login ID:", loginId);
+
+    const orders = await getOrdersWithDetailsBySupplier(loginId);
+    console.log("Orders found:", orders);
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({
+      error: "Failed to fetch orders",
+      details: err.message,
+    });
+  }
+});
 
 // Get all orders by login ID
 app.get("/orders", isAuthenticated, async (req, res) => {
@@ -734,26 +1129,26 @@ app.post("/orders", async (req, res) => {
   }
 });
 
-// ------------------------------------------------------------------------------------------------------------------------------------------------//
-
-// ------------------------------------------------------------ ORDERS PORODUCTS ------------------------------------------------------------------//
-
-// ORDERS_PRODUCTS routes
-app.get("/orders-products", async (req, res) => {
+// Route to update order status
+app.put("/orders/:id/status", async (req, res) => {
   try {
-    const ordersProducts = await getOrdersProducts();
-    res.json(ordersProducts);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
+    const orderId = req.params.id;
+    const { newStatus } = req.body;
 
-app.post("/orders-products", async (req, res) => {
-  try {
-    const newOrderProduct = await createOrderProduct(req.body);
-    res.status(201).json(newOrderProduct);
-  } catch (err) {
-    res.status(500).send(err.message);
+    if (!newStatus) {
+      return res.status(400).json({ message: "New status is required." });
+    }
+
+    const updated = await updateOrderStatus(orderId, newStatus);
+
+    if (updated) {
+      res.json({ message: "Order status updated successfully." });
+    } else {
+      res.status(404).json({ message: "Order not found." });
+    }
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
@@ -778,6 +1173,147 @@ app.post("/balance", async (req, res) => {
     res.status(201).json({ id: newBalanceId });
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
+
+// Route to update the customer's earliest 'ONGOING' sale to 'COMPLETED'
+app.put("/update-sale-status", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+    console.log(loginId);
+
+    // Fetch the saleId of the latest 'ONGOING' sale
+    const saleId = await getLatestOngoingSaleId(loginId);
+
+    if (!saleId) {
+      return res.status(404).json({ message: "No ongoing sales found to update." });
+    }
+
+    // Call the database function to update the sale status
+    const updatedSale = await updateSaleStatus(saleId, 'COMPLETED');
+
+    if (updatedSale) {
+      res.json({ message: "Sale status updated to 'COMPLETED' successfully.", saleId });
+    } else {
+      res.status(404).json({ message: "Failed to update sale status." });
+    }
+  } catch (error) {
+    console.error("Error updating sale status:", error);
+    res.status(500).json({ message: error.message || "Internal server error." });
+  }
+});
+
+app.get("/sale-status", isAuthenticated, async (req, res) => {
+  try {
+    const loginId = req.user.ID;
+
+    // Fetch the latest sale status for the customer
+    const isOngoing = await getLatestSaleStatus(loginId);
+
+    if (isOngoing === null) {
+      res.status(404).json({ message: "No sales found for the customer." });
+    } else {
+      res.json({ ongoing: isOngoing });
+    }
+  } catch (error) {
+    console.error("Error fetching sale status:", error);
+    res.status(500).json({ message: error.message || "Internal server error." });
+  }
+});
+
+wss.on('connection', (ws, req) => {
+  const parameters = new URLSearchParams(req.url.replace('/?', ''));
+  const role = parameters.get('role') || 'customer';
+  ws.role = role;
+
+  console.log('New client connected with role:', role);
+
+  ws.on('message', (message) => {
+    try {
+      const parsedMessage = JSON.parse(message);
+      console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
+      // Handle different message types if needed
+    } catch (err) {
+      console.error('Error parsing WebSocket message:', err);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+export function notifyClientsAboutNewRoute(routeId) {
+  getRouteData(routeId)
+    .then((routeData) => {
+      if (!routeData || !routeData.points || !routeData.sales) {
+        console.error('Invalid route data:', routeData);
+        return;
+      }
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === client.OPEN) {
+          let dataToSend;
+
+          if (client.role === 'customer') {
+            dataToSend = {
+              type: 'NEW_ROUTE',
+              data: {
+                route: { ID: routeData.route?.ID || 'Unknown' }, // Fallback if ID is missing
+                points: routeData.points.map((point) => ({
+                  latitude: point.LATITUDE,
+                  longitude: point.LONGITUDE,
+                  sequence: point.SEQUENCE,
+                })),
+                sales: routeData.sales.map((sale) => ({
+                  saleId: sale.SALE_ID,
+                  sequence: sale.SEQUENCE,
+                })),
+              },
+            };
+          } else {
+            dataToSend = {
+              type: 'NEW_ROUTE',
+              data: routeData,
+            };
+          }
+
+          client.send(JSON.stringify(dataToSend));
+        }
+      });
+    })
+    .catch((error) => {
+      console.error('Error fetching route data:', error);
+    });
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------- MAPBOX ------------------------------------------------------------------------//
+
+app.put("/routes/:id/complete", isAdminOrEmployee, async (req, res) => {
+  try {
+    const routeId = req.params.id;
+
+    const [result] = await pool.query(
+      `UPDATE ROUTES
+       SET STATUS = 'COMPLETED', END_TIME = NOW()
+       WHERE ID = ?`,
+      [routeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Route not found." });
+    }
+
+    res.json({ message: "Route marked as completed." });
+  } catch (error) {
+    console.error("Error updating route status:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 

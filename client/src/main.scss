@@ -4,12 +4,36 @@
 
 $custom-colors: (
     "green": #99D98C,
+    "darkergreen": #6f9f66,
     "mint": #97D3C2,
-    "pastelblue": #73B9CE
-
+    "pastelblue": #73B9CE,
+    "lightergreen": #b3e3a9
 );
 
 $theme-colors: map-merge($theme-colors, $custom-colors);
 
 @import "../node_modules/bootstrap/scss/bootstrap";
+
+.tooltip-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+}
+
+.tooltip-box.visible {
+  display: block;
+}
+
+.invalid-border {
+  border: 2px solid;
+  border-image: radial-gradient(circle, red, darkred) 1;
+}
 

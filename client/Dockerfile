@@ -1,5 +1,5 @@
 # Use Node.js to build the React app
-FROM node:18 as build
+FROM node:18 AS build
 
 # Set the working directory to the frontend folder inside the container
 WORKDIR /app/OFS/client

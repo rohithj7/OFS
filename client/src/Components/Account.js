@@ -1,73 +1,113 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Tooltip from "./Tooltip"; // Import Tooltip component
 
 export default function Account() {
-  const loginId = localStorage.getItem("loginId"); // Retrieve loginId from localStorage
-  // console.log("loginId from localStorage:", loginId); // Debug line
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
-    address: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "United States",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
+  const [phoneFocused, setPhoneFocused] = useState(false);
+  const [savedData, setSavedData] = useState(null); // Add state for saved data
+
+  const states = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  ];
 
   // Fetch customer info when the component loads
   useEffect(() => {
-    if (loginId) {
-      const fetchCustomerInfo = async () => {
-        try {
-          const response = await axios.get(
-            "http://localhost:8080/customerinfo",
-            { withCredentials: true }
-          );
+    const fetchCustomerInfo = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/customerinfo", {
+          withCredentials: true,
+        });
 
-          // console.log("Fetched data:", response.data); // Debug line
+        const addressParts = response.data.ADDRESS.split(", ");
+        const stateZip = addressParts[2].split(" ");
+        setFormData({
+          firstName: response.data.FIRSTNAME || "",
+          lastName: response.data.LASTNAME || "",
+          phone: response.data.PHONE || "",
+          addressLine1: addressParts[0] || "",
+          addressLine2: response.data.ADDRESS_LINE2 || "", // Ensure addressLine2 is processed separately
+          city: addressParts[1] || "",
+          state: stateZip[0] || "",
+          zipCode: stateZip[1] || "",
+          country: addressParts[3] || "United States",
+        });
+      } catch (error) {
+        console.error("Error fetching customer info:", error);
+        setErrorMessage("Failed to load customer information.");
+      }
+    };
+    fetchCustomerInfo();
+  }, []);
 
-          setFormData({
-            firstName: response.data.FIRSTNAME || "",
-            lastName: response.data.LASTNAME || "",
-            phone: response.data.PHONE || "",
-            address: response.data.ADDRESS || "",
-          });
-        } catch (error) {
-          console.error("Error fetching customer info:", error);
-          setErrorMessage("Failed to load customer information.");
-        }
-      };
-      fetchCustomerInfo();
-    } else {
-      console.error("No loginId found in localStorage.");
-      setErrorMessage("No user logged in. Please log in again.");
+  const formatPhoneNumber = (value) => {
+    const phoneNumber = value.replace(/[^\d]/g, "");
+    const phoneNumberLength = phoneNumber.length;
+
+    if (phoneNumberLength < 4) return phoneNumber;
+    if (phoneNumberLength < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
     }
-  }, [loginId]);
+    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  };
 
   // Handle input changes for form
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === "phone") {
+      const phoneDigits = e.target.value.replace(/[^\d]/g, "");
+      if (phoneDigits.length > 10) {
+        setErrorMessage("Phone number must be exactly 10 digits.");
+      } else {
+        setErrorMessage("");
+        setFormData({
+          ...formData,
+          [e.target.name]: formatPhoneNumber(phoneDigits),
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   // Submit updated info to backend
   const handleSave = async () => {
     try {
-      // Get loginId from localStorage
-      const loginId = localStorage.getItem("loginId");
+      const fullAddress = `${formData.addressLine1}${formData.addressLine2 ? ', ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
       const requestData = {
-        loginId: loginId ? parseInt(loginId) : null, // Convert to integer, or set to null if missing
         firstName: formData.firstName || null,
         lastName: formData.lastName || null,
         phone: formData.phone || null,
-        address: formData.address || null,
+        addressLine1: formData.addressLine1 || null,
+        addressLine2: formData.addressLine2 || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        zipCode: formData.zipCode || null,
+        country: formData.country || null,
         latitude: null,
         longitude: null,
       };
 
-      // console.log("Sending data to server:", requestData);
+      const phoneDigits = formData.phone.replace(/[^\d]/g, "");
+      if (phoneDigits.length !== 10) {
+        setErrorMessage("Phone number must be exactly 10 digits.");
+        return;
+      }
 
       const response = await axios.put(
         "http://localhost:8080/customerinfo",
@@ -81,6 +121,8 @@ export default function Account() {
       );
       if (response.status === 200) {
         setSuccessMessage("Information updated successfully.");
+        setSavedData(formData); // Update saved data
+        setErrorMessage(""); // Clear error message on success
       }
     } catch (error) {
       console.error("Error updating customer info:", error);
@@ -89,103 +131,140 @@ export default function Account() {
   };
 
   return (
-    <div>
-      {/* Account information Section */}
-      <div className="container text-center my-5">
-        <div className="card border-0">
-          <div className="card-body ms-5">
-            <div className="fs-2 mb-3 mt-2 ms-3 text-start fw-bold">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="100px"
-                height="100px"
-                className="bi bi-person-circle"
-                viewBox="0 0 16 16"
-                style={{ paddingRight: "20px" }}
-              >
-                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
-                <path
-                  fillRule="evenodd"
-                  d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"
-                ></path>
-              </svg>
-              Your Profile
+    <>
+      <div class="py-5 mt-3 mb-5 container w-75">
+        <div class="row mt-5">
+          <div class="p-4 card-lg card border border-2">
+            <h3 class="pt-4 my-2 fs-3 ms-4">Your Information</h3>
+            <div class="p-4 card-body">
+              <p><strong>First Name:</strong> {savedData ? savedData.firstName : formData.firstName}</p>
+              <p><strong>Last Name:</strong> {savedData ? savedData.lastName : formData.lastName}</p>
+              <p><strong>Phone:</strong> {savedData ? savedData.phone : formData.phone}</p>
+              <p><strong>Address:</strong> {savedData ? `${savedData.addressLine1}${savedData.addressLine2 ? ', ' + savedData.addressLine2 : ''}, ${savedData.city}, ${savedData.state} ${savedData.zipCode}, ${savedData.country}` : `${formData.addressLine1}${formData.addressLine2 ? ', ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`}</p>
             </div>
-            <form className="ms-5 mt-3">
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  First Name:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
-                    className="form-control"
+          </div>
+        </div>
+        <div class="row">
+          <div class="mt-5 p-4 card-lg card border border-2">
+            <h3 class="pt-4 my-2 fs-3 ms-4">Account Details</h3>
+            <p class="mb-0 fs-6 ms-4">Edit your personal information.</p>
+            <div class="p-4 card-body">
+              <form class="row g-3">
+                <div class="col-lg-6 col-md-12">
+                  <label class="form-label">First Name</label>
+                  <input 
+                    type="text" 
+                    class="form-control bg-white" 
                     name="firstName"
                     value={formData.firstName}
-                    onChange={handleChange}
-                  />
+                    onChange={handleChange}/>
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Last Name:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
+                <div class="col-lg-6 col-md-12">
+                  <label class="form-label">Last Name</label>
+                  <input 
+                    type="text" 
                     className="form-control"
                     name="lastName"
                     value={formData.lastName}
-                    onChange={handleChange}
-                  />
+                    onChange={handleChange}/>
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Phone:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
+                <div class="col-lg-6 col-md-12 mt-4 position-relative">
+                  <label class="form-label">Phone</label>
+                  <input 
+                    type="text" 
                     className="form-control"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    onFocus={() => {
+                      setShowPhoneTooltip(true);
+                      setPhoneFocused(true);
+                    }}
+                    onBlur={() => {
+                      setShowPhoneTooltip(formData.phone.replace(/[^\d]/g, "").length !== 10);
+                      setPhoneFocused(false);
+                    }}
+                  />
+                  <Tooltip
+                    messages={[
+                      { text: "Phone number must contain only 10 digits.", valid: formData.phone.replace(/[^\d]/g, "").length === 10 },
+                    ]}
+                    visible={showPhoneTooltip}
                   />
                 </div>
-              </div>
-              <div className="ms-5 row mb-4">
-                <label className="card-text text-start fw-bold fs-4 col-sm-2">
-                  Address:
-                </label>
-                <div className="col-sm-5">
-                  <input
-                    type="text"
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">Address Line 1</label>
+                  <input 
+                    type="text" 
                     className="form-control"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
+                    name="addressLine1"
+                    value={formData.addressLine1}
+                    onChange={handleChange}/>
                 </div>
-              </div>
-            </form>
-
-            {/* Messages */}
-            {errorMessage && <p className="text-danger">{errorMessage}</p>}
-            {successMessage && <p className="text-success">{successMessage}</p>}
-
-            {/* Save Button */}
-            <div className="d-grid gap-2 d-md-flex justify-content-md-end me-5">
-              <button
-                onClick={handleSave}
-                className="btn btn-lg bg-mint text-light fw-bold"
-              >
-                Save
-              </button>
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">Apt, Suite, etc.</label>
+                  <input 
+                    type="text" 
+                    className="form-control"
+                    name="addressLine2"
+                    value={formData.addressLine2}
+                    onChange={handleChange}/>
+                </div>
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">City</label>
+                  <input 
+                    type="text" 
+                    className="form-control"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}/>
+                </div>
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">State</label>
+                  <select
+                    name="state"
+                    className="form-control"
+                    value={formData.state}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select State</option>
+                    {states.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">Zip Code</label>
+                  <input 
+                    type="text" 
+                    className="form-control"
+                    name="zipCode"
+                    value={formData.zipCode}
+                    onChange={handleChange}/>
+                </div>
+                <div class="col-lg-6 col-md-12 mt-4">
+                  <label class="form-label">Country</label>
+                  <select
+                    name="country"
+                    className="form-control"
+                    value={formData.country}
+                    onChange={handleChange}
+                  >
+                    <option value="United States">United States</option>
+                  </select>
+                </div>
+                <div class="col-12 mt-4">
+                  <button type="button" onClick={handleSave} class="fw-bold btn text-white bg-green border-0 p-2">Save Changes</button>
+                </div>
+                {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                {successMessage && <p className="text-success">{successMessage}</p>}
+              </form>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
