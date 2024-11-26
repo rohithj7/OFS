@@ -131,6 +131,14 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
               </Link>
             </p>
           </div>
+          <div className="text-center mt-3">
+            <p>
+              Are you an admin?{" "}
+              <Link to="/admin-register" className="text-primary">
+                Register here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

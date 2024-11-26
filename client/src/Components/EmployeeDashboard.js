@@ -391,7 +391,6 @@ function EmployeeDashboard() {
                       <option value="">Select new status</option>
                       <option value="NOT STARTED">Not Started</option>
                       <option value="STARTED">Started</option>
-                      <option value="ONGOING">Ongoing</option>
                       <option value="COMPLETED">Completed</option>
                     </select>
                   </div>
