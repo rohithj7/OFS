@@ -19,6 +19,7 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Add this state
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -106,15 +107,26 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
               <label htmlFor="password">
                 <strong>Password</strong>
               </label>
-              <input
-                type="password"
-                placeholder="Password"
-                name="password"
-                className="form-control form-control-md rounded-2"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="input-group">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle between "text" and "password"
+                  placeholder="Password"
+                  name="password"
+                  className="form-control form-control-md rounded-2"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onMouseDown={() => setShowPassword(true)} // Show password on mouse down
+                  onMouseUp={() => setShowPassword(false)} // Hide password on mouse up
+                  onMouseLeave={() => setShowPassword(false)} // Hide password if mouse leaves the button
+                >
+                  Show
+                </button>
+              </div>
             </div>
 
             {errorMessage && <p className="text-danger">{errorMessage}</p>}

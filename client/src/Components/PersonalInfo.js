@@ -10,8 +10,7 @@ const PersonalInfo = () => {
     firstName: "",
     lastName: "",
     phone: "",
-    addressLine1: "",
-    addressLine2: "",
+    addressLine: "",
     city: "",
     state: "",
     zipCode: "",
@@ -41,7 +40,7 @@ const PersonalInfo = () => {
     const isStateValid = states.includes(formData.state);
     const isFirstNameValid = formData.firstName.trim() !== "";
     const isLastNameValid = formData.lastName.trim() !== "";
-    const isAddressFieldsValid = formData.addressLine1.trim() !== "" && formData.city.trim() !== "" && formData.state.trim() !== "" && formData.country.trim() !== "";
+    const isAddressFieldsValid = formData.addressLine.trim() !== "" && formData.city.trim() !== "" && formData.state.trim() !== "" && formData.country.trim() !== "";
     setIsAddressValid(isPhoneValid && isZipCodeValid && isStateValid && isFirstNameValid && isLastNameValid && isAddressFieldsValid);
   }, [formData]);
 
@@ -92,7 +91,6 @@ const PersonalInfo = () => {
       });
     }
   };
-=
   function normalizeAddressComponent(component) {
     return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g, match => {
       switch (match) {
@@ -130,12 +128,11 @@ const PersonalInfo = () => {
           const state = addressComponents.find(c => c.types.includes('administrative_area_level_1'))?.short_name === formData.state;
           const city = addressComponents.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'))?.long_name.toLowerCase() === formData.city.toLowerCase();
           const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
-          const addressLine1 = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine1));
-          const addressLine2 = formData.addressLine2 ? normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine2)) : true;
+          const addressLine = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine));
 
-          console.log('Validation results:', { country, state, city, postalCode, addressLine1, addressLine2 });
+          console.log('Validation results:', { country, state, city, postalCode, addressLine });
 
-          if (country && state && city && postalCode && addressLine1 && addressLine2) {
+          if (country && state && city && postalCode && addressLine ) {
             console.log('Address is valid:', address);
             return true;
           } else {
@@ -156,8 +153,8 @@ const PersonalInfo = () => {
  
   const getInvalidAddressComponents = () => {
     const invalidComponents = [];
-    if (formData.addressLine1.trim() === "") {
-      invalidComponents.push("Address Line 1");
+    if (formData.addressLine.trim() === "") {
+      invalidComponents.push("Address Line");
     }
     if (formData.city.trim() === "") {
       invalidComponents.push("City");
@@ -195,7 +192,7 @@ const PersonalInfo = () => {
     }
 
     // Concatenate address fields
-    const fullAddress = `${formData.addressLine1}${formData.addressLine2 ? ' ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
+    const fullAddress = `${formData.addressLine}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
 
     // Validate address
     const isAddressValid = await validateAddress(fullAddress, formData);
@@ -311,31 +308,17 @@ const PersonalInfo = () => {
             </div>
 
             <div className="mb-3">
-              <label htmlFor="addressLine1">
-                <strong>Address Line 1</strong> <span className="text-danger">*</span>
+              <label htmlFor="addressLine">
+                <strong>Address Line</strong> <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Enter address line 1"
-                name="addressLine1"
+                placeholder="Enter address line"
+                name="addressLine"
                 className="form-control form-control-md rounded-2"
-                value={formData.addressLine1}
+                value={formData.addressLine}
                 onChange={handleChange}
                 required
-              />
-            </div>
-
-            <div className="mb-3">
-              <label htmlFor="addressLine2">
-                <strong>Apt, Suite, etc.</strong>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter apt, suite, etc."
-                name="addressLine2"
-                className="form-control form-control-md rounded-2"
-                value={formData.addressLine2}
-                onChange={handleChange}
               />
             </div>
 
