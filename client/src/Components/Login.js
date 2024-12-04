@@ -44,13 +44,13 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
         setCart([]);
 
         // Handle first-time login for employees or suppliers
-        console.log("Response data:", response.data);
+        // console.log("Response data:", response.data);
         if (
           (response.data.role === "employee" ||
             response.data.role === "supplier") &&
           response.data.firstTimeLogin
         ) {
-          console.log("First-time login detected for employee");
+          // console.log("First-time login detected for employee");
           navigate("/update-password", {
             state: {
               email: email,

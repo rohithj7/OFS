@@ -195,7 +195,7 @@ const PersonalInfo = () => {
     return fetch(geocodingUrl)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Geocoding API response:", data);
+        // console.log("Geocoding API response:", data);
         if (data.status === "OK" && data.results.length > 0) {
           const firstResult = data.results[0];
           const addressComponents = firstResult.address_components;
@@ -205,13 +205,13 @@ const PersonalInfo = () => {
           const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
           const addressLine = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine));
 
-          console.log('Validation results:', { country, state, city, postalCode, addressLine });
+          // console.log('Validation results:', { country, state, city, postalCode, addressLine });
 
           if (country && state && city && postalCode && addressLine ) {
-            console.log('Address is valid:', address);
+            // console.log('Address is valid:', address);
             return true;
           } else {
-            console.log("Address may be invalid or ambiguous:", address);
+            // console.log("Address may be invalid or ambiguous:", address);
             return false;
           }
         } else {
@@ -681,7 +681,7 @@ const PersonalInfo = () => {
         <button type="submit" className="btn btn-md btn-dark w-100 px-5">
           <strong>Complete Registration</strong>
         </button>
-      </form>
+      </div>
     </div>
   );
 };

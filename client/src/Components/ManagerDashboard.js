@@ -204,7 +204,7 @@ function ManagerDashboard() {
         },
         { withCredentials: true }
       );
-      console.log("Registration response:", response.data);
+      // console.log("Registration response:", response.data);
       setOneTimePassword(response.data.oneTimePassword);
       setShowPasswordModal(true);
       alert("Employee added successfully!");
@@ -239,7 +239,7 @@ function ManagerDashboard() {
         },
         { withCredentials: true }
       );
-      console.log("Registration response:", res.data);
+      // console.log("Registration response:", res.data);
       setOneTimePassword(res.data.oneTimePassword);
       setShowPasswordModal(true);
       alert("Supplier added successfully!");
@@ -284,7 +284,7 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
-        console.log("Registration response:", res.data);
+        // console.log("Registration response:", res.data);
         setOneTimePassword(res.data.oneTimePassword);
         setShowPasswordModal(true);
         alert("Supplier added successfully!");
@@ -302,7 +302,7 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
-        console.log("Registration response:", response.data);
+        // console.log("Registration response:", response.data);
         setOneTimePassword(response.data.oneTimePassword);
         setShowPasswordModal(true);
         alert("Employee added successfully!");
@@ -341,18 +341,18 @@ function ManagerDashboard() {
     e.preventDefault();
 
     // Log the form values first
-    console.log("Form Values:", {
-      categoryId: e.target.categoryId.value,
-      productName: e.target.productName.value,
-      productDescription: e.target.productDescription.value,
-      brand: e.target.brand.value,
-      pictureUrl: e.target.pictureUrl.value,
-      quantity: e.target.quantity.value,
-      reorderLevel: e.target.reorderLevel.value,
-      // reorderQuantity: e.target.reorderQuantity.value,
-      price: e.target.price.value,
-      weight: e.target.weight.value,
-    });
+    // console.log("Form Values:", {
+    //   categoryId: e.target.categoryId.value,
+    //   productName: e.target.productName.value,
+    //   productDescription: e.target.productDescription.value,
+    //   brand: e.target.brand.value,
+    //   pictureUrl: e.target.pictureUrl.value,
+    //   quantity: e.target.quantity.value,
+    //   reorderLevel: e.target.reorderLevel.value,
+    //   // reorderQuantity: e.target.reorderQuantity.value,
+    //   price: e.target.price.value,
+    //   weight: e.target.weight.value,
+    // });
 
     const productData = {
       categoryId: Number(e.target.categoryId.value), // Changed to Number()
@@ -368,11 +368,11 @@ function ManagerDashboard() {
     };
 
     // Log the formatted data
-    console.log("Formatted Product Data:", productData);
+    // console.log("Formatted Product Data:", productData);
 
     try {
       // Log the request
-      console.log("Sending request to:", "http://localhost:8080/products");
+      // console.log("Sending request to:", "http://localhost:8080/products");
 
       const response = await axios.post(
         "http://localhost:8080/products",
@@ -386,7 +386,7 @@ function ManagerDashboard() {
       );
 
       // Log the response
-      console.log("Server Response:", response);
+      // console.log("Server Response:", response);
 
       if (response.status === 201) {
         toggleCreateProductModal();
@@ -472,7 +472,7 @@ function ManagerDashboard() {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        console.log("Attempting to delete product:", productId);
+        // console.log("Attempting to delete product:", productId);
 
         if (!productId) {
           throw new Error("Invalid product ID");
@@ -541,7 +541,7 @@ function ManagerDashboard() {
         weight: Number(editingProduct.WEIGHT),
       };
 
-      console.log("Sending update with data:", formData); // Debug log
+      // console.log("Sending update with data:", formData); // Debug log
 
       const response = await axios.put(
         `http://localhost:8080/products/${editingProduct.ID}`,
