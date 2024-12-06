@@ -1,0 +1,255 @@
+/* .App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} */
+
+body.active-modl {
+  overflow: hidden;
+}
+.card-product:hover {
+  border-color: #99D98C;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background-color: #99D98C;
+  /* color: white; */
+  text-decoration: none;
+}
+
+
+/* .button-minus.btn:hover{
+  color: #fff;
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+
+.button-plus.btn:hover{
+  color: #fff;
+  background-color: #99D98C;
+  border-color: #99D98C; set the color you want here*
+} */
+
+.alert-custom{
+  background-color:#DAF1D5;
+}
+
+/* .btn-close .text-reset{
+  --fc-btn-close-focus-shadow: 0 0 0 0.25rem rgba(10, 173, 10, .25);
+} */
+
+.input-spinner .button-minus, .input-spinner .button-plus {
+  height: 2rem;
+  width: 1.8rem;
+  
+  background-color: transparent;
+}
+
+.input-spinner .button-minus:hover{
+  color: #fff;
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+
+.input-spinner .button-plus:hover{
+  color: #fff;
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+
+.input-spinner .form-input {
+  width: 2rem !important;
+  height: 100%;
+  min-height: 2rem;
+  text-align: center;
+  border: 1px solid #99D98C;
+  background: 0 0;
+}
+
+/* .mb-3.account{
+  text-align: left;
+} */
+
+.product-search:active {
+  border-color: #99D98C;
+}
+
+html, body {
+  overflow-y: auto !important;
+}
+
+.btn.bg-green {
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+.btn.bg-green:hover {
+  background-color: #99D98C;
+}
+
+.btn-products-dropdown:hover {
+  /* &:hover {
+    background-color: var(--bs-btn-bg);
+    color: var(--bs-btn-color);
+  }
+  &:focus {
+    background-color: var(--bs-btn-bg);
+    color: var(--bs-btn-color);
+  }
+  &.active {
+    &:hover {
+      background-color: var(--bs-btn-active-bg);
+      color: var(--bs-btn-active-color);
+    }
+    &:focus {
+      background-color: var(--bs-btn-active-bg);
+      color: var(--bs-btn-active-color);
+    }
+  } */
+  /* border-color: #EB780A; */
+}
+
+.form-check-input:checked {
+  background-color: #99D98C;
+  border-color: #99D98C;
+}
+
+/* .form-select option {
+  background-color: #198754;
+  color: #fff;
+} */
+
+.form-select:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+/* when you select the input of a form, ex. input for login, there will be a green shadow/outline instead of default blue */
+.form-control:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+.btn-close:focus {
+  border-color: #99D98C;
+  box-shadow: 0 0 0 0.25rem rgb(153 217 140 / 50%);
+}
+
+.product-description-manager {
+  
+}
+
+.continueShoppingButton {
+  border-color: #97D3C2;
+}
+
+.continueShoppingButton:hover, .continueShoppingButton:hover:active {
+  background-color: #97D3C2;
+  color: white;
+  font-weight: bold;
+}
+
+.viewMyOrdersButton {
+  border-color: #99D98C;
+}
+
+.viewMyOrdersButton:hover, .viewMyOrdersButton:hover:active {
+  background-color: #99D98C;
+  color: white;
+  font-weight: bold;
+}
+
+.completeButton .completeIcon {
+  color: white;
+  /* color: black; */
+  
+}
+.completeButton {
+  background-color: #99D98C;
+}
+
+.completeButton:hover, .completeButton:hover:active {
+  background-color: white;
+  /* color: black; */
+  border-color:#99D98C;
+  .completeIcon {
+    /* background-color:white; */
+    color: #99D98C;
+  }
+  
+}
+
+.navbar {
+  position: relative;
+  z-index: 1030;
+}
+
+.dropdown-menu {
+  z-index: 1031;
+}
+
+.navbar .nav-link {
+  cursor: pointer;
+}
+
+/* Ensure dropdowns are clickable on mobile */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: inherit;
+    padding: 0.5rem 1rem;
+  }
+  
+  .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+  }
+}
+
+/* .orderProductButton {
+  border-color: #99D98C;
+} */
+
+.orderProductButton:hover, .orderProductButton:hover:active {
+  border-color: #99D98C;
+  background-color: #99D98C;
+  color: black;
+  
+}
+
