@@ -1306,8 +1306,6 @@ app.get("/validate-address", isAuthenticated, async (req, res) => {
 
     const features = response.data.features;
 
-    console.log(features);
-
     // Filter features for high relevance and address type
     const validFeature = features.find(
       (feature) =>
