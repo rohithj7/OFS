@@ -190,7 +190,7 @@ const DeliveryPage = () => {
     const coordinatesString = coordinates
       .map((coord) => `${coord[0]},${coord[1]}`)
       .join(';');
-    console.log(coordinatesString);
+    // console.log(coordinatesString);
 
     // Call the Mapbox API to get the route
     const url =
@@ -202,8 +202,8 @@ const DeliveryPage = () => {
     try {
       const response = await axios.get(url);
       const routeData = response.data;
-      console.log('routeData:', JSON.stringify(routeData, null, 2));
-      console.log(routeData.code);
+      // console.log('routeData:', JSON.stringify(routeData, null, 2));
+      // console.log(routeData.code);
       if (routeData.code !== 'Ok') {
         console.error('Mapbox API Error:', routeData.message || routeData);
         return;

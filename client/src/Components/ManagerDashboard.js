@@ -134,6 +134,9 @@ function ManagerDashboard() {
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [showSupplierNameTooltip, setShowSupplierNameTooltip] = useState(false);
   const [supplierNameFocused, setSupplierNameFocused] = useState(false);
+  const [showSSN, setShowSSN] = useState(false); // Add this state
+  const [showPassword, setShowPassword] = useState(false); // Add this state
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Add this state
 
   const validateSSN = (ssn) => {
     const regex = /^\d{3}-\d{2}-\d{4}$/;
@@ -201,7 +204,7 @@ function ManagerDashboard() {
         },
         { withCredentials: true }
       );
-      console.log("Registration response:", response.data);
+      // console.log("Registration response:", response.data);
       setOneTimePassword(response.data.oneTimePassword);
       setShowPasswordModal(true);
       alert("Employee added successfully!");
@@ -236,7 +239,7 @@ function ManagerDashboard() {
         },
         { withCredentials: true }
       );
-      console.log("Registration response:", res.data);
+      // console.log("Registration response:", res.data);
       setOneTimePassword(res.data.oneTimePassword);
       setShowPasswordModal(true);
       alert("Supplier added successfully!");
@@ -281,7 +284,7 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
-        console.log("Registration response:", res.data);
+        // console.log("Registration response:", res.data);
         setOneTimePassword(res.data.oneTimePassword);
         setShowPasswordModal(true);
         alert("Supplier added successfully!");
@@ -299,7 +302,7 @@ function ManagerDashboard() {
           },
           { withCredentials: true }
         );
-        console.log("Registration response:", response.data);
+        // console.log("Registration response:", response.data);
         setOneTimePassword(response.data.oneTimePassword);
         setShowPasswordModal(true);
         alert("Employee added successfully!");
@@ -338,18 +341,18 @@ function ManagerDashboard() {
     e.preventDefault();
 
     // Log the form values first
-    console.log("Form Values:", {
-      categoryId: e.target.categoryId.value,
-      productName: e.target.productName.value,
-      productDescription: e.target.productDescription.value,
-      brand: e.target.brand.value,
-      pictureUrl: e.target.pictureUrl.value,
-      quantity: e.target.quantity.value,
-      reorderLevel: e.target.reorderLevel.value,
-      // reorderQuantity: e.target.reorderQuantity.value,
-      price: e.target.price.value,
-      weight: e.target.weight.value,
-    });
+    // console.log("Form Values:", {
+    //   categoryId: e.target.categoryId.value,
+    //   productName: e.target.productName.value,
+    //   productDescription: e.target.productDescription.value,
+    //   brand: e.target.brand.value,
+    //   pictureUrl: e.target.pictureUrl.value,
+    //   quantity: e.target.quantity.value,
+    //   reorderLevel: e.target.reorderLevel.value,
+    //   // reorderQuantity: e.target.reorderQuantity.value,
+    //   price: e.target.price.value,
+    //   weight: e.target.weight.value,
+    // });
 
     const productData = {
       categoryId: Number(e.target.categoryId.value), // Changed to Number()
@@ -365,11 +368,11 @@ function ManagerDashboard() {
     };
 
     // Log the formatted data
-    console.log("Formatted Product Data:", productData);
+    // console.log("Formatted Product Data:", productData);
 
     try {
       // Log the request
-      console.log("Sending request to:", "http://localhost:8080/products");
+      // console.log("Sending request to:", "http://localhost:8080/products");
 
       const response = await axios.post(
         "http://localhost:8080/products",
@@ -383,7 +386,7 @@ function ManagerDashboard() {
       );
 
       // Log the response
-      console.log("Server Response:", response);
+      // console.log("Server Response:", response);
 
       if (response.status === 201) {
         toggleCreateProductModal();
@@ -469,7 +472,7 @@ function ManagerDashboard() {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        console.log("Attempting to delete product:", productId);
+        // console.log("Attempting to delete product:", productId);
 
         if (!productId) {
           throw new Error("Invalid product ID");
@@ -538,7 +541,7 @@ function ManagerDashboard() {
         weight: Number(editingProduct.WEIGHT),
       };
 
-      console.log("Sending update with data:", formData); // Debug log
+      // console.log("Sending update with data:", formData); // Debug log
 
       const response = await axios.put(
         `http://localhost:8080/products/${editingProduct.ID}`,
@@ -1642,22 +1645,33 @@ function ManagerDashboard() {
                                   <label class="form-label">
                                     SSN <span className="text-danger">*</span>
                                   </label>
-                                  <input
-                                    type="text"
-                                    class={`form-control ${!validateSSN(accountFormData.ssn) && ssnFocused ? "invalid-background" : ""}`}
-                                    placeholder="XXX-XX-XXXX"
-                                    value={accountFormData.ssn}
-                                    onChange={handleSSNChange}
-                                    onFocus={() => {
-                                      setShowSSNTooltip(true);
-                                      setSSNFocused(true);
-                                    }}
-                                    onBlur={() => {
-                                      setShowSSNTooltip(false);
-                                      setSSNFocused(false);
-                                    }}
-                                    required
-                                  />
+                                  <div className="input-group">
+                                    <input
+                                      type={showSSN ? "text" : "password"} // Toggle between "text" and "password"
+                                      class={`form-control ${!validateSSN(accountFormData.ssn) && ssnFocused ? "invalid-background" : ""}`}
+                                      placeholder="XXX-XX-XXXX"
+                                      value={accountFormData.ssn}
+                                      onChange={handleSSNChange}
+                                      onFocus={() => {
+                                        setShowSSNTooltip(true);
+                                        setSSNFocused(true);
+                                      }}
+                                      onBlur={() => {
+                                        setShowSSNTooltip(false);
+                                        setSSNFocused(false);
+                                      }}
+                                      required
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-secondary"
+                                      onMouseDown={() => setShowSSN(true)} // Show SSN on mouse down
+                                      onMouseUp={() => setShowSSN(false)} // Hide SSN on mouse up
+                                      onMouseLeave={() => setShowSSN(false)} // Hide SSN if mouse leaves the button
+                                    >
+                                      Show
+                                    </button>
+                                  </div>
                                   <Tooltip
                                     messages={[
                                       { text: "SSN must be in the format XXX-XX-XXXX", valid: validateSSN(accountFormData.ssn) },
@@ -2342,46 +2356,68 @@ function ManagerDashboard() {
                       <label className="form-label">
                         New Password <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="password"
-                        className={`form-control ${passwordError && passwordFocused ? "invalid-background" : ""}`}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        onFocus={() => {
-                          setShowPasswordTooltip(true);
-                          setPasswordFocused(true);
-                        }}
-                        onBlur={() => {
-                          setShowPasswordTooltip(false);
-                          setPasswordFocused(false);
-                        }}
-                        required
-                        minLength="14"
-                        placeholder="Enter new password"
-                      />
+                      <div className="input-group">
+                        <input
+                          type={showPassword ? "text" : "password"} // Toggle between "text" and "password"
+                          className={`form-control ${passwordError && passwordFocused ? "invalid-background" : ""}`}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          onFocus={() => {
+                            setShowPasswordTooltip(true);
+                            setPasswordFocused(true);
+                          }}
+                          onBlur={() => {
+                            setShowPasswordTooltip(false);
+                            setPasswordFocused(false);
+                          }}
+                          required
+                          minLength="14"
+                          placeholder="Enter new password"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onMouseDown={() => setShowPassword(true)} // Show password on mouse down
+                          onMouseUp={() => setShowPassword(false)} // Hide password on mouse up
+                          onMouseLeave={() => setShowPassword(false)} // Hide password if mouse leaves the button
+                        >
+                          Show
+                        </button>
+                      </div>
                       <Tooltip messages={validatePassword(newPassword)} visible={showPasswordTooltip} />
                     </div>
                     <div className="mb-3 position-relative">
                       <label className="form-label">
                         Confirm New Password <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="password"
-                        className={`form-control ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        onFocus={() => {
-                          setShowConfirmPasswordTooltip(true);
-                          setConfirmPasswordFocused(true);
-                        }}
-                        onBlur={() => {
-                          setShowConfirmPasswordTooltip(false);
-                          setConfirmPasswordFocused(false);
-                        }}
-                        required
-                        disabled={!isPasswordValid}
-                        placeholder="Confirm new password"
-                      />
+                      <div className="input-group">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"} // Toggle between "text" and "password"
+                          className={`form-control ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          onFocus={() => {
+                            setShowConfirmPasswordTooltip(true);
+                            setConfirmPasswordFocused(true);
+                          }}
+                          onBlur={() => {
+                            setShowConfirmPasswordTooltip(false);
+                            setConfirmPasswordFocused(false);
+                          }}
+                          required
+                          disabled={!isPasswordValid}
+                          placeholder="Confirm new password"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onMouseDown={() => setShowConfirmPassword(true)} // Show confirm password on mouse down
+                          onMouseUp={() => setShowConfirmPassword(false)} // Hide confirm password on mouse up
+                          onMouseLeave={() => setShowConfirmPassword(false)} // Hide confirm password if mouse leaves the button
+                        >
+                          Show
+                        </button>
+                      </div>
                       <Tooltip
                         messages={[
                           { text: "Passwords must match", valid: passwordsMatch },

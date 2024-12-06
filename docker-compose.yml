@@ -1,38 +1,41 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: rohithj7/grocerygo-mysql:latest
     container_name: mysql_container
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"  # Pulls from environment in workflow
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-    volumes:
-      - ./database/db.sql:/docker-entrypoint-initdb.d/init.sql  # Load the SQL file at startup
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"      # Set via .env
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"          # Set via .env
     ports:
       - "3307:3306"
     networks:
       - ofs-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: ./server
+    image: rohithj7/grocerygo-backend:latest
     container_name: backend_container
     environment:
-      MYSQL_HOST: "${MYSQL_HOST}"
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      SESSION_SECRET: "${SESSION_SECRET}"
-      PORT: "${PORT}"
-    volumes:
-      - ./server:/app/OFS/server
+      MYSQL_HOST: "mysql"                           # Service name for networking
+      MYSQL_USER: "${MYSQL_USER}"                   # Set via .env
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"           # Set via .env
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"           # Set via .env
+      SESSION_SECRET: "${SESSION_SECRET}"           # Set via .env
+      PORT: "${PORT}"                               # Set via .env
     ports:
       - "8080:8080"
+      - "8082:8082"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - ofs-network
 
   frontend:
-    build: ./client
+    image: rohithj7/grocerygo-frontend:latest
     container_name: frontend_container
     ports:
       - "3000:80"
