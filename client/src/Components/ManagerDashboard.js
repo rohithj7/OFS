@@ -835,6 +835,21 @@ function ManagerDashboard() {
     );
   };
 
+
+// var out = document.querySelector(".foo");
+
+// if (out) {  // Check if the element with class .foo exists
+//   console.log(out);              // Log the element to the console
+//   let text = out.textContent;      // Get the inner HTML of the element
+//   console.log(text);             // Log the inner HTML
+
+//   let str = text.replace(/(.{20})/g, '<br/>');  // Replace every 10 characters with <br/>
+//   out.innerHTML = str;           // Set the modified HTML back to the element
+//   console.log("Found!");
+// } else {
+//   console.log("Element with class '.foo' not found.");
+// }
+
   return (
     <div className="container mt-4">
       {/* Welcome Banner */}
@@ -1348,7 +1363,7 @@ function ManagerDashboard() {
                           <td className="text-center align-middle">
                             {product.BRAND}
                           </td>
-                          <td className="text-center align-middle">
+                          <td className="text-center align-middle text-wrap foo">
                             {product.PRODUCTDESCRIPTION}
                           </td>
                           <td className="text-center align-middle">
@@ -1993,7 +2008,7 @@ function ManagerDashboard() {
                                 name="productName"
                                 className="form-control"
                                 placeholder="e.g. Apples"
-                                required
+                                required minlength="1" maxlength="25"
                               />
                             </div>
                             <div className="mb-3">
@@ -2004,7 +2019,7 @@ function ManagerDashboard() {
                                 name="productDescription"
                                 className="form-control"
                                 placeholder="e.g. Fresh red apples"
-                                required
+                                required minlength="1" maxlength="100"
                               ></textarea>
                             </div>
                             <div className="mb-3">
@@ -2014,7 +2029,7 @@ function ManagerDashboard() {
                                 name="brand"
                                 className="form-control"
                                 placeholder="e.g. Fresh Foods"
-                                required
+                                required minlength="1" maxlength="15"
                               />
                             </div>
                             <div className="mb-3">
@@ -2036,6 +2051,7 @@ function ManagerDashboard() {
                                 name="quantity"
                                 className="form-control"
                                 min="0"
+                                max="200"
                                 step="1"
                                 placeholder="e.g. 100"
                                 required
@@ -2050,6 +2066,7 @@ function ManagerDashboard() {
                                 name="reorderLevel"
                                 className="form-control"
                                 min="0"
+                                max="200"
                                 step="1"
                                 placeholder="e.g. 20"
                                 required
@@ -2064,6 +2081,7 @@ function ManagerDashboard() {
                                 className="form-control"
                                 min="0.01"
                                 step="0.01"
+                                max="100"
                                 placeholder="e.g. 1.99"
                                 required
                               />
@@ -2078,6 +2096,7 @@ function ManagerDashboard() {
                                 className="form-control"
                                 min="0.01"
                                 step="0.01"
+                                max="800"
                                 placeholder="e.g. 0.5"
                                 required
                               />
