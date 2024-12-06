@@ -6,8 +6,8 @@ import dotenv from 'dotenv';
 import moment from 'moment';
 dotenv.config();
 
-const TIME_LIMIT_MINUTES = 0;
-const WEIGHT_LIMIT_LBS = 200;
+const TIME_LIMIT_MINUTES = 10;
+const WEIGHT_LIMIT_LBS = 3200;
 const WAREHOUSE_LATITUDE = parseFloat(process.env.WAREHOUSE_LATITUDE);
 const WAREHOUSE_LONGITUDE = parseFloat(process.env.WAREHOUSE_LONGITUDE);
 
@@ -40,7 +40,11 @@ export async function dispatchSales(saleIds = null) {
         }
 
         // **Corrected Query Construction**
-        let salesQuery = `SELECT ID, SALEDATE FROM SALES WHERE SALE_STATUS = 'STARTED'`;
+        let salesQuery = `
+            SELECT ID, SALEDATE 
+            FROM SALES 
+            WHERE SALE_STATUS = 'STARTED'
+        `;
         let salesParams = [];
 
         if (saleIds && saleIds.length > 0) {
@@ -48,7 +52,8 @@ export async function dispatchSales(saleIds = null) {
             salesParams.push(saleIds);
         }
 
-        salesQuery += ` ORDER BY SALEDATE ASC`; // Add ORDER BY at the end
+        salesQuery += ` ORDER BY SALEDATE ASC
+        LIMIT 10;`; // Add ORDER BY at the end
 
         // Get 'STARTED' sales, optionally filtered by saleIds
         const [sales] = await connection.query(salesQuery, salesParams);
@@ -66,7 +71,7 @@ export async function dispatchSales(saleIds = null) {
 
         // Calculate the difference in minutes
         const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes'); // Use diff for minute calculation
-        console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
+        // console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
 
         // Get the total weight of 'STARTED' sales
         const [weightResult] = await connection.query(
@@ -79,8 +84,10 @@ export async function dispatchSales(saleIds = null) {
 
         const totalWeight = weightResult[0].total_weight || 0;
 
+        // console.log(`totalWeight = ${totalWeight} ounces`)
+
         // Determine if dispatching criteria are met
-        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight >= WEIGHT_LIMIT_LBS;
+        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight <= WEIGHT_LIMIT_LBS;
 
         if (shouldDispatch) {
             const saleIdsToDispatch = sales.map(sale => sale.ID);
@@ -107,7 +114,7 @@ export async function dispatchSales(saleIds = null) {
                 longitude: coord.LONGITUDE
             }));
 
-            console.log('Fetched Delivery Coordinates:', deliveryCoords);
+            // console.log('Fetched Delivery Coordinates:', deliveryCoords);
 
             // Validate coordinates
             const coordsForRoute = deliveryCoords.map(coord => ({
@@ -115,8 +122,8 @@ export async function dispatchSales(saleIds = null) {
                 longitude: coord.longitude
             }));
 
-            console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
-            console.log('Coordinates for Route:', coordsForRoute);
+            // console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
+            // console.log('Coordinates for Route:', coordsForRoute);
 
             // Validate coordinates
             coordsForRoute.forEach((coord, index) => {
@@ -137,7 +144,7 @@ export async function dispatchSales(saleIds = null) {
 
             // Get the optimized route
             const routeData = await getOptimizedRoute(startCoord, coordsForRoute);
-            console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
+            // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
 
             // Annotate waypoints with sale IDs
             const waypoints = routeData.waypoints;
@@ -174,10 +181,10 @@ export async function dispatchSales(saleIds = null) {
 
             // Broadcast the new route data via WebSocket
             broadcastRouteData(routeData);
-            console.log("Broadcast done.");
+            // console.log("Broadcast done.");
 
             simulateBotMovement(routeData, routeId);
-            console.log("Simulation started.");
+            // console.log("Simulation started.");
         } else {
             console.log('Dispatching criteria not met. Skipping dispatch.');
             await connection.commit();

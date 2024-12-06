@@ -35,7 +35,7 @@ function Orders() {
         const response = await axios.get("http://localhost:8080/sales", {
           withCredentials: true,
         });
-        console.log("Fetched orders:", response.data); // Debug line
+        // console.log("Fetched orders:", response.data); // Debug line
         setOrders(response.data);
       } catch (err) {
         console.error("Error fetching orders:", err);

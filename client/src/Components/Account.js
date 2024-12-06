@@ -2,13 +2,73 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Tooltip from "./Tooltip"; // Import Tooltip component
 
-export default function Account() {
+const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
+function normalizeAddressComponent(component) {
+  return component.toLowerCase().replace(/\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g, match => {
+    switch (match) {
+      case 'dr': return 'drive';
+      case 'st': return 'street';
+      case 'rd': return 'road';
+      case 'ave': return 'avenue';
+      case 'blvd': return 'boulevard';
+      case 'ln': return 'lane';
+      case 'ct': return 'court';
+      case 'pl': return 'place';
+      case 'sq': return 'square';
+      case 'ter': return 'terrace';
+      case 'pkwy': return 'parkway';
+      case 'cir': return 'circle';
+      case 'apt': return 'apartment';
+      case 'ste': return 'suite';
+      default: return match;
+    }
+  });
+}
+
+function validateAddress(address, formData) {
+  const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
+
+  return fetch(geocodingUrl)
+    .then(response => response.json())
+    .then(data => {
+      // console.log('Geocoding API response:', data);
+      if (data.status === 'OK' && data.results.length > 0) {
+        const firstResult = data.results[0];
+        const addressComponents = firstResult.address_components;
+
+        const country = addressComponents.find(c => c.types.includes('country'))?.short_name === 'US';
+        const state = addressComponents.find(c => c.types.includes('administrative_area_level_1'))?.short_name === formData.state;
+        const city = addressComponents.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'))?.long_name.toLowerCase() === formData.city.toLowerCase();
+        const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
+        const addressLine = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine));
+
+        // console.log('Validation results:', { country, state, city, postalCode, addressLine });
+
+        if (country && state && city && postalCode && addressLine ) {
+          // console.log('Address is valid:', address);
+          return true;
+        } else {
+          // console.log('Address may be invalid or ambiguous:', address);
+          return false;
+        }
+      } else {
+        // console.log('Address not found:', address);
+        return false;
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching geocoding data:', error);
+      return false;
+    });
+}
+
+export default function NewAccount() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
-    addressLine1: "",
-    addressLine2: "",
+    addressLine: "",
     city: "",
     state: "",
     zipCode: "",
@@ -34,17 +94,18 @@ export default function Account() {
 
         const addressParts = response.data.ADDRESS.split(", ");
         const stateZip = addressParts[2].split(" ");
-        setFormData({
+        const fetchedData = {
           firstName: response.data.FIRSTNAME || "",
           lastName: response.data.LASTNAME || "",
           phone: response.data.PHONE || "",
-          addressLine1: addressParts[0] || "",
-          addressLine2: response.data.ADDRESS_LINE2 || "", // Ensure addressLine2 is processed separately
+          addressLine: addressParts[0] || "",
           city: addressParts[1] || "",
           state: stateZip[0] || "",
           zipCode: stateZip[1] || "",
           country: addressParts[3] || "United States",
-        });
+        };
+        setFormData(fetchedData);
+        setSavedData(fetchedData); // Set saved data
       } catch (error) {
         console.error("Error fetching customer info:", error);
         setErrorMessage("Failed to load customer information.");
@@ -85,20 +146,42 @@ export default function Account() {
     }
   };
 
+  const isFormValid = () => {
+    const phoneDigits = formData.phone.replace(/[^\d]/g, "");
+    const isPhoneValid = phoneDigits.length === 10;
+    const isStateValid = states.includes(formData.state);
+    const isZipCodeValid = formData.zipCode.replace(/[^\d]/g, "").length === 5;
+    const isFirstNameValid = formData.firstName.trim() !== "";
+    const isLastNameValid = formData.lastName.trim() !== "";
+    const isAddressLineValid = formData.addressLine.trim() !== "";
+    const isCityValid = formData.city.trim() !== "";
+    const isCountryValid = formData.country.trim() !== "";
+
+    return isPhoneValid && isStateValid && isZipCodeValid && isFirstNameValid && isLastNameValid && isAddressLineValid && isCityValid && isCountryValid;
+  };
+
+  const isFormChanged = () => {
+    return (
+      formData.firstName !== savedData?.firstName ||
+      formData.lastName !== savedData?.lastName ||
+      formData.phone !== savedData?.phone ||
+      formData.addressLine !== savedData?.addressLine ||
+      formData.city !== savedData?.city ||
+      formData.state !== savedData?.state ||
+      formData.zipCode !== savedData?.zipCode ||
+      formData.country !== savedData?.country
+    );
+  };
+
   // Submit updated info to backend
   const handleSave = async () => {
     try {
-      const fullAddress = `${formData.addressLine1}${formData.addressLine2 ? ', ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
+      const fullAddress = `${formData.addressLine}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
       const requestData = {
         firstName: formData.firstName || null,
         lastName: formData.lastName || null,
         phone: formData.phone || null,
-        addressLine1: formData.addressLine1 || null,
-        addressLine2: formData.addressLine2 || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        zipCode: formData.zipCode || null,
-        country: formData.country || null,
+        address: fullAddress,
         latitude: null,
         longitude: null,
       };
@@ -106,6 +189,12 @@ export default function Account() {
       const phoneDigits = formData.phone.replace(/[^\d]/g, "");
       if (phoneDigits.length !== 10) {
         setErrorMessage("Phone number must be exactly 10 digits.");
+        return;
+      }
+
+      const isAddressValid = await validateAddress(fullAddress, formData);
+      if (!isAddressValid) {
+        alert("Invalid address. Please enter a valid address.");
         return;
       }
 
@@ -120,7 +209,7 @@ export default function Account() {
         }
       );
       if (response.status === 200) {
-        setSuccessMessage("Information updated successfully.");
+        alert("Information updated successfully.");
         setSavedData(formData); // Update saved data
         setErrorMessage(""); // Clear error message on success
       }
@@ -132,35 +221,35 @@ export default function Account() {
 
   return (
     <>
-      <div class="py-5 mt-3 mb-5 container w-75">
-        <div class="row mt-5">
-          <div class="p-4 card-lg card border border-2">
-            <h3 class="pt-4 my-2 fs-3 ms-4">Your Information</h3>
-            <div class="p-4 card-body">
+      <div className="py-5 mt-3 mb-5 container w-75">
+        <div className="row mt-5">
+          <div className="p-4 card-lg card border border-2">
+            <h3 className="pt-4 my-2 fs-3 ms-4">Your Information</h3>
+            <div className="p-4 card-body">
               <p><strong>First Name:</strong> {savedData ? savedData.firstName : formData.firstName}</p>
               <p><strong>Last Name:</strong> {savedData ? savedData.lastName : formData.lastName}</p>
               <p><strong>Phone:</strong> {savedData ? savedData.phone : formData.phone}</p>
-              <p><strong>Address:</strong> {savedData ? `${savedData.addressLine1}${savedData.addressLine2 ? ', ' + savedData.addressLine2 : ''}, ${savedData.city}, ${savedData.state} ${savedData.zipCode}, ${savedData.country}` : `${formData.addressLine1}${formData.addressLine2 ? ', ' + formData.addressLine2 : ''}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`}</p>
+              <p><strong>Address:</strong> {savedData ? `${savedData.addressLine}, ${savedData.city}, ${savedData.state} ${savedData.zipCode}, ${savedData.country}` : `${formData.addressLine}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`}</p>
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="mt-5 p-4 card-lg card border border-2">
-            <h3 class="pt-4 my-2 fs-3 ms-4">Account Details</h3>
-            <p class="mb-0 fs-6 ms-4">Edit your personal information.</p>
-            <div class="p-4 card-body">
-              <form class="row g-3">
-                <div class="col-lg-6 col-md-12">
-                  <label class="form-label">First Name</label>
+        <div className="row">
+          <div className="mt-5 p-4 card-lg card border border-2">
+            <h3 className="pt-4 my-2 fs-3 ms-4">Account Details</h3>
+            <p className="mb-0 fs-6 ms-4">Edit your personal information.</p>
+            <div className="p-4 card-body">
+              <form className="row g-3">
+                <div className="col-lg-6 col-md-12">
+                  <label className="form-label">First Name</label>
                   <input 
                     type="text" 
-                    class="form-control bg-white" 
+                    className="form-control bg-white" 
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}/>
                 </div>
-                <div class="col-lg-6 col-md-12">
-                  <label class="form-label">Last Name</label>
+                <div className="col-lg-6 col-md-12">
+                  <label className="form-label">Last Name</label>
                   <input 
                     type="text" 
                     className="form-control"
@@ -168,8 +257,8 @@ export default function Account() {
                     value={formData.lastName}
                     onChange={handleChange}/>
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4 position-relative">
-                  <label class="form-label">Phone</label>
+                <div className="col-lg-6 col-md-12 mt-4 position-relative">
+                  <label className="form-label">Phone</label>
                   <input 
                     type="text" 
                     className="form-control"
@@ -192,26 +281,17 @@ export default function Account() {
                     visible={showPhoneTooltip}
                   />
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">Address Line 1</label>
+                <div className="col-lg-6 col-md-12 mt-4">
+                  <label className="form-label">Address Line</label>
                   <input 
                     type="text" 
                     className="form-control"
-                    name="addressLine1"
-                    value={formData.addressLine1}
+                    name="addressLine"
+                    value={formData.addressLine}
                     onChange={handleChange}/>
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">Apt, Suite, etc.</label>
-                  <input 
-                    type="text" 
-                    className="form-control"
-                    name="addressLine2"
-                    value={formData.addressLine2}
-                    onChange={handleChange}/>
-                </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">City</label>
+                <div className="col-lg-6 col-md-12 mt-4">
+                  <label className="form-label">City</label>
                   <input 
                     type="text" 
                     className="form-control"
@@ -219,8 +299,8 @@ export default function Account() {
                     value={formData.city}
                     onChange={handleChange}/>
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">State</label>
+                <div className="col-lg-6 col-md-12 mt-4">
+                  <label className="form-label">State</label>
                   <select
                     name="state"
                     className="form-control"
@@ -235,8 +315,8 @@ export default function Account() {
                     ))}
                   </select>
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">Zip Code</label>
+                <div className="col-lg-6 col-md-12 mt-4">
+                  <label className="form-label">Zip Code</label>
                   <input 
                     type="text" 
                     className="form-control"
@@ -244,8 +324,8 @@ export default function Account() {
                     value={formData.zipCode}
                     onChange={handleChange}/>
                 </div>
-                <div class="col-lg-6 col-md-12 mt-4">
-                  <label class="form-label">Country</label>
+                <div className="col-lg-6 col-md-12 mt-4">
+                  <label className="form-label">Country</label>
                   <select
                     name="country"
                     className="form-control"
@@ -255,8 +335,15 @@ export default function Account() {
                     <option value="United States">United States</option>
                   </select>
                 </div>
-                <div class="col-12 mt-4">
-                  <button type="button" onClick={handleSave} class="fw-bold btn text-white bg-green border-0 p-2">Save Changes</button>
+                <div className="col-12 mt-4">
+                  <button 
+                    type="button" 
+                    onClick={handleSave} 
+                    className="fw-bold btn text-white bg-green border-0 p-2"
+                    disabled={!isFormValid() || !isFormChanged()}
+                  >
+                    Save Changes
+                  </button>
                 </div>
                 {errorMessage && <p className="text-danger">{errorMessage}</p>}
                 {successMessage && <p className="text-success">{successMessage}</p>}

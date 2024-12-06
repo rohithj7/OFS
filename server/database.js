@@ -212,13 +212,13 @@ export async function createEmployee(employeeData) {
 }
 
 export async function getEmployees() {
-  const sql = `SELECT * FROM Employees`;
+  const sql = `SELECT * FROM EMPLOYEES`;
   const [result] = await pool.query(sql);
   return result;
 }
 
 export async function getEmployeeById(id) {
-  const sql = `SELECT * FROM Employees WHERE ID = ?`;
+  const sql = `SELECT * FROM EMPLOYEES WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result[0];
 }
@@ -237,7 +237,7 @@ export async function updateEmployee(
   endDate
 ) {
   const sql = `
-        UPDATE Employees
+        UPDATE EMPLOYEES
         SET LOGINID = ?, FIRSTNAME = ?, LASTNAME = ?, SSN = ?, EMAIL = ?, PHONE = ?, ADDRESS = ?, SALARY = ?, STARTDATE = ?, ENDDATE = ?
         WHERE ID = ?
     `;
@@ -258,7 +258,7 @@ export async function updateEmployee(
 }
 
 export async function deleteEmployee(id) {
-  const sql = `DELETE FROM Employees WHERE ID = ?`;
+  const sql = `DELETE FROM EMPLOYEES WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result.affectedRows > 0;
 }
@@ -279,7 +279,7 @@ export async function getEmployeeBySSN(ssn) {
 
 export async function createEmployeeHours(employeeId, hoursWorked) {
   const sql = `
-        INSERT INTO Employee_Hours (EMPLOYEEID, HOURSWORKED)
+        INSERT INTO EMPLOYEE_HOURS (EMPLOYEEID, HOURSWORKED)
         VALUES (?, ?)
     `;
   const [result] = await pool.query(sql, [employeeId, hoursWorked]);
@@ -288,20 +288,20 @@ export async function createEmployeeHours(employeeId, hoursWorked) {
 }
 
 export async function getEmployeeHours() {
-  const sql = `SELECT * FROM Employee_Hours`;
+  const sql = `SELECT * FROM EMPLOYEE_HOURS`;
   const [result] = await pool.query(sql);
   return result;
 }
 
 export async function getEmployeeHoursById(id) {
-  const sql = `SELECT * FROM Employee_Hours WHERE ID = ?`;
+  const sql = `SELECT * FROM EMPLOYEE_HOURS WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result[0];
 }
 
 export async function updateEmployeeHours(id, employeeId, hoursWorked) {
   const sql = `
-        UPDATE Employee_Hours
+        UPDATE EMPLOYEE_HOURS
         SET EMPLOYEEID = ?, HOURSWORKED = ?
         WHERE ID = ?
     `;
@@ -310,7 +310,7 @@ export async function updateEmployeeHours(id, employeeId, hoursWorked) {
 }
 
 export async function deleteEmployeeHours(id) {
-  const sql = `DELETE FROM Employee_Hours WHERE ID = ?`;
+  const sql = `DELETE FROM EMPLOYEE_HOURS WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result.affectedRows > 0;
 }
@@ -602,7 +602,7 @@ export async function createSupplier(
   address
 ) {
   const sql = `
-        INSERT INTO Suppliers (LOGINID, SUPPLIERNAME, EMAIL, PHONE, ADDRESS)
+        INSERT INTO SUPPLIERS (LOGINID, SUPPLIERNAME, EMAIL, PHONE, ADDRESS)
         VALUES (?, ?, ?, ?, ?)
     `;
   const [result] = await pool.query(sql, [
@@ -617,13 +617,13 @@ export async function createSupplier(
 }
 
 export async function getSuppliers() {
-  const sql = `SELECT * FROM Suppliers`;
+  const sql = `SELECT * FROM SUPPLIERS`;
   const [result] = await pool.query(sql);
   return result;
 }
 
 export async function getSupplierById(id) {
-  const sql = `SELECT * FROM Suppliers WHERE ID = ?`;
+  const sql = `SELECT * FROM SUPPLIERS WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result[0];
 }
@@ -637,7 +637,7 @@ export async function updateSupplier(
   address
 ) {
   const sql = `
-        UPDATE Suppliers
+        UPDATE SUPPLIERS
         SET LOGINID = ?, SUPPLIERNAME = ?, EMAIL = ?, PHONE = ?, ADDRESS = ?
         WHERE ID = ?
     `;
@@ -653,7 +653,7 @@ export async function updateSupplier(
 }
 
 export async function deleteSupplier(id) {
-  const sql = `DELETE FROM Suppliers WHERE ID = ?`;
+  const sql = `DELETE FROM SUPPLIERS WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result.affectedRows > 0;
 }
@@ -692,7 +692,7 @@ export async function createCustomer(
 }
 
 export async function getCustomers() {
-  const sql = `SELECT * FROM Customers`;
+  const sql = `SELECT * FROM CUSTOMERS`;
   const [result] = await pool.query(sql);
   return result;
 }
@@ -744,7 +744,7 @@ export async function updateCustomerInfo(loginId, customerInfo) {
 }
 
 export async function deleteCustomer(id) {
-  const sql = `DELETE FROM Customers WHERE ID = ?`;
+  const sql = `DELETE FROM CUSTOMERS WHERE ID = ?`;
   const [result] = await pool.query(sql, [id]);
   return result.affectedRows > 0;
 }
@@ -1000,16 +1000,32 @@ export async function checkProductAvailability(products) {
   return unavailableProducts;
 }
 
-// Place Sale
+// place sale for final sale
 export async function placeSale(customerId, products, stripePaymentId) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
+    // Check for existing active sales
+    const activeSaleCheckSql = `
+      SELECT ID, SALE_STATUS
+      FROM SALES
+      WHERE CUSTOMERID = ? AND SALE_STATUS IN ('NOT STARTED', 'STARTED', 'ONGOING')
+    `;
+
+    const [activeSales] = await connection.execute(activeSaleCheckSql, [customerId]);
+
+    if (activeSales.length > 0) {
+      const existingSale = activeSales[0];
+      throw new Error(
+        `A sale already exists for this customer with status '${existingSale.SALE_STATUS}'. Complete it before creating a new sale.`
+      );
+    }
+
     const saleSql = `
-            INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
-            VALUES (?, ?, ?, ?, ?)
-        `;
+      INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
+      VALUES (?, ?, ?, ?, ?)
+    `;
     const totalPrice = await calculateTotalPrice(products);
     const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
     const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
