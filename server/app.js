@@ -1306,12 +1306,16 @@ app.get("/validate-address", isAuthenticated, async (req, res) => {
 
     const features = response.data.features;
 
-    if (
-      features &&
-      features.length > 0 &&
-      features.some((feature) => feature.place_type.includes("address"))
-    ) {
-      res.json({ isValid: true });
+    console.log(features);
+
+    // Filter features for high relevance and address type
+    const validFeature = features.find(
+      (feature) =>
+        feature.place_type.includes("address") && feature.relevance == 1
+    );
+
+    if (validFeature) {
+      res.json({ isValid: true, place: validFeature.place_name });
     } else {
       res.json({ isValid: false });
     }

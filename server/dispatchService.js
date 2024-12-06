@@ -71,7 +71,7 @@ export async function dispatchSales(saleIds = null) {
 
         // Calculate the difference in minutes
         const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes'); // Use diff for minute calculation
-        console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
+        // console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
 
         // Get the total weight of 'STARTED' sales
         const [weightResult] = await connection.query(
@@ -84,7 +84,7 @@ export async function dispatchSales(saleIds = null) {
 
         const totalWeight = weightResult[0].total_weight || 0;
 
-        console.log(`totalWeight = ${totalWeight} ounces`)
+        // console.log(`totalWeight = ${totalWeight} ounces`)
 
         // Determine if dispatching criteria are met
         const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight <= WEIGHT_LIMIT_LBS;
@@ -114,7 +114,7 @@ export async function dispatchSales(saleIds = null) {
                 longitude: coord.LONGITUDE
             }));
 
-            console.log('Fetched Delivery Coordinates:', deliveryCoords);
+            // console.log('Fetched Delivery Coordinates:', deliveryCoords);
 
             // Validate coordinates
             const coordsForRoute = deliveryCoords.map(coord => ({
@@ -122,8 +122,8 @@ export async function dispatchSales(saleIds = null) {
                 longitude: coord.longitude
             }));
 
-            console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
-            console.log('Coordinates for Route:', coordsForRoute);
+            // console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
+            // console.log('Coordinates for Route:', coordsForRoute);
 
             // Validate coordinates
             coordsForRoute.forEach((coord, index) => {
@@ -144,7 +144,7 @@ export async function dispatchSales(saleIds = null) {
 
             // Get the optimized route
             const routeData = await getOptimizedRoute(startCoord, coordsForRoute);
-            console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
+            // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
 
             // Annotate waypoints with sale IDs
             const waypoints = routeData.waypoints;
@@ -181,10 +181,10 @@ export async function dispatchSales(saleIds = null) {
 
             // Broadcast the new route data via WebSocket
             broadcastRouteData(routeData);
-            console.log("Broadcast done.");
+            // console.log("Broadcast done.");
 
             simulateBotMovement(routeData, routeId);
-            console.log("Simulation started.");
+            // console.log("Simulation started.");
         } else {
             console.log('Dispatching criteria not met. Skipping dispatch.');
             await connection.commit();
