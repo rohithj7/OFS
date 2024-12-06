@@ -238,7 +238,7 @@ const PersonalInfo = () => {
         longitude: null,
       };
 
-      console.log("Sending data to server:", requestData);
+      // console.log("Sending data to server:", requestData);
 
       const response = await axios.put(
         "http://localhost:8080/customerinfo",

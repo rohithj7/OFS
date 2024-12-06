@@ -1294,23 +1294,26 @@ export function notifyClientsAboutNewRoute(routeId) {
 
 app.get("/validate-address", isAuthenticated, async (req, res) => {
   try {
-    // Extract the address from the query parameters
     const { address } = req.query;
 
     if (!address) {
       return res.status(400).json({ message: "Address is required." });
     }
 
-    // Call the Mapbox Geocoding API
     const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
 
     const response = await axios.get(mapboxUrl);
 
-    // Check if the API response contains any features
     const features = response.data.features;
 
-    if (features && features.length > 0) {
-      res.json({ isValid: true });
+    // Filter features for high relevance and address type
+    const validFeature = features.find(
+      (feature) =>
+        feature.place_type.includes("address") && feature.relevance == 1
+    );
+
+    if (validFeature) {
+      res.json({ isValid: true, place: validFeature.place_name });
     } else {
       res.json({ isValid: false });
     }
