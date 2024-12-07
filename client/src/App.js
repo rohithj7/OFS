@@ -695,14 +695,6 @@ function App() {
           }
         />
         <Route
-        path="/OrderDetails/:id"
-        element={
-          <ProtectedRoute allowedRoles={["customer"]}>
-            <OrderDetails />
-          </ProtectedRoute>
-        }
-        />
-        <Route
           path="/Products/Vegetables/:categoryId"
           element={
             <Vegetables

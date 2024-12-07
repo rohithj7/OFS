@@ -35,19 +35,21 @@ function OrderDetails() {
   useEffect(() => {
     const fetchSaleDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/sales/${id}`, {
+        // Fetch sale details directly from the `/sales` endpoint
+        const response = await axios.get("http://localhost:8080/sales", {
           withCredentials: true,
         });
-    
-        if (response.data) {
+
+        // Find the sale with the specific sale ID
+        const sale = response.data.find((sale) => sale.saleId === parseInt(id));
+        if (sale) {
           setSaleProducts(
-            response.data.products.map((product) => ({
+            sale.products.map((product) => ({
               ...product,
-              price: product.UNIT_PRICE || product.price
             }))
           );
-          setTotalPrice(response.data.totalPrice);
-          setDeliveryFee(response.data.deliveryFee || 0);
+          setTotalPrice(sale.totalPrice);
+          setDeliveryFee(sale.deliveryFee || 0);
         } else {
           setError("Sale not found.");
         }
@@ -194,7 +196,7 @@ function OrderDetails() {
                           </td>
                           <td class="align-middle border-top-0">
                             <a class="text-decoration-none text-black text-center">
-                              <h6 class="mb-0"> ${Number(product.UNIT_PRICE || product.price).toFixed(2)}</h6>
+                              <h6 class="mb-0">{product.productName}</h6>
                             </a>
                           </td>
                           <td class="align-middle border-top-0">
@@ -239,7 +241,7 @@ function OrderDetails() {
                           <td class="align-middle border-top-0">
                             <a class="text-decoration-none text-black text-center">
                               <h6 class="mb-0">
-                              ${(product.quantity * (product.UNIT_PRICE || product.price)).toFixed(2)}
+                                ${(product.quantity * product.price).toFixed(2)}
                               </h6>
                             </a>
                           </td>
@@ -253,12 +255,12 @@ function OrderDetails() {
 
                 <div class="card-footer border-0 px-4 py-4 mt-2 bg-white">
                   <p className="text-end text-muted mb-2">
-                    Delivery Fee:${Number(deliveryFee).toFixed(2)}
+                    Delivery Fee: ${Number(deliveryFee).toFixed(2)}
                   </p>
                   <h5 class="d-flex align-items-center justify-content-end text-black mb-0 me-2">
                     Total paid:{" "}
                     <span class="h2 mb-0 ms-2">
-                    ${(Number(totalPrice) + Number(deliveryFee)).toFixed(2)}
+                      ${Number(totalPrice).toFixed(2)}
                     </span>
                   </h5>
                 </div>

@@ -934,39 +934,41 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
 // Protected route to place a sale
 app.post("/place-sale", isAuthenticated, async (req, res) => {
   try {
-      const { products, stripePaymentId } = req.body;
-      
-      if (!products || !Array.isArray(products) || products.length <= 0) {
-          return res.status(400).json({ message: "Invalid products data." });
-      }
-      
-      const loginId = req.user.ID;
-      const customer = await getCustomerById(loginId);
-      
-      // Get current prices and store them
-      const productsWithPrices = await Promise.all(
-          products.map(async (item) => {
-              const [product] = await pool.query(
-                  'SELECT PRICE FROM PRODUCTS WHERE ID = ?',
-                  [item.productId]
-              );
-              return {
-                  ...item,
-                  unitPrice: product[0].PRICE
-              };
-          })
-      );
-      
-      const saleResult = await placeSale(customer.ID, productsWithPrices, stripePaymentId);
-      
-      res.json({
-          message: "Sale placed successfully.",
-          saleId: saleResult.saleId,
-          totalPrice: saleResult.totalPrice
+    const { products, stripePaymentId } = req.body; // [{ productId, quantity }, ...]
+    if (!products || !Array.isArray(products) || products.length <= 0) {
+      return res.status(400).json({ message: "Invalid products data." });
+    }
+
+    if (!stripePaymentId) {
+      return res
+        .status(400)
+        .json({ message: "Stripe payment(ID) is required." });
+    }
+
+    // Check product availability
+    const unavailableProducts = await checkProductAvailability(products);
+
+    if (unavailableProducts.length > 0) {
+      return res.status(400).json({
+        message: "Some products are unavailable or insufficient quantity.",
+        unavailableProducts,
       });
+    }
+    // Get customer ID
+    const loginId = req.user.ID;
+    const customer = await getCustomerById(loginId);
+
+    // Place the sale
+    const saleResult = await placeSale(customer.ID, products, stripePaymentId);
+
+    res.json({
+      message: "Sale placed successfully.",
+      saleId: saleResult.saleId,
+      totalPrice: saleResult.totalPrice,
+    });
   } catch (error) {
-      console.error("Error placing sale:", error);
-      res.status(500).json({ message: "Internal server error." });
+    console.error("Error placing sale:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
