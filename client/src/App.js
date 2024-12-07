@@ -51,6 +51,7 @@ const stripePromise = loadStripe(
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [firstTimeLogin, setFirstTimeLogin] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
   const [showModal, setShowModal] = useState(false);
   const [redirectToCheckout, setRedirectToCheckout] = useState(false);
@@ -66,6 +67,7 @@ function App() {
       });
       setIsAuthenticated(false);
       setUserRole(null);
+      setFirstTimeLogin(false);
       setCart([]);
       navigate("/Login");
       alert("Logged out successfully");
@@ -537,9 +539,11 @@ function App() {
                     </svg>
                     Employee Mode
                   </span>
-                  <Link to="/EmployeeDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/EmployeeDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -566,9 +570,11 @@ function App() {
                     </svg>
                     Supplier Mode
                   </span>
-                  <Link to="/SupplierDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/SupplierDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -683,6 +689,7 @@ function App() {
             <Login
               setIsAuthenticated={setIsAuthenticated}
               setUserRole={setUserRole}
+              setFirstTimeLogin={setFirstTimeLogin}
               setCart={setCart}
             />
           }
@@ -1068,7 +1075,10 @@ function App() {
 
 function HomeWithProps() {
   const location = useLocation();
-  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  const { firstName, lastName } = location.state || {
+    firstName: "",
+    lastName: "",
+  };
   return <Home firstName={firstName} lastName={lastName} />;
 }
 

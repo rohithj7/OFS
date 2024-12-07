@@ -81,7 +81,7 @@ export default function Meals({ addToCart }) {
     if (searchTerm) {
       axios
         .get(`http://localhost:8080/product-search`, {
-          params: { q: searchTerm },
+          params: { q: searchTerm, categoryId: categoryId },
           withCredentials: true,
         })
         .then((res) => {

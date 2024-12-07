@@ -38,7 +38,8 @@ function ManagerDashboard() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-  const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
+  const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] =
+    useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [statistics, setStatistics] = useState({
@@ -158,7 +159,7 @@ function ManagerDashboard() {
     const regex = /^\d{0,6}(\.\d{0,2})?$/;
     if (regex.test(value)) {
       // Trim leading zeroes
-      value = value.replace(/^0+(?!\.|$)/, '');
+      value = value.replace(/^0+(?!\.|$)/, "");
       setAccountFormData({
         ...accountFormData,
         salary: value,
@@ -184,11 +185,15 @@ function ManagerDashboard() {
         return;
       }
       if (!validateSalary(accountFormData.salary)) {
-        alert("Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal.");
+        alert(
+          "Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal."
+        );
         return;
       }
       if (!validateStartDate(accountFormData.startDate)) {
-        alert("Start date must be within the last 5 years and not more than 1 year ahead.");
+        alert(
+          "Start date must be within the last 5 years and not more than 1 year ahead."
+        );
         return;
       }
       const response = await axios.post(
@@ -268,11 +273,15 @@ function ManagerDashboard() {
         return;
       }
       if (!validateSalary(accountFormData.salary)) {
-        alert("Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal.");
+        alert(
+          "Salary must be a number with 2 to 6 digits before the decimal and up to 2 digits after the decimal."
+        );
         return;
       }
       if (!validateStartDate(accountFormData.startDate)) {
-        alert("Start date must be within the last 5 years and not more than 1 year ahead.");
+        alert(
+          "Start date must be within the last 5 years and not more than 1 year ahead."
+        );
         return;
       }
       if (accountType === "supplier") {
@@ -829,26 +838,22 @@ function ManagerDashboard() {
   };
 
   const isSupplierFormValid = () => {
-    return (
-      validateEmail(accountFormData.email) &&
-      accountFormData.supplierName
-    );
+    return validateEmail(accountFormData.email) && accountFormData.supplierName;
   };
 
+  // var out = document.querySelector(".foo");
 
-// var out = document.querySelector(".foo");
+  // if (out) {  // Check if the element with class .foo exists
+  //   console.log(out);              // Log the element to the console
+  //   let text = out.textContent;      // Get the inner HTML of the element
+  //   console.log(text);             // Log the inner HTML
 
-// if (out) {  // Check if the element with class .foo exists
-//   console.log(out);              // Log the element to the console
-//   let text = out.textContent;      // Get the inner HTML of the element
-//   console.log(text);             // Log the inner HTML
-
-//   let str = text.replace(/(.{20})/g, '<br/>');  // Replace every 10 characters with <br/>
-//   out.innerHTML = str;           // Set the modified HTML back to the element
-//   console.log("Found!");
-// } else {
-//   console.log("Element with class '.foo' not found.");
-// }
+  //   let str = text.replace(/(.{20})/g, '<br/>');  // Replace every 10 characters with <br/>
+  //   out.innerHTML = str;           // Set the modified HTML back to the element
+  //   console.log("Found!");
+  // } else {
+  //   console.log("Element with class '.foo' not found.");
+  // }
 
   return (
     <div className="container mt-4">
@@ -1464,7 +1469,7 @@ function ManagerDashboard() {
                     onChange={(e) => setNewStatus(e.target.value)}
                   >
                     <option value="">Select new status</option>
-                    <option value="NOT STARTED">Not Started</option>
+                    {/*<option value="NOT STARTED">Not Started</option>  */}
                     <option value="STARTED">Started</option>
                     <option value="COMPLETED">Completed</option>
                   </select>
@@ -1538,17 +1543,29 @@ function ManagerDashboard() {
                             </select>
                           </div>
 
-                          <form onSubmit={accountType === "supplier" ? handleAddSupplier : handleAddEmployee}>
+                          <form
+                            onSubmit={
+                              accountType === "supplier"
+                                ? handleAddSupplier
+                                : handleAddEmployee
+                            }
+                          >
                             {accountType === "supplier" ? (
                               // Supplier Form
                               <>
                                 <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Email address <span className="text-danger">*</span>
+                                    Email address{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="email"
-                                    class={`form-control ${!validateEmail(accountFormData.email) && showEmailTooltip ? "invalid-background" : ""}`}
+                                    class={`form-control ${
+                                      !validateEmail(accountFormData.email) &&
+                                      showEmailTooltip
+                                        ? "invalid-background"
+                                        : ""
+                                    }`}
                                     placeholder="supplier@example.com"
                                     value={accountFormData.email}
                                     onChange={(e) =>
@@ -1562,7 +1579,12 @@ function ManagerDashboard() {
                                   />
                                   <Tooltip
                                     messages={[
-                                      { text: "Please enter a valid email address.", valid: validateEmail(accountFormData.email) },
+                                      {
+                                        text: "Please enter a valid email address.",
+                                        valid: validateEmail(
+                                          accountFormData.email
+                                        ),
+                                      },
                                     ]}
                                     visible={showEmailTooltip}
                                   />
@@ -1570,7 +1592,8 @@ function ManagerDashboard() {
 
                                 <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Supplier Name <span className="text-danger">*</span>
+                                    Supplier Name{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="text"
@@ -1592,18 +1615,27 @@ function ManagerDashboard() {
                                   />
                                   <Tooltip
                                     messages={[
-                                      { text: "Supplier name is required.", valid: accountFormData.supplierName.length > 0 },
+                                      {
+                                        text: "Supplier name is required.",
+                                        valid:
+                                          accountFormData.supplierName.length >
+                                          0,
+                                      },
                                     ]}
-                                    visible={supplierNameFocused && accountFormData.supplierName.length > 0}
+                                    visible={
+                                      supplierNameFocused &&
+                                      accountFormData.supplierName.length > 0
+                                    }
                                   />
                                 </div>
                               </>
                             ) : (
                               // Employee Form
                               <>
-                              <div class="mb-3">
+                                <div class="mb-3">
                                   <label class="form-label">
-                                    Email address <span className="text-danger">*</span>
+                                    Email address{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="email"
@@ -1622,7 +1654,8 @@ function ManagerDashboard() {
 
                                 <div class="mb-3">
                                   <label class="form-label">
-                                    First Name <span className="text-danger">*</span>
+                                    First Name{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="text"
@@ -1640,7 +1673,8 @@ function ManagerDashboard() {
                                 </div>
                                 <div class="mb-3">
                                   <label class="form-label">
-                                    Last Name <span className="text-danger">*</span>
+                                    Last Name{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="text"
@@ -1663,7 +1697,12 @@ function ManagerDashboard() {
                                   <div className="input-group">
                                     <input
                                       type={showSSN ? "text" : "password"} // Toggle between "text" and "password"
-                                      class={`form-control ${!validateSSN(accountFormData.ssn) && ssnFocused ? "invalid-background" : ""}`}
+                                      class={`form-control ${
+                                        !validateSSN(accountFormData.ssn) &&
+                                        ssnFocused
+                                          ? "invalid-background"
+                                          : ""
+                                      }`}
                                       placeholder="XXX-XX-XXXX"
                                       value={accountFormData.ssn}
                                       onChange={handleSSNChange}
@@ -1689,18 +1728,27 @@ function ManagerDashboard() {
                                   </div>
                                   <Tooltip
                                     messages={[
-                                      { text: "SSN must be in the format XXX-XX-XXXX", valid: validateSSN(accountFormData.ssn) },
+                                      {
+                                        text: "SSN must be in the format XXX-XX-XXXX",
+                                        valid: validateSSN(accountFormData.ssn),
+                                      },
                                     ]}
                                     visible={showSSNTooltip}
                                   />
                                 </div>
                                 <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Salary <span className="text-danger">*</span>
+                                    Salary{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="text"
-                                    class={`form-control ${!validateSalary(accountFormData.salary) && salaryFocused ? "invalid-background" : ""}`}
+                                    class={`form-control ${
+                                      !validateSalary(accountFormData.salary) &&
+                                      salaryFocused
+                                        ? "invalid-background"
+                                        : ""
+                                    }`}
                                     placeholder="Enter salary"
                                     value={accountFormData.salary}
                                     onChange={handleSalaryChange}
@@ -1716,25 +1764,41 @@ function ManagerDashboard() {
                                   />
                                   <Tooltip
                                     messages={[
-                                      { text: "Salary must be greater than zero", valid: parseFloat(accountFormData.salary) > 0 },
+                                      {
+                                        text: "Salary must be greater than zero",
+                                        valid:
+                                          parseFloat(accountFormData.salary) >
+                                          0,
+                                      },
                                     ]}
-                                    visible={showSalaryTooltip && !validateSalary(accountFormData.salary)}
+                                    visible={
+                                      showSalaryTooltip &&
+                                      !validateSalary(accountFormData.salary)
+                                    }
                                   />
                                 </div>
                                 <div class="mb-3 position-relative">
                                   <label class="form-label">
-                                    Start Date <span className="text-danger">*</span>
+                                    Start Date{" "}
+                                    <span className="text-danger">*</span>
                                   </label>
                                   <input
                                     type="date"
                                     class="form-control"
                                     value={accountFormData.startDate}
-                                    onChange={(e) => setAccountFormData({ ...accountFormData, startDate: e.target.value })}
+                                    onChange={(e) =>
+                                      setAccountFormData({
+                                        ...accountFormData,
+                                        startDate: e.target.value,
+                                      })
+                                    }
                                     onBlur={(e) => {
                                       const date = e.target.value;
                                       if (date && !validateStartDate(date)) {
                                         setShowStartDateTooltip(true);
-                                        alert("Start date must be within the last 5 years and not more than 1 year ahead.");
+                                        alert(
+                                          "Start date must be within the last 5 years and not more than 1 year ahead."
+                                        );
                                       } else {
                                         setShowStartDateTooltip(false);
                                       }
@@ -1748,7 +1812,12 @@ function ManagerDashboard() {
                                   />
                                   <Tooltip
                                     messages={[
-                                      { text: "Start date must be within the last 5 years and not more than 1 year ahead.", valid: validateStartDate(accountFormData.startDate) },
+                                      {
+                                        text: "Start date must be within the last 5 years and not more than 1 year ahead.",
+                                        valid: validateStartDate(
+                                          accountFormData.startDate
+                                        ),
+                                      },
                                     ]}
                                     visible={showStartDateTooltip}
                                   />
@@ -1765,7 +1834,11 @@ function ManagerDashboard() {
                                   setShowEmailTooltip(true);
                                 }
                               }}
-                              disabled={accountType === "supplier" ? !isSupplierFormValid() : !isEmployeeFormValid()}
+                              disabled={
+                                accountType === "supplier"
+                                  ? !isSupplierFormValid()
+                                  : !isEmployeeFormValid()
+                              }
                             >
                               Add{" "}
                               {accountType === "supplier"
@@ -2008,7 +2081,9 @@ function ManagerDashboard() {
                                 name="productName"
                                 className="form-control"
                                 placeholder="e.g. Apples"
-                                required minlength="1" maxlength="25"
+                                required
+                                minlength="1"
+                                maxlength="25"
                               />
                             </div>
                             <div className="mb-3">
@@ -2019,7 +2094,9 @@ function ManagerDashboard() {
                                 name="productDescription"
                                 className="form-control"
                                 placeholder="e.g. Fresh red apples"
-                                required minlength="1" maxlength="100"
+                                required
+                                minlength="1"
+                                maxlength="100"
                               ></textarea>
                             </div>
                             <div className="mb-3">
@@ -2029,7 +2106,9 @@ function ManagerDashboard() {
                                 name="brand"
                                 className="form-control"
                                 placeholder="e.g. Fresh Foods"
-                                required minlength="1" maxlength="15"
+                                required
+                                minlength="1"
+                                maxlength="15"
                               />
                             </div>
                             <div className="mb-3">
@@ -2378,7 +2457,11 @@ function ManagerDashboard() {
                       <div className="input-group">
                         <input
                           type={showPassword ? "text" : "password"} // Toggle between "text" and "password"
-                          className={`form-control ${passwordError && passwordFocused ? "invalid-background" : ""}`}
+                          className={`form-control ${
+                            passwordError && passwordFocused
+                              ? "invalid-background"
+                              : ""
+                          }`}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           onFocus={() => {
@@ -2403,18 +2486,28 @@ function ManagerDashboard() {
                           Show
                         </button>
                       </div>
-                      <Tooltip messages={validatePassword(newPassword)} visible={showPasswordTooltip} />
+                      <Tooltip
+                        messages={validatePassword(newPassword)}
+                        visible={showPasswordTooltip}
+                      />
                     </div>
                     <div className="mb-3 position-relative">
                       <label className="form-label">
-                        Confirm New Password <span className="text-danger">*</span>
+                        Confirm New Password{" "}
+                        <span className="text-danger">*</span>
                       </label>
                       <div className="input-group">
                         <input
                           type={showConfirmPassword ? "text" : "password"} // Toggle between "text" and "password"
-                          className={`form-control ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
+                          className={`form-control ${
+                            !passwordsMatch && confirmPasswordFocused
+                              ? "invalid-background"
+                              : ""
+                          }`}
                           value={confirmNewPassword}
-                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          onChange={(e) =>
+                            setConfirmNewPassword(e.target.value)
+                          }
                           onFocus={() => {
                             setShowConfirmPasswordTooltip(true);
                             setConfirmPasswordFocused(true);
@@ -2439,7 +2532,10 @@ function ManagerDashboard() {
                       </div>
                       <Tooltip
                         messages={[
-                          { text: "Passwords must match", valid: passwordsMatch },
+                          {
+                            text: "Passwords must match",
+                            valid: passwordsMatch,
+                          },
                         ]}
                         visible={showConfirmPasswordTooltip}
                       />

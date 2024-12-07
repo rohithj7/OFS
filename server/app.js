@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
 import Stripe from "stripe";
-import { WebSocketServer } from 'ws';
+import { WebSocketServer } from "ws";
 import axios from "axios";
 
 dotenv.config();
@@ -66,7 +66,7 @@ import {
   updateSaleDeliveryFee,
   getCustomerLocationById,
   getLatestSaleStatus,
-  getLatestOngoingSaleId
+  getLatestOngoingSaleId,
 } from "./database.js";
 import {
   registerAdmin,
@@ -77,7 +77,7 @@ import {
   updatePassword,
 } from "./userController.js";
 
-import './dispatch.js';
+import "./dispatch.js";
 
 const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -270,7 +270,6 @@ app.get("/getUserRole", isAuthenticated, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -684,11 +683,12 @@ app.delete("/products/:id", isAuthenticated, async (req, res) => {
 app.get("/product-search", async (req, res) => {
   try {
     const searchTerm = req.query.q;
+    const categoryId = req.query.categoryId;
     if (!searchTerm) {
       return res.status(400).json({ message: "Search term is required." });
     }
 
-    const products = await searchProductsByName(searchTerm);
+    const products = await searchProductsByName(searchTerm, categoryId);
     res.json(products);
   } catch (error) {
     console.error("Error searching products:", error);
@@ -1191,20 +1191,27 @@ app.put("/update-sale-status", isAuthenticated, async (req, res) => {
     const saleId = await getLatestOngoingSaleId(loginId);
 
     if (!saleId) {
-      return res.status(404).json({ message: "No ongoing sales found to update." });
+      return res
+        .status(404)
+        .json({ message: "No ongoing sales found to update." });
     }
 
     // Call the database function to update the sale status
-    const updatedSale = await updateSaleStatus(saleId, 'COMPLETED');
+    const updatedSale = await updateSaleStatus(saleId, "COMPLETED");
 
     if (updatedSale) {
-      res.json({ message: "Sale status updated to 'COMPLETED' successfully.", saleId });
+      res.json({
+        message: "Sale status updated to 'COMPLETED' successfully.",
+        saleId,
+      });
     } else {
       res.status(404).json({ message: "Failed to update sale status." });
     }
   } catch (error) {
     console.error("Error updating sale status:", error);
-    res.status(500).json({ message: error.message || "Internal server error." });
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
   }
 });
 
@@ -1222,29 +1229,31 @@ app.get("/sale-status", isAuthenticated, async (req, res) => {
     }
   } catch (error) {
     console.error("Error fetching sale status:", error);
-    res.status(500).json({ message: error.message || "Internal server error." });
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
   }
 });
 
-wss.on('connection', (ws, req) => {
-  const parameters = new URLSearchParams(req.url.replace('/?', ''));
-  const role = parameters.get('role') || 'customer';
+wss.on("connection", (ws, req) => {
+  const parameters = new URLSearchParams(req.url.replace("/?", ""));
+  const role = parameters.get("role") || "customer";
   ws.role = role;
 
-  console.log('New client connected with role:', role);
+  console.log("New client connected with role:", role);
 
-  ws.on('message', (message) => {
+  ws.on("message", (message) => {
     try {
       const parsedMessage = JSON.parse(message);
       console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
       // Handle different message types if needed
     } catch (err) {
-      console.error('Error parsing WebSocket message:', err);
+      console.error("Error parsing WebSocket message:", err);
     }
   });
 
-  ws.on('close', () => {
-    console.log('Client disconnected');
+  ws.on("close", () => {
+    console.log("Client disconnected");
   });
 });
 
@@ -1252,7 +1261,7 @@ export function notifyClientsAboutNewRoute(routeId) {
   getRouteData(routeId)
     .then((routeData) => {
       if (!routeData || !routeData.points || !routeData.sales) {
-        console.error('Invalid route data:', routeData);
+        console.error("Invalid route data:", routeData);
         return;
       }
 
@@ -1260,11 +1269,11 @@ export function notifyClientsAboutNewRoute(routeId) {
         if (client.readyState === client.OPEN) {
           let dataToSend;
 
-          if (client.role === 'customer') {
+          if (client.role === "customer") {
             dataToSend = {
-              type: 'NEW_ROUTE',
+              type: "NEW_ROUTE",
               data: {
-                route: { ID: routeData.route?.ID || 'Unknown' }, // Fallback if ID is missing
+                route: { ID: routeData.route?.ID || "Unknown" }, // Fallback if ID is missing
                 points: routeData.points.map((point) => ({
                   latitude: point.LATITUDE,
                   longitude: point.LONGITUDE,
@@ -1278,7 +1287,7 @@ export function notifyClientsAboutNewRoute(routeId) {
             };
           } else {
             dataToSend = {
-              type: 'NEW_ROUTE',
+              type: "NEW_ROUTE",
               data: routeData,
             };
           }
@@ -1288,7 +1297,7 @@ export function notifyClientsAboutNewRoute(routeId) {
       });
     })
     .catch((error) => {
-      console.error('Error fetching route data:', error);
+      console.error("Error fetching route data:", error);
     });
 }
 
@@ -1300,7 +1309,9 @@ app.get("/validate-address", isAuthenticated, async (req, res) => {
       return res.status(400).json({ message: "Address is required." });
     }
 
-    const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
+    const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+      address
+    )}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
 
     const response = await axios.get(mapboxUrl);
 
