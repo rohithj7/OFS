@@ -1992,6 +1992,7 @@ function ManagerDashboard() {
                                 type="text"
                                 name="productName"
                                 className="form-control"
+                                maxlength="255"
                                 placeholder="e.g. Apples"
                                 required
                               />
@@ -2004,6 +2005,7 @@ function ManagerDashboard() {
                                 name="productDescription"
                                 className="form-control"
                                 placeholder="e.g. Fresh red apples"
+                                maxlength="255"
                                 required
                               ></textarea>
                             </div>
@@ -2126,6 +2128,7 @@ function ManagerDashboard() {
                           type="text"
                           className="form-control"
                           value={editingProduct.PRODUCTNAME}
+                          maxlength="255"
                           onChange={(e) =>
                             setEditingProduct({
                               ...editingProduct,
@@ -2219,6 +2222,7 @@ function ManagerDashboard() {
                       <textarea
                         className="form-control"
                         rows="3"
+                        maxlength="255"
                         value={editingProduct.PRODUCTDESCRIPTION}
                         onChange={(e) =>
                           setEditingProduct({
