@@ -342,7 +342,7 @@ function EmployeeDashboard() {
                           <td className="text-center align-middle">
                             {product.BRAND}
                           </td>
-                          <td className="text-center align-middle">
+                          <td className="text-center align-middle text-wrap">
                             {product.PRODUCTDESCRIPTION}
                           </td>
                           <td className="text-center">{product.QUANTITY}</td>
