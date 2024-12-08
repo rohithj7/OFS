@@ -76,12 +76,12 @@ function App() {
 
   // ProtectedRoute component
   const ProtectedRoute = ({ allowedRoles, children }) => {
-    console.log(
-      "ProtectedRoute: isAuthenticated =",
-      isAuthenticated,
-      "userRole =",
-      userRole
-    );
+    // console.log(
+    //   "ProtectedRoute: isAuthenticated =",
+    //   isAuthenticated,
+    //   "userRole =",
+    //   userRole
+    // );
 
     if (!isAuthenticated) {
       setShowModal(true);
@@ -108,23 +108,23 @@ function App() {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.ID === product.ID);
       if (existingProduct) {
-        console.log(
-          "Product already in cart. Current quantity:",
-          existingProduct.quantity
-        );
-        console.log("Adding quantity:", quantity);
+        // console.log(
+        //   "Product already in cart. Current quantity:",
+        //   existingProduct.quantity
+        // );
+        // console.log("Adding quantity:", quantity);
         return prevCart.map((item) =>
           item.ID === product.ID
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        console.log(
-          "Adding new product to cart:",
-          product,
-          "Quantity:",
-          quantity
-        );
+        // console.log(
+        //   "Adding new product to cart:",
+        //   product,
+        //   "Quantity:",
+        //   quantity
+        // );
         return [...prevCart, { ...product, quantity }];
       }
     });
@@ -188,7 +188,7 @@ function App() {
       quantity: item.quantity,
     }));
 
-    console.log("Products to checkout:", products);
+    // console.log("Products to checkout:", products);
 
     if (products.length === 0) {
       alert("Your cart is empty or contains invalid items.");
@@ -203,7 +203,7 @@ function App() {
         { withCredentials: true }
       );
       if (checkResponse.status === 200) {
-        console.log("Ready to checkout");
+        // console.log("Ready to checkout");
         localStorage.setItem("deliveryFee", deliveryFee); // Store delivery fee
         // Close the sidebar
         const sidebar = sidebarRef.current;
@@ -263,8 +263,8 @@ function App() {
       0
     );
 
-    console.log("Total weight:", totalWeight); // test to make sure value stored in total weight var is a number
-    console.log(totalWeight < 320.0); // test to see if total weight value is < 320
+    // console.log("Total weight:", totalWeight); // test to make sure value stored in total weight var is a number
+    // console.log(totalWeight < 320.0); // test to see if total weight value is < 320
 
     if (totalWeight > 0 && totalWeight < 320.0) {
       // if totalWeight is < 320, then the alert banner will be displayed, and delivery fee will be $0
@@ -356,6 +356,29 @@ function App() {
       });
     };
   }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/getUserRole", {
+          withCredentials: true,
+        });
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+          setUserRole(response.data.role);
+        } else {
+          setIsAuthenticated(false);
+          setUserRole(null);
+        }
+      } catch (err) {
+        console.error("Error checking authentication:", err);
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    };
+  
+    checkAuth();
+  }, []);  
 
   return (
     <div>

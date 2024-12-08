@@ -15,7 +15,7 @@ import { loadStripe } from "@stripe/stripe-js";
 const stripePromise = loadStripe(
   "pk_test_51QLGHpBI56iyGeVwohOAeqeUa0OQQmSpCjT6xI2tagJujZdyrOHUIOIuDhBPk8Rq49PJkVJtKiElywf3zHoUjM8b00D3adN1kQ"
 );
-console.log("Stripe promise initialized:", stripePromise);
+// console.log("Stripe promise initialized:", stripePromise);
 
 // Create a wrapper component
 const CheckoutWrapper = ({ cart, setCart, deliveryFee }) => {
@@ -58,7 +58,7 @@ const PaymentForm = ({
         return;
       }
 
-      console.log("Starting payment confirmation...");
+      // console.log("Starting payment confirmation...");
 
       const { error: paymentError, paymentIntent } =
         await stripe.confirmCardPayment(clientSecret, {
@@ -70,7 +70,7 @@ const PaymentForm = ({
           },
         });
 
-      console.log("Payment response:", { paymentError, paymentIntent });
+      // console.log("Payment response:", { paymentError, paymentIntent });
 
       if (paymentError) {
         console.error("Payment error:", paymentError);
@@ -82,7 +82,7 @@ const PaymentForm = ({
       }
 
       if (paymentIntent.status === "succeeded") {
-        console.log("Payment succeeded:", paymentIntent);
+        // console.log("Payment succeeded:", paymentIntent);
 
         // Add sale creation after successful payment
         try {
@@ -260,9 +260,9 @@ export default function Checkout({
   }, []);
 
   useEffect(() => {
-    console.log("Stripe object:", stripe);
-    console.log("Elements object:", elements);
-    console.log("Cart received in Checkout:", cart);
+    // console.log("Stripe object:", stripe);
+    // console.log("Elements object:", elements);
+    // console.log("Cart received in Checkout:", cart);
   }, [cart, stripe, elements]);
 
   const [customerInfo, setCustomerInfo] = useState({
@@ -302,7 +302,7 @@ export default function Checkout({
           cart.reduce((total, item) => total + item.PRICE * item.quantity, 0) +
           deliveryFee;
 
-        console.log("Creating payment intent for amount:", totalPrice);
+        // console.log("Creating payment intent for amount:", totalPrice);
 
         const response = await axios.post(
           "http://localhost:8080/create-payment-intent",
@@ -313,7 +313,7 @@ export default function Checkout({
           { withCredentials: true }
         );
 
-        console.log("Payment intent created:", response.data);
+        // console.log("Payment intent created:", response.data);
         setClientSecret(response.data.clientSecret);
       } catch (err) {
         console.error("Error creating payment intent:", err);

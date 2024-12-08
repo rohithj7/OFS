@@ -13,6 +13,7 @@ COPY . .
 
 # Expose the port your Node.js app runs on
 EXPOSE 8080
+EXPOSE 8082
 
 # Run the backend server
 CMD ["npm", "start"]

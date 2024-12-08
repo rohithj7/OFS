@@ -18,6 +18,7 @@ RUN npm run build
 
 # Use Nginx to serve the built files
 FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/OFS/client/build /usr/share/nginx/html
 
 # Expose the port the frontend app runs on
