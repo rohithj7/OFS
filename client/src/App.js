@@ -357,6 +357,29 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/getUserRole", {
+          withCredentials: true,
+        });
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+          setUserRole(response.data.role);
+        } else {
+          setIsAuthenticated(false);
+          setUserRole(null);
+        }
+      } catch (err) {
+        console.error("Error checking authentication:", err);
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    };
+  
+    checkAuth();
+  }, []);  
+
   return (
     <div>
       {/* Navbar */}
