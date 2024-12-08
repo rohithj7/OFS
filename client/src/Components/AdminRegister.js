@@ -20,6 +20,8 @@ export default function AdminRegister() {
   const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const validatePassword = (password) => {
@@ -111,47 +113,69 @@ export default function AdminRegister() {
               <label htmlFor="password">
                 <strong>Password</strong> <span className="text-danger">*</span>
               </label>
-              <input
-                type="password"
-                placeholder="Password"
-                name="password"
-                className={`form-control form-control-md rounded-2 ${passwordError && passwordFocused ? "invalid-background" : ""}`}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => {
-                  setShowPasswordTooltip(true);
-                  setPasswordFocused(true);
-                }}
-                onBlur={() => {
-                  setShowPasswordTooltip(false);
-                  setPasswordFocused(false);
-                }}
-                required
-              />
+              <div className="input-group">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle between "text" and "password"
+                  placeholder="Password"
+                  name="password"
+                  className={`form-control form-control-md rounded-2 ${passwordError && passwordFocused ? "invalid-background" : ""}`}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => {
+                    setShowPasswordTooltip(true);
+                    setPasswordFocused(true);
+                  }}
+                  onBlur={() => {
+                    setShowPasswordTooltip(false);
+                    setPasswordFocused(false);
+                  }}
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onMouseDown={() => setShowPassword(true)} // Show password on mouse down
+                  onMouseUp={() => setShowPassword(false)} // Hide password on mouse up
+                  onMouseLeave={() => setShowPassword(false)} // Hide password if mouse leaves the button
+                >
+                  Show
+                </button>
+              </div>
               <Tooltip messages={validatePassword(password)} visible={showPasswordTooltip} />
             </div>
             <div className="mb-3 position-relative">
               <label htmlFor="confirmPassword">
                 <strong>Confirm Password</strong> <span className="text-danger">*</span>
               </label>
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                name="confirmPassword"
-                className={`form-control form-control-md rounded-2 ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onFocus={() => {
-                  setShowConfirmPasswordTooltip(true);
-                  setConfirmPasswordFocused(true);
-                }}
-                onBlur={() => {
-                  setShowConfirmPasswordTooltip(false);
-                  setConfirmPasswordFocused(false);
-                }}
-                required
-                disabled={!isPasswordValid}
-              />
+              <div className="input-group">
+                <input
+                  type={showConfirmPassword ? "text" : "password"} // Toggle between "text" and "password"
+                  placeholder="Confirm Password"
+                  name="confirmPassword"
+                  className={`form-control form-control-md rounded-2 ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onFocus={() => {
+                    setShowConfirmPasswordTooltip(true);
+                    setConfirmPasswordFocused(true);
+                  }}
+                  onBlur={() => {
+                    setShowConfirmPasswordTooltip(false);
+                    setConfirmPasswordFocused(false);
+                  }}
+                  required
+                  disabled={!isPasswordValid}
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onMouseDown={() => setShowConfirmPassword(true)} // Show confirm password on mouse down
+                  onMouseUp={() => setShowConfirmPassword(false)} // Hide confirm password on mouse up
+                  onMouseLeave={() => setShowConfirmPassword(false)} // Hide confirm password if mouse leaves the button
+                >
+                  Show
+                </button>
+              </div>
               <Tooltip
                 messages={[
                   { text: "Passwords must match", valid: passwordsMatch },

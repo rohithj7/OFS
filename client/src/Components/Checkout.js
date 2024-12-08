@@ -10,6 +10,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import Tooltip from "./Tooltip";
 
 // Load the publishable key from Stripe
 const stripePromise = loadStripe(
@@ -39,9 +40,34 @@ const PaymentForm = ({
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cardHolderName, setCardHolderName] = useState("");
+  const [showCardHolderNameTooltip, setShowCardHolderNameTooltip] = useState(false);
+  const [cardHolderNameFocused, setCardHolderNameFocused] = useState(false);
   const navigate = useNavigate();
+
+  const validateCardHolderName = (name) => {
+    const nameRegex = /^[A-Za-z\s]{3,}$/;
+    return nameRegex.test(name)
+      ? null
+      : "Card Holder Name must be at least 3 characters long and contain only letters and spaces.";
+  };
+
+  const handleCardHolderNameChange = (e) => {
+    const value = e.target.value;
+    const regex = /^[A-Za-z\s]*$/;
+    if (regex.test(value)) {
+      setCardHolderName(value);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const cardHolderNameError = validateCardHolderName(cardHolderName);
+    if (cardHolderNameError) {
+      setError(cardHolderNameError);
+      return;
+    }
 
     if (!stripe || !elements || !clientSecret) {
       setError("Payment system not initialized properly.");
@@ -132,15 +158,35 @@ const PaymentForm = ({
     }
   };
 
+  const isCardHolderNameValid = validateCardHolderName(cardHolderName) === null;
+
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-3">
+      <div className="mb-3 position-relative">
         <label className="form-label fw-bold">Card Holder Name</label>
         <input
           type="text"
-          className="form-control"
+          className={`form-control ${
+            cardHolderNameFocused && validateCardHolderName(cardHolderName) ? "invalid-background" : ""
+          }`}
           placeholder="Name on card"
+          value={cardHolderName}
+          onChange={handleCardHolderNameChange}
+          onFocus={() => {
+            setShowCardHolderNameTooltip(true);
+            setCardHolderNameFocused(true);
+          }}
+          onBlur={() => {
+            setShowCardHolderNameTooltip(false);
+            setCardHolderNameFocused(false);
+          }}
           required
+        />
+        <Tooltip
+          messages={[
+            { text: "Card Holder Name must be at least 3 characters long and contain only letters and spaces.", valid: !validateCardHolderName(cardHolderName) }
+          ]}
+          visible={showCardHolderNameTooltip}
         />
       </div>
       <div className="mb-4">
@@ -194,7 +240,7 @@ const PaymentForm = ({
       <button
         type="submit"
         className="btn btn-mint text-black w-100 mt-3 fw-bold"
-        disabled={!stripe || isProcessing || !clientSecret}
+        disabled={!stripe || isProcessing || !clientSecret || !isCardHolderNameValid}
       >
         {isProcessing ? (
           <span>

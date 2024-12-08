@@ -585,6 +585,30 @@ function ManagerDashboard() {
     }
   };
 
+  const handlePriceChange = (e) => {
+    let value = e.target.value;
+    const regex = /^\d{0,3}(\.\d{0,2})?$/;
+    if (regex.test(value)) {
+      value = value.replace(/[+-]/g, ""); // Prevent typing positive or negative signs
+      setEditingProduct({
+        ...editingProduct,
+        PRICE: value,
+      });
+    }
+  };
+
+  const handleWeightChange = (e) => {
+    let value = e.target.value;
+    const regex = /^\d{0,3}(\.\d{0,2})?$/;
+    if (regex.test(value)) {
+      value = value.replace(/[+-]/g, ""); // Prevent typing positive or negative signs
+      setEditingProduct({
+        ...editingProduct,
+        WEIGHT: value,
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchAllSales = async () => {
       try {
@@ -2155,29 +2179,31 @@ function ManagerDashboard() {
                             <div className="mb-3">
                               <label className="form-label">Price ($)</label>
                               <input
-                                type="number"
                                 name="price"
-                                className="form-control"
-                                min="0.01"
+                                type="number"
                                 step="0.01"
+                                min="0.01"
                                 max="100"
                                 placeholder="e.g. 1.99"
-                                required
-                              />
+                                className="form-control"
+                                value={editingProduct.PRICE}
+                                onChange={handlePriceChange}
+                              /> 
                             </div>
                             <div className="mb-3">
                               <label className="form-label">
-                                Weight (in oz)
+                                Weight (Ounces)
                               </label>
                               <input
-                                type="number"
                                 name="weight"
-                                className="form-control"
-                                min="0.01"
+                                type="number"
                                 step="0.01"
+                                min="0.01"
                                 max="800"
                                 placeholder="e.g. 0.5"
-                                required
+                                className="form-control"
+                                value={editingProduct.WEIGHT}
+                                onChange={handleWeightChange}
                               />
                             </div>
                             <button
@@ -2253,31 +2279,29 @@ function ManagerDashboard() {
                       <div className="col-md-4">
                         <label className="form-label">Price ($)</label>
                         <input
+                          name="price"
                           type="number"
                           step="0.01"
+                          min="0.01"
+                          max="100"
+                          placeholder="e.g. 1.99"
                           className="form-control"
                           value={editingProduct.PRICE}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              PRICE: parseFloat(e.target.value),
-                            })
-                          }
+                          onChange={handlePriceChange}
                         />
                       </div>
                       <div className="col-md-4">
                         <label className="form-label">Weight (ounces)</label>
                         <input
+                          name="weight"
                           type="number"
+                          min="0.01"
+                          max="800"
                           step="0.01"
+                          placeholder="e.g. 0.5"
                           className="form-control"
                           value={editingProduct.WEIGHT}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              WEIGHT: parseFloat(e.target.value),
-                            })
-                          }
+                          onChange={handleWeightChange}
                         />
                       </div>
                       <div className="col-md-4">
