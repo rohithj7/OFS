@@ -342,7 +342,7 @@ function EmployeeDashboard() {
                           <td className="text-center align-middle">
                             {product.BRAND}
                           </td>
-                          <td className="text-center align-middle">
+                          <td className="text-center align-middle text-wrap">
                             {product.PRODUCTDESCRIPTION}
                           </td>
                           <td className="text-center">{product.QUANTITY}</td>
@@ -389,7 +389,7 @@ function EmployeeDashboard() {
                       onChange={(e) => setNewStatus(e.target.value)}
                     >
                       <option value="">Select new status</option>
-                      <option value="NOT STARTED">Not Started</option>
+                      {/* <option value="NOT STARTED">Not Started</option> */}
                       <option value="STARTED">Started</option>
                       <option value="COMPLETED">Completed</option>
                     </select>

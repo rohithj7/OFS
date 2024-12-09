@@ -81,7 +81,7 @@ export default function Fruits({ addToCart }) {
     if (searchTerm) {
       axios
         .get(`/api/product-search`, {
-          params: { q: searchTerm },
+          params: { q: searchTerm, categoryId: categoryId },
           withCredentials: true,
         })
         .then((res) => {
