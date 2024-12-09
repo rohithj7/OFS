@@ -853,38 +853,32 @@ export async function getDashboardStatistics() {
 // Function to get sale details by sale ID
 export async function getSaleById(saleId) {
   const sql = `
-      SELECT 
-        S.ID AS saleId,
-        S.CUSTOMERID AS customerId,
-        S.PRICE AS totalPrice,
-        S.SALEDATE AS saleDate,
-        S.PAYMENTDETAILS AS paymentDetails,
-        S.SALE_STATUS AS saleStatus,
-        S.DELIVERYFEE AS deliveryFee,
-        SP.PRODUCTID AS productId,
-        SP.QUANTITY AS quantity,
-        SP.PRICE AS productPrice,
-        P.PRODUCTNAME AS productName,
-        P.PRICE AS price,
-        P.WEIGHT AS weight,
-        P.PICTURE_URL AS pictureUrl,
-        C.FIRSTNAME AS customerFirstName,
-        C.LASTNAME AS customerLastName,
-        C.ADDRESS AS customerAddress,
-        C.PHONE AS customerPhone
-      FROM SALES S
-      INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
-      INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
-      INNER JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
-      WHERE S.ID = ?
-    `;
+    SELECT S.ID AS saleId,
+           S.CUSTOMERID AS customerId,
+           S.PRICE AS totalPrice,
+           S.SALEDATE AS saleDate,
+           S.PAYMENTDETAILS AS paymentDetails,
+           S.SALE_STATUS AS saleStatus,
+           S.DELIVERYFEE AS deliveryFee,
+           SP.PRODUCTID AS productId,
+           SP.QUANTITY AS quantity,
+           SP.PRICE AS price,
+           P.PRODUCTNAME AS productName,
+           P.WEIGHT AS weight,
+           P.PICTURE_URL AS pictureUrl,
+           C.FIRSTNAME AS customerFirstName,
+           C.LASTNAME AS customerLastName,
+           C.ADDRESS AS customerAddress,
+           C.PHONE AS customerPhone
+    FROM SALES S
+    INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
+    INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
+    INNER JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
+    WHERE S.ID = ?`;
+
   const [rows] = await pool.execute(sql, [saleId]);
+  if (rows.length === 0) return null;
 
-  if (rows.length === 0) {
-    return null;
-  }
-
-  // Organize products into a structured format
   const saleDetails = {
     saleId: rows[0].saleId,
     customerId: rows[0].customerId,
@@ -903,44 +897,38 @@ export async function getSaleById(saleId) {
       price: row.price,
       productName: row.productName,
       weight: row.weight,
-      pictureUrl: row.pictureUrl,
-    })),
+      pictureUrl: row.pictureUrl
+    }))
   };
-
   return saleDetails;
 }
 
 // Function to get sales by customer ID
 export async function getSalesByCustomerId(customerId) {
   const sql = `
-      SELECT 
-        S.ID AS saleId,
-        S.PRICE AS totalPrice,
-        S.SALEDATE AS saleDate,
-        S.PAYMENTDETAILS AS paymentDetails,
-        S.SALE_STATUS AS saleStatus,
-        S.DELIVERYFEE AS deliveryFee,
-        SP.PRODUCTID AS productId,
-        SP.QUANTITY AS quantity,
-        SP.PRICE AS productPrice,
-        P.PRODUCTNAME AS productName,
-        P.PRICE AS price,
-        P.WEIGHT AS weight,
-        P.PICTURE_URL AS pictureUrl
-      FROM SALES S
-      INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
-      INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
-      WHERE S.CUSTOMERID = ?
-      ORDER BY S.SALEDATE DESC, S.ID DESC
-    `;
-  const [rows] = await pool.execute(sql, [customerId]);
+    SELECT S.ID AS saleId,
+           S.PRICE AS totalPrice,
+           S.SALEDATE AS saleDate,
+           S.PAYMENTDETAILS AS paymentDetails,
+           S.SALE_STATUS AS saleStatus,
+           S.DELIVERYFEE AS deliveryFee,
+           SP.PRODUCTID AS productId,
+           SP.QUANTITY AS quantity,
+           SP.PRICE AS price,
+           P.PRODUCTNAME AS productName,
+           P.WEIGHT AS weight,
+           P.PICTURE_URL AS pictureUrl
+    FROM SALES S
+    INNER JOIN SALES_PRODUCTS SP ON S.ID = SP.SALESID
+    INNER JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
+    WHERE S.CUSTOMERID = ?
+    ORDER BY S.SALEDATE DESC, S.ID DESC`;
 
-  // Organize sales and products into a structured format
+  const [rows] = await pool.execute(sql, [customerId]);
   const salesMap = {};
 
   for (const row of rows) {
     const saleId = row.saleId;
-
     if (!salesMap[saleId]) {
       salesMap[saleId] = {
         saleId: row.saleId,
@@ -949,25 +937,21 @@ export async function getSalesByCustomerId(customerId) {
         paymentDetails: row.paymentDetails,
         saleStatus: row.saleStatus,
         deliveryFee: row.deliveryFee,
-        products: [],
+        products: []
       };
     }
-
     salesMap[saleId].products.push({
       productId: row.productId,
       quantity: row.quantity,
       price: row.price,
       productName: row.productName,
       weight: row.weight,
-      pictureUrl: row.pictureUrl,
+      pictureUrl: row.pictureUrl
     });
   }
 
-  // Convert the sales map into an array
-  const sales = Object.values(salesMap);
-  return sales;
+  return Object.values(salesMap);
 }
-
 // Function to update order status
 export async function updateOrderStatus(orderId, newStatus) {
   const sql = `
@@ -1027,49 +1011,47 @@ export async function placeSale(customerId, products, stripePaymentId) {
     await connection.beginTransaction();
 
     const saleSql = `
-      INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const totalPrice = await calculateTotalPrice(products);
-    const saleDate = moment().format("YYYY-MM-DD HH:mm:ss");
-    const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
-    const saleStatus = "NOT STARTED";
+    INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
+    VALUES (?, ?, ?, ?, ?)`;
 
-    const [saleResult] = await connection.execute(saleSql, [
-      customerId,
-      totalPrice,
-      saleDate,
-      paymentDetails,
-      saleStatus,
+  const totalPrice = await calculateTotalPrice(products);
+  const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
+  const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
+  const saleStatus = "NOT STARTED";
+
+  const [saleResult] = await connection.execute(saleSql, [
+    customerId,
+    totalPrice,
+    saleDate,
+    paymentDetails,
+    saleStatus
+  ]);
+
+  const saleId = saleResult.insertId;
+
+  // Store current product price in SALES_PRODUCTS
+  const saleProductSql = `
+    INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
+    VALUES (?, ?, ?, ?)`;
+
+  for (const { productId, quantity } of products) {
+    const currentPrice = await getProductPrice(productId);
+    await connection.execute(saleProductSql, [
+      saleId,
+      productId,
+      quantity,
+      currentPrice
     ]);
-
-    const saleId = saleResult.insertId;
-
-    const saleProductSql = `
-      INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    for (const { productId, quantity } of products) {
-      const productPrice = await getProductPrice(productId);
-      const price = productPrice * quantity;
-      await connection.execute(saleProductSql, [
-        saleId,
-        productId,
-        quantity,
-        price,
-      ]);
-    }
-
-    await connection.commit();
-
-    return { saleId, totalPrice };
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
   }
+
+  await connection.commit();
+  return { saleId, totalPrice };
+} catch (error) {
+  await connection.rollback();
+  throw error;
+} finally {
+  connection.release();
+}
 }
 
 // Helper function to calculate total price
