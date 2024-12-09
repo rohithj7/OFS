@@ -84,7 +84,7 @@ export default function SignUp() {
     try {
       // First register
       const registerResponse = await axios.post(
-        "http://localhost:8080/registerCustomer",
+        "/api/registerCustomer",
         {
           email,
           password,
@@ -100,7 +100,7 @@ export default function SignUp() {
       if (registerResponse.status === 201) {
         // Automatically log the user in after successful registration
         const loginResponse = await axios.post(
-          "http://localhost:8080/login",
+          "/api/login",
           { email, password },
           { withCredentials: true }
         );

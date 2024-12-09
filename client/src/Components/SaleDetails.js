@@ -9,7 +9,7 @@ function SaleDetails() {
   useEffect(() => {
     const fetchSaleDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/sales/${id}`, {
+        const response = await axios.get(`/api/sales/${id}`, {
           withCredentials: true,
         });
         setSaleDetails(response.data);

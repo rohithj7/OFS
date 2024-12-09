@@ -197,7 +197,7 @@ function ManagerDashboard() {
         return;
       }
       const response = await axios.post(
-        "http://localhost:8080/registerEmployee",
+        "/api/registerEmployee",
         {
           email: accountFormData.email,
           firstName: accountFormData.firstName,
@@ -237,7 +237,7 @@ function ManagerDashboard() {
         return;
       }
       const res = await axios.post(
-        "http://localhost:8080/registerSupplier",
+        "/api/registerSupplier",
         {
           email: accountFormData.email,
           supplierName: accountFormData.supplierName,
@@ -286,7 +286,7 @@ function ManagerDashboard() {
       }
       if (accountType === "supplier") {
         const res = await axios.post(
-          "http://localhost:8080/registerSupplier",
+          "/api/registerSupplier",
           {
             email: accountFormData.email,
             supplierName: accountFormData.supplierName,
@@ -299,7 +299,7 @@ function ManagerDashboard() {
         alert("Supplier added successfully!");
       } else {
         const response = await axios.post(
-          "http://localhost:8080/registerEmployee",
+          "/api/registerEmployee",
           {
             email: accountFormData.email,
             firstName: accountFormData.firstName,
@@ -384,7 +384,7 @@ function ManagerDashboard() {
       // console.log("Sending request to:", "http://localhost:8080/products");
 
       const response = await axios.post(
-        "http://localhost:8080/products",
+        "/api/products",
         productData,
         {
           withCredentials: true,
@@ -444,7 +444,7 @@ function ManagerDashboard() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/products", {
+        const response = await axios.get("/api/products", {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
@@ -488,7 +488,7 @@ function ManagerDashboard() {
         }
 
         const response = await axios.delete(
-          `http://localhost:8080/products/${productId}`,
+          `/api/products/${productId}`,
           {
             withCredentials: true,
           }
@@ -553,7 +553,7 @@ function ManagerDashboard() {
       // console.log("Sending update with data:", formData); // Debug log
 
       const response = await axios.put(
-        `http://localhost:8080/products/${editingProduct.ID}`,
+        `/api/products/${editingProduct.ID}`,
         formData,
         {
           withCredentials: true,
@@ -612,7 +612,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchAllSales = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/all_sales", {
+        const response = await axios.get("/api/all_sales", {
           withCredentials: true,
         });
         // Sort all sale orders by date (most recent first)
@@ -631,7 +631,7 @@ function ManagerDashboard() {
   const handleStatusUpdate = async (saleId, newStatus) => {
     try {
       const response = await axios.put(
-        `http://localhost:8080/sales/${saleId}/status`,
+        `/api/sales/${saleId}/status`,
         { newStatus },
         { withCredentials: true }
       );
@@ -654,7 +654,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/suppliers", {
+        const response = await axios.get("/api/suppliers", {
           withCredentials: true,
         });
         setSuppliers(response.data);
@@ -678,7 +678,7 @@ function ManagerDashboard() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8080/admin/reorder-product",
+        "/api/admin/reorder-product",
         {
           productName: selectedProduct.PRODUCTNAME,
           supplierName: orderData.supplierName,
@@ -719,7 +719,7 @@ function ManagerDashboard() {
 
     try {
       const response = await axios.put(
-        "http://localhost:8080/admin/reset-password",
+        "/api/admin/reset-password",
         { newPassword },
         { withCredentials: true }
       );
@@ -735,7 +735,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/statistics", {
+        const response = await axios.get("/api/statistics", {
           withCredentials: true,
         });
         setStatistics(response.data);
@@ -750,7 +750,7 @@ function ManagerDashboard() {
   // Add this function to fetch orders
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/all-orders", {
+      const response = await axios.get("/api/all-orders", {
         withCredentials: true,
       });
       setOrders(response.data);

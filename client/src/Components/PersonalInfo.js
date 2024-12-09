@@ -159,7 +159,7 @@ const PersonalInfo = () => {
   async function validateAddress(address) {
     try {
       const response = await axios.get(
-        `http://localhost:8080/validate-address`,
+        `/api/validate-address`,
         {
           params: { address },
           withCredentials: true,
@@ -241,7 +241,7 @@ const PersonalInfo = () => {
       // console.log("Sending data to server:", requestData);
 
       const response = await axios.put(
-        "http://localhost:8080/customerinfo",
+        "/api/customerinfo",
         requestData,
         {
           withCredentials: true,

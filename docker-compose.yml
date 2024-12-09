@@ -37,6 +37,8 @@ services:
   frontend:
     image: rohithj7/grocerygo-frontend:latest
     container_name: frontend_container
+    depends_on:
+      - backend
     ports:
       - "3000:80"
     networks:

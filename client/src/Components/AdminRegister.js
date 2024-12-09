@@ -57,7 +57,7 @@ export default function AdminRegister() {
 
     try {
       const registerResponse = await axios.post(
-        "http://localhost:8080/registerAdmin",
+        "/api/registerAdmin",
         {
           email,
           password,

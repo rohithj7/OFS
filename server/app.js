@@ -8,6 +8,7 @@ import cors from "cors";
 import Stripe from "stripe";
 import { WebSocketServer } from "ws";
 import axios from "axios";
+import MySQLStoreFactory from "express-mysql-session";
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ import {
   getCustomerLocationById,
   getLatestSaleStatus,
   getLatestOngoingSaleId,
+  calculateTotalWeight
 } from "./database.js";
 import {
   registerAdmin,
@@ -78,6 +80,8 @@ import {
 } from "./userController.js";
 
 import "./dispatch.js";
+
+const MySQLStore = MySQLStoreFactory(session);
 
 const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -96,15 +100,30 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Session configuration
+const sessionStoreOptions = {
+  host: process.env.MYSQL_HOST || "mysql",   // Based on Docker service name
+  port: 3306,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  clearExpired: true,
+  checkExpirationInterval: 900000, // How frequently expired sessions will be cleared; in ms
+  expiration: 86400000, // The maximum age of a valid session; in ms (1 day)
+};
+
+const sessionStore = new MySQLStore(sessionStoreOptions);
+
+// Use session middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret_key",
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true, // prevent XSS attacks
+      httpOnly: true,
+      secure: false, // false for local dev with HTTP; true in production with HTTPS
+      sameSite: 'lax', // 'lax' allows cookies on same-origin requests
       maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
   })
@@ -920,6 +939,16 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
       return res.status(400).json({
         message: "Some products are unavailable or insufficient quantity.",
         unavailableProducts,
+      });
+    }
+
+    // Calculate the total weight
+    const totalWeight = await calculateTotalWeight(products);
+
+    if (totalWeight > 3200) {
+      return res.status(400).json({
+        message: "Total weight exceeds the limit. Sale needs to be under 200 lbs.",
+        totalWeight: `${totalWeight} ounces`,
       });
     }
 
