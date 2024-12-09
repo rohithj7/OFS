@@ -286,22 +286,10 @@ const DeliveryPage = () => {
       customerLoc &&
       Math.abs(latitude - customerLoc.latitude) < 0.0001 &&
       Math.abs(longitude - customerLoc.longitude) < 0.0001
-    ) {
-      // Update the sale status
-      axios
-        .put("http://localhost:8080/update-sale-status", {}, {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then(() => {
-          // Reset the map after the sale status is updated
-          resetMap();
-        })
-        .catch((error) => {
-          console.error('Error updating sale status:', error);
-        });
+    ) 
+    {
+      // Reset the map after point is reached
+      resetMap();
     }
   };
 

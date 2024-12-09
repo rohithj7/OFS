@@ -66,7 +66,8 @@ import {
   updateSaleDeliveryFee,
   getCustomerLocationById,
   getLatestSaleStatus,
-  getLatestOngoingSaleId
+  getLatestOngoingSaleId,
+  calculateTotalWeight
 } from "./database.js";
 import {
   registerAdmin,
@@ -921,6 +922,16 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
       return res.status(400).json({
         message: "Some products are unavailable or insufficient quantity.",
         unavailableProducts,
+      });
+    }
+
+    // Calculate the total weight
+    const totalWeight = await calculateTotalWeight(products);
+
+    if (totalWeight > 3200) {
+      return res.status(400).json({
+        message: "Total weight exceeds the limit. Sale needs to be under 200 lbs.",
+        totalWeight: `${totalWeight} ounces`,
       });
     }
 

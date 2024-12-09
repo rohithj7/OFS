@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import moment from 'moment';
 dotenv.config();
 
-const TIME_LIMIT_MINUTES = 10;
+const TIME_LIMIT_MINUTES = 5;
 const WEIGHT_LIMIT_LBS = 3200;
 const WAREHOUSE_LATITUDE = parseFloat(process.env.WAREHOUSE_LATITUDE);
 const WAREHOUSE_LONGITUDE = parseFloat(process.env.WAREHOUSE_LONGITUDE);
@@ -34,7 +34,7 @@ export async function dispatchSales(saleIds = null) {
         );
 
         if (ongoingRoutes.length > 0) {
-            console.log('A route is already in progress. Skipping dispatch.');
+            // console.log('A route is already in progress. Skipping dispatch.');
             await connection.commit();
             return;
         }
@@ -59,7 +59,7 @@ export async function dispatchSales(saleIds = null) {
         const [sales] = await connection.query(salesQuery, salesParams);
 
         if (sales.length === 0) {
-            console.log('No sales to dispatch.');
+            // console.log('No sales to dispatch.');
             await connection.commit();
             return;
         }
@@ -87,7 +87,7 @@ export async function dispatchSales(saleIds = null) {
         // console.log(`totalWeight = ${totalWeight} ounces`)
 
         // Determine if dispatching criteria are met
-        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES || totalWeight <= WEIGHT_LIMIT_LBS;
+        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES && totalWeight <= WEIGHT_LIMIT_LBS;
 
         if (shouldDispatch) {
             const saleIdsToDispatch = sales.map(sale => sale.ID);
@@ -147,19 +147,19 @@ export async function dispatchSales(saleIds = null) {
             // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
 
             // Annotate waypoints with sale IDs
-            const waypoints = routeData.waypoints;
+            // const waypoints = routeData.waypoints;
 
-            // Map original index to saleId
-            const originalIndexToSaleId = {};
-            for (let i = 0; i < deliveryCoords.length; i++) {
-                originalIndexToSaleId[i] = deliveryCoords[i].saleId;
-            }
+            // // Map original index to saleId
+            // const originalIndexToSaleId = {};
+            // for (let i = 0; i < deliveryCoords.length; i++) {
+            //     originalIndexToSaleId[i] = deliveryCoords[i].saleId;
+            // }
 
-            // Add saleId to waypoints
-            for (const waypoint of waypoints) {
-                const originalIndex = waypoint.waypoint_index;
-                waypoint.saleId = originalIndexToSaleId[originalIndex] || null;
-            }
+            // // Add saleId to waypoints
+            // for (const waypoint of waypoints) {
+            //     const originalIndex = waypoint.waypoint_index;
+            //     waypoint.saleId = originalIndexToSaleId[originalIndex] || null;
+            // }
 
             // Store the modified routeData
             const routeJson = JSON.stringify(routeData);
@@ -183,10 +183,10 @@ export async function dispatchSales(saleIds = null) {
             broadcastRouteData(routeData);
             // console.log("Broadcast done.");
 
-            simulateBotMovement(routeData, routeId);
+            simulateBotMovement(routeData, routeId, deliveryCoords);
             // console.log("Simulation started.");
         } else {
-            console.log('Dispatching criteria not met. Skipping dispatch.');
+            // console.log('Dispatching criteria not met. Skipping dispatch.');
             await connection.commit();
         }
 

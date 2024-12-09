@@ -1000,27 +1000,45 @@ export async function checkProductAvailability(products) {
   return unavailableProducts;
 }
 
+export async function calculateTotalWeight(products) {
+  let totalWeight = 0;
+
+  for (const { productId, quantity } of products) {
+    const sql = `
+            SELECT WEIGHT FROM PRODUCTS
+            WHERE ID = ?
+        `;
+    const [product] = await query(sql, [productId]);
+
+    if (product) {
+      totalWeight += product.WEIGHT * quantity;
+    }
+  }
+
+  return totalWeight;
+}
+
 // place sale for final sale
 export async function placeSale(customerId, products, stripePaymentId) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Check for existing active sales
-    const activeSaleCheckSql = `
-      SELECT ID, SALE_STATUS
-      FROM SALES
-      WHERE CUSTOMERID = ? AND SALE_STATUS IN ('NOT STARTED', 'STARTED', 'ONGOING')
-    `;
+    // // Check for existing active sales
+    // const activeSaleCheckSql = `
+    //   SELECT ID, SALE_STATUS
+    //   FROM SALES
+    //   WHERE CUSTOMERID = ? AND SALE_STATUS IN ('NOT STARTED', 'STARTED', 'ONGOING')
+    // `;
 
-    const [activeSales] = await connection.execute(activeSaleCheckSql, [customerId]);
+    // const [activeSales] = await connection.execute(activeSaleCheckSql, [customerId]);
 
-    if (activeSales.length > 0) {
-      const existingSale = activeSales[0];
-      throw new Error(
-        `A sale already exists for this customer with status '${existingSale.SALE_STATUS}'. Complete it before creating a new sale.`
-      );
-    }
+    // if (activeSales.length > 0) {
+    //   const existingSale = activeSales[0];
+    //   throw new Error(
+    //     `A sale already exists for this customer with status '${existingSale.SALE_STATUS}'. Complete it before creating a new sale.`
+    //   );
+    // }
 
     const saleSql = `
       INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
