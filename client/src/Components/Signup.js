@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PasswordValidation from "./PasswordValidation";
 import ConfirmPasswordValidation from "./ConfirmPasswordValidation";
 import Tooltip from "./Tooltip";
@@ -13,11 +13,23 @@ export const validatePassword = (password) => {
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   return [
-    { text: "Password must be at least 14 characters long", valid: password.length >= minLength },
-    { text: "Password must contain at least one uppercase letter", valid: hasUpperCase },
-    { text: "Password must contain at least one lowercase letter", valid: hasLowerCase },
+    {
+      text: "Password must be at least 14 characters long",
+      valid: password.length >= minLength,
+    },
+    {
+      text: "Password must contain at least one uppercase letter",
+      valid: hasUpperCase,
+    },
+    {
+      text: "Password must contain at least one lowercase letter",
+      valid: hasLowerCase,
+    },
     { text: "Password must contain at least one number", valid: hasNumber },
-    { text: "Password must contain at least one special character", valid: hasSpecialChar },
+    {
+      text: "Password must contain at least one special character",
+      valid: hasSpecialChar,
+    },
   ];
 };
 
@@ -35,7 +47,8 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-  const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] = useState(false);
+  const [showConfirmPasswordTooltip, setShowConfirmPasswordTooltip] =
+    useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,7 +84,7 @@ export default function SignUp() {
     try {
       // First register
       const registerResponse = await axios.post(
-        "http://localhost:8080/registerCustomer",
+        "/api/registerCustomer",
         {
           email,
           password,
@@ -87,7 +100,7 @@ export default function SignUp() {
       if (registerResponse.status === 201) {
         // Automatically log the user in after successful registration
         const loginResponse = await axios.post(
-          "http://localhost:8080/login",
+          "/api/login",
           { email, password },
           { withCredentials: true }
         );
@@ -141,7 +154,9 @@ export default function SignUp() {
                   type={showPassword ? "text" : "password"} // Toggle between "text" and "password"
                   placeholder="Password"
                   name="password"
-                  className={`form-control form-control-md rounded-2 ${passwordError && passwordFocused ? "invalid-background" : ""}`}
+                  className={`form-control form-control-md rounded-2 ${
+                    passwordError && passwordFocused ? "invalid-background" : ""
+                  }`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => {
@@ -164,18 +179,26 @@ export default function SignUp() {
                   Show
                 </button>
               </div>
-              <Tooltip messages={validatePassword(password)} visible={showPasswordTooltip} />
+              <Tooltip
+                messages={validatePassword(password)}
+                visible={showPasswordTooltip}
+              />
             </div>
             <div className="mb-3 position-relative">
               <label htmlFor="confirmPassword">
-                <strong>Confirm Password</strong> <span className="text-danger">*</span>
+                <strong>Confirm Password</strong>{" "}
+                <span className="text-danger">*</span>
               </label>
               <div className="input-group">
                 <input
                   type={showConfirmPassword ? "text" : "password"} // Toggle between "text" and "password"
                   placeholder="Confirm Password"
                   name="confirmPassword"
-                  className={`form-control form-control-md rounded-2 ${!passwordsMatch && confirmPasswordFocused ? "invalid-background" : ""}`}
+                  className={`form-control form-control-md rounded-2 ${
+                    !passwordsMatch && confirmPasswordFocused
+                      ? "invalid-background"
+                      : ""
+                  }`}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onFocus={() => {
@@ -213,8 +236,16 @@ export default function SignUp() {
               <strong>Sign Up</strong>
             </button>
           </form>
+          <div className="text-center mt-3">
+            <p>
+              Are you an admin?{" "}
+              <Link to="/admin-register" className="text-primary">
+                Register here
+              </Link>
+            </p>
+          </div>
           <p className="mt-3 text-center text-muted">
-              Password reset is recommended every 90 days.
+            Password reset is recommended every 90 days.
           </p>
         </div>
       </div>

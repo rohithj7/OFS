@@ -51,6 +51,7 @@ const stripePromise = loadStripe(
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [firstTimeLogin, setFirstTimeLogin] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
   const [showModal, setShowModal] = useState(false);
   const [redirectToCheckout, setRedirectToCheckout] = useState(false);
@@ -61,11 +62,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:8080/logout", {
+      await axios.get("/api/logout", {
         withCredentials: true,
       });
       setIsAuthenticated(false);
       setUserRole(null);
+      setFirstTimeLogin(false);
       setCart([]);
       navigate("/Login");
       alert("Logged out successfully");
@@ -198,7 +200,7 @@ function App() {
     try {
       // Call the /checkout route first to verify availability
       const checkResponse = await axios.post(
-        "http://localhost:8080/checkout",
+        "/api/checkout",
         { products },
         { withCredentials: true }
       );
@@ -316,7 +318,7 @@ function App() {
   // Add this function to fetch current product quantities
   const fetchProductQuantities = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/products", {
+      const response = await axios.get("/api/products", {
         withCredentials: true,
       });
       const quantities = {};
@@ -360,7 +362,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/getUserRole", {
+        const response = await axios.get("/api/getUserRole", {
           withCredentials: true,
         });
         if (response.status === 200) {
@@ -560,9 +562,11 @@ function App() {
                     </svg>
                     Employee Mode
                   </span>
-                  <Link to="/EmployeeDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/EmployeeDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -589,9 +593,11 @@ function App() {
                     </svg>
                     Supplier Mode
                   </span>
-                  <Link to="/SupplierDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/SupplierDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -706,6 +712,7 @@ function App() {
             <Login
               setIsAuthenticated={setIsAuthenticated}
               setUserRole={setUserRole}
+              setFirstTimeLogin={setFirstTimeLogin}
               setCart={setCart}
             />
           }
@@ -1091,7 +1098,10 @@ function App() {
 
 function HomeWithProps() {
   const location = useLocation();
-  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  const { firstName, lastName } = location.state || {
+    firstName: "",
+    lastName: "",
+  };
   return <Home firstName={firstName} lastName={lastName} />;
 }
 

@@ -53,7 +53,7 @@ export default function Snacks({ addToCart }) {
     console.log("categoryId from URL params:", categoryId);
     if (!categoryId) return;
     axios
-      .get(`http://localhost:8080/products/category/${categoryId}`, {
+      .get(`/api/products/category/${categoryId}`, {
         withCredentials: true, // Keep this to maintain session
       })
       .then((res) => {
@@ -80,8 +80,8 @@ export default function Snacks({ addToCart }) {
     e.preventDefault();
     if (searchTerm) {
       axios
-        .get(`http://localhost:8080/product-search`, {
-          params: { q: searchTerm },
+        .get(`/api/product-search`, {
+          params: { q: searchTerm, categoryId: categoryId },
           withCredentials: true,
         })
         .then((res) => {

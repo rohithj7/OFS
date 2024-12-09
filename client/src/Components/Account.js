@@ -88,7 +88,7 @@ export default function NewAccount() {
   useEffect(() => {
     const fetchCustomerInfo = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
 
@@ -199,7 +199,7 @@ export default function NewAccount() {
       }
 
       const response = await axios.put(
-        "http://localhost:8080/customerinfo",
+        "/api/customerinfo",
         requestData,
         {
           withCredentials: true,

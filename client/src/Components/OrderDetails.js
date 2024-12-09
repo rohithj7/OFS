@@ -36,7 +36,7 @@ function OrderDetails() {
     const fetchSaleDetails = async () => {
       try {
         // Fetch sale details directly from the `/sales` endpoint
-        const response = await axios.get("http://localhost:8080/sales", {
+        const response = await axios.get("/api/sales", {
           withCredentials: true,
         });
 
@@ -63,7 +63,7 @@ function OrderDetails() {
 
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
         setShippingAddress(response.data.ADDRESS || "Address not available");
