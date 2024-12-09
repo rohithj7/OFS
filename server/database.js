@@ -1014,44 +1014,44 @@ export async function placeSale(customerId, products, stripePaymentId) {
     INSERT INTO SALES (CUSTOMERID, PRICE, SALEDATE, PAYMENTDETAILS, SALE_STATUS)
     VALUES (?, ?, ?, ?, ?)`;
 
-  const totalPrice = await calculateTotalPrice(products);
-  const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
-  const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
-  const saleStatus = "NOT STARTED";
+    const totalPrice = await calculateTotalPrice(products);
+    const saleDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    const paymentDetails = `Stripe Payment ID: ${stripePaymentId}`;
+    const saleStatus = "NOT STARTED";
 
-  const [saleResult] = await connection.execute(saleSql, [
-    customerId,
-    totalPrice,
-    saleDate,
-    paymentDetails,
-    saleStatus
-  ]);
+    const [saleResult] = await connection.execute(saleSql, [
+      customerId,
+      totalPrice,
+      saleDate,
+      paymentDetails,
+      saleStatus
+    ]);
 
-  const saleId = saleResult.insertId;
+    const saleId = saleResult.insertId;
 
-  // Store current product price in SALES_PRODUCTS
-  const saleProductSql = `
+    // Store current product price in SALES_PRODUCTS
+    const saleProductSql = `
     INSERT INTO SALES_PRODUCTS (SALESID, PRODUCTID, QUANTITY, PRICE)
     VALUES (?, ?, ?, ?)`;
 
-  for (const { productId, quantity } of products) {
-    const currentPrice = await getProductPrice(productId);
-    await connection.execute(saleProductSql, [
-      saleId,
-      productId,
-      quantity,
-      currentPrice
-    ]);
-  }
+    for (const { productId, quantity } of products) {
+      const currentPrice = await getProductPrice(productId);
+      await connection.execute(saleProductSql, [
+        saleId,
+        productId,
+        quantity,
+        currentPrice
+      ]);
+    }
 
-  await connection.commit();
-  return { saleId, totalPrice };
-} catch (error) {
-  await connection.rollback();
-  throw error;
-} finally {
-  connection.release();
-}
+    await connection.commit();
+    return { saleId, totalPrice };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 // Helper function to calculate total price
