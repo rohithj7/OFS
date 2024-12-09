@@ -32,7 +32,7 @@ const DeliveryPage = () => {
   useEffect(() => {
     // Fetch the delivery status
     axios
-      .get("http://localhost:8080/sale-status", { withCredentials: true })
+      .get("/api/sale-status", { withCredentials: true })
       .then((response) => {
         const { ongoing } = response.data; // Extract the 'ongoing' value from the response
         setDeliveryInProgress(ongoing); // Update the state
@@ -66,7 +66,7 @@ const DeliveryPage = () => {
     });
 
     // Establish WebSocket connection
-    const ws = new WebSocket('ws://localhost:8082');
+    const ws = new WebSocket('ws://localhost:3000/ws/');
 
     ws.onopen = () => {
       // console.log('WebSocket connected');
@@ -119,7 +119,7 @@ const DeliveryPage = () => {
   // Function to fetch customer location and add marker
   const fetchCustomerLocation = () => {
     axios
-      .get('http://localhost:8080/customerlocation', { withCredentials: true })
+      .get('/api/customerlocation', { withCredentials: true })
       .then((response) => {
         const { LATITUDE: latitude, LONGITUDE: longitude } = response.data;
         setCustomerLocation({ latitude, longitude });

@@ -41,69 +41,83 @@ export async function dispatchSales(saleIds = null) {
 
         // **Corrected Query Construction**
         let salesQuery = `
-            SELECT ID, SALEDATE 
-            FROM SALES 
-            WHERE SALE_STATUS = 'STARTED'
+        SELECT ID, SALEDATE 
+        FROM SALES 
+        WHERE SALE_STATUS = 'STARTED'
         `;
         let salesParams = [];
-
+        
         if (saleIds && saleIds.length > 0) {
-            salesQuery += ` AND ID IN (?)`; // Move AND before ORDER BY
+            salesQuery += ` AND ID IN (?)`;
             salesParams.push(saleIds);
         }
-
-        salesQuery += ` ORDER BY SALEDATE ASC
-        LIMIT 10;`; // Add ORDER BY at the end
-
-        // Get 'STARTED' sales, optionally filtered by saleIds
-        const [sales] = await connection.query(salesQuery, salesParams);
-
-        if (sales.length === 0) {
-            // console.log('No sales to dispatch.');
+        
+        salesQuery += ` ORDER BY SALEDATE ASC;`; // No LIMIT here
+        
+        // Get all 'STARTED' sales
+        const [allStartedSales] = await connection.query(salesQuery, salesParams);
+        
+        if (allStartedSales.length === 0) {
             await connection.commit();
             return;
         }
-
-        // Get the earliest SALEDATE
-        const earliestSale = sales[0];
-        const earliestSaleDate = moment(earliestSale.SALEDATE, 'YYYY-MM-DD HH:mm:ss'); // Parse SALEDATE using moment
-        const now = moment(); // Current date and time
-
-        // Calculate the difference in minutes
-        const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes'); // Use diff for minute calculation
-        // console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
-
-        // Get the total weight of 'STARTED' sales
-        const [weightResult] = await connection.query(
-            `SELECT SUM(SP.QUANTITY * P.WEIGHT) AS total_weight
+        
+        // Now we need to pick sales up to 10 or until total weight is 3200 lbs
+        const selectedSales = [];
+        let currentWeight = 0;
+        
+        for (const sale of allStartedSales) {
+            // Get the weight of this individual sale
+            const [thisSaleWeightResult] = await connection.query(
+                `SELECT SUM(SP.QUANTITY * P.WEIGHT) AS sale_weight
                 FROM SALES_PRODUCTS SP
-                JOIN SALES S ON SP.SALESID = S.ID
                 JOIN PRODUCTS P ON SP.PRODUCTID = P.ID
-                WHERE S.SALE_STATUS = 'STARTED'`
-        );
-
-        const totalWeight = weightResult[0].total_weight || 0;
-
-        // console.log(`totalWeight = ${totalWeight} ounces`)
-
-        // Determine if dispatching criteria are met
-        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES && totalWeight <= WEIGHT_LIMIT_LBS;
+                WHERE SP.SALESID = ?`,
+                [sale.ID]
+            );
+            const thisSaleWeight = thisSaleWeightResult[0].sale_weight || 0;
+            
+            // Check if adding this sale would exceed our constraints
+            if (selectedSales.length < 10 && (currentWeight + thisSaleWeight) <= WEIGHT_LIMIT_LBS) {
+                selectedSales.push(sale);
+                currentWeight += thisSaleWeight;
+            } else {
+                // Either we reached 10 sales or adding this sale would exceed the weight limit
+                break;
+            }
+        }
+        
+        // If no sales selected after filtering, just return
+        if (selectedSales.length === 0) {
+            await connection.commit();
+            return;
+        }
+        
+        // Proceed with dispatch logic using selectedSales
+        // The earliestSale is now selectedSales[0]
+        const earliestSale = selectedSales[0];
+        const earliestSaleDate = moment(earliestSale.SALEDATE, 'YYYY-MM-DD HH:mm:ss');
+        const now = moment();
+        const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes');
+        
+        // Check dispatch criteria against selected sales and total weight
+        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES && currentWeight <= WEIGHT_LIMIT_LBS;
 
         if (shouldDispatch) {
-            const saleIdsToDispatch = sales.map(sale => sale.ID);
+            const saleIdsToDispatch = selectedSales.map(sale => sale.ID);
 
             // Update sales to 'ONGOING'
             await connection.query(
                 `UPDATE SALES SET SALE_STATUS = 'ONGOING' WHERE ID IN (?)`,
                 [saleIdsToDispatch]
             );
-
-            // Get customer coordinates
+        
+            // Fetch customer coordinates for these specific sales
             const [coordsResult] = await connection.query(
                 `SELECT S.ID AS SALE_ID, C.LATITUDE, C.LONGITUDE
-                    FROM SALES S
-                    JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
-                    WHERE S.ID IN (?)`,
+                 FROM SALES S
+                 JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
+                 WHERE S.ID IN (?)`,
                 [saleIdsToDispatch]
             );
 
@@ -145,21 +159,6 @@ export async function dispatchSales(saleIds = null) {
             // Get the optimized route
             const routeData = await getOptimizedRoute(startCoord, coordsForRoute);
             // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
-
-            // Annotate waypoints with sale IDs
-            // const waypoints = routeData.waypoints;
-
-            // // Map original index to saleId
-            // const originalIndexToSaleId = {};
-            // for (let i = 0; i < deliveryCoords.length; i++) {
-            //     originalIndexToSaleId[i] = deliveryCoords[i].saleId;
-            // }
-
-            // // Add saleId to waypoints
-            // for (const waypoint of waypoints) {
-            //     const originalIndex = waypoint.waypoint_index;
-            //     waypoint.saleId = originalIndexToSaleId[originalIndex] || null;
-            // }
 
             // Store the modified routeData
             const routeJson = JSON.stringify(routeData);

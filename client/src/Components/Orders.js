@@ -32,7 +32,7 @@ function Orders() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/sales", {
+        const response = await axios.get("/api/sales", {
           withCredentials: true,
         });
         // console.log("Fetched orders:", response.data); // Debug line
@@ -47,7 +47,7 @@ function Orders() {
 
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
         setShippingAddress(response.data.ADDRESS);

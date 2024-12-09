@@ -31,7 +31,7 @@ function EmployeeDashboard() {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/all_sales", {
+        const response = await axios.get("/api/all_sales", {
           withCredentials: true,
         });
         setRecentSales(response.data);
@@ -46,7 +46,7 @@ function EmployeeDashboard() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/products", {
+        const response = await axios.get("/api/products", {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
@@ -91,7 +91,7 @@ function EmployeeDashboard() {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `http://localhost:8080/sales/${selectedSaleId}/status`,
+        `/api/sales/${selectedSaleId}/status`,
         { newStatus },
         { withCredentials: true }
       );
@@ -116,7 +116,7 @@ function EmployeeDashboard() {
   const fetchSaleDetails = async (saleId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/sales/${saleId}`,
+        `/api/sales/${saleId}`,
         {
           withCredentials: true,
         }

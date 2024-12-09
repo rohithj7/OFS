@@ -92,7 +92,7 @@ const PaymentForm = ({
           }));
 
           const saleResponse = await axios.post(
-            "http://localhost:8080/place-sale",
+            "/api/place-sale",
             {
               products,
               stripePaymentId: paymentIntent.id, // Add the paymentIntent ID here
@@ -103,7 +103,7 @@ const PaymentForm = ({
           if (saleResponse.status === 200) {
             // update the sale with delivery fee
             await axios.put(
-              `http://localhost:8080/sales/${saleResponse.data.saleId}/delivery-fee`,
+              `/api/sales/${saleResponse.data.saleId}/delivery-fee`,
               { deliveryFee },
               { withCredentials: true }
             );
@@ -275,7 +275,7 @@ export default function Checkout({
   useEffect(() => {
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
         setShippingAddress(response.data.ADDRESS);
@@ -305,7 +305,7 @@ export default function Checkout({
         // console.log("Creating payment intent for amount:", totalPrice);
 
         const response = await axios.post(
-          "http://localhost:8080/create-payment-intent",
+          "/api/create-payment-intent",
           {
             amount: Math.round(totalPrice * 100), // In Stripe's implementation, the amount be cent to avoid issues with floating-point arithmetic
             currency: "usd",

@@ -61,7 +61,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:8080/logout", {
+      await axios.get("/api/logout", {
         withCredentials: true,
       });
       setIsAuthenticated(false);
@@ -198,7 +198,7 @@ function App() {
     try {
       // Call the /checkout route first to verify availability
       const checkResponse = await axios.post(
-        "http://localhost:8080/checkout",
+        "/api/checkout",
         { products },
         { withCredentials: true }
       );
@@ -316,7 +316,7 @@ function App() {
   // Add this function to fetch current product quantities
   const fetchProductQuantities = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/products", {
+      const response = await axios.get("/api/products", {
         withCredentials: true,
       });
       const quantities = {};
@@ -360,7 +360,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/getUserRole", {
+        const response = await axios.get("/api/getUserRole", {
           withCredentials: true,
         });
         if (response.status === 200) {
