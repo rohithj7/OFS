@@ -330,18 +330,18 @@ export async function createProduct(
   price,
   weight
 ) {
-  console.log("Creating product with values:", {
-    categoryId,
-    productName,
-    productDescription,
-    brand,
-    pictureUrl,
-    quantity,
-    reorderLevel,
-    reorderQuantity,
-    price,
-    weight,
-  });
+  // console.log("Creating product with values:", {
+  //   categoryId,
+  //   productName,
+  //   productDescription,
+  //   brand,
+  //   pictureUrl,
+  //   quantity,
+  //   reorderLevel,
+  //   reorderQuantity,
+  //   price,
+  //   weight,
+  // });
 
   const sql = `
     INSERT INTO PRODUCTS (
@@ -374,10 +374,10 @@ export async function createProduct(
       weight,
     ]);
 
-    console.log("Insert result:", result);
+    // console.log("Insert result:", result);
     const id = result.insertId;
     const product = await getProductById(id);
-    console.log("Created product:", product);
+    // console.log("Created product:", product);
     return product;
   } catch (error) {
     console.error("Error in createProduct:", error);
@@ -720,9 +720,9 @@ export async function updateCustomerInfo(loginId, customerInfo) {
     const coords = await geocodeAddress(address);
     latitude = coords.latitude;
     longitude = coords.longitude;
-    console.log(
-      `Geocoded Address: ${address} => Latitude: ${latitude}, Longitude: ${longitude}`
-    );
+    // console.log(
+    //   `Geocoded Address: ${address} => Latitude: ${latitude}, Longitude: ${longitude}`
+    // );
 
     const sql = `
       UPDATE CUSTOMERS
@@ -738,7 +738,7 @@ export async function updateCustomerInfo(loginId, customerInfo) {
       longitude,
       loginId,
     ]);
-    console.log(`Customer with LOGINID ${loginId} updated successfully.`);
+    // console.log(`Customer with LOGINID ${loginId} updated successfully.`);
   } catch (error) {
     console.error("Error updating customer:", error.message);
     throw error;
@@ -805,11 +805,11 @@ export async function getDashboardStatistics() {
       WHERE SALEDATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)`;
 
     // Add console logs for debugging
-    console.log("Current server time:", new Date());
+    // console.log("Current server time:", new Date());
     const [timeCheck] = await pool.query(
       "SELECT NOW() as now, CURRENT_DATE() as today"
     );
-    console.log("Database time:", timeCheck[0]);
+    // console.log("Database time:", timeCheck[0]);
 
     // Execute all queries
     const [
@@ -829,8 +829,8 @@ export async function getDashboardStatistics() {
     ]);
 
     // Log results for debugging
-    console.log("Today's stats:", today[0]);
-    console.log("Monthly stats:", monthly[0]);
+    // console.log("Today's stats:", today[0]);
+    // console.log("Monthly stats:", monthly[0]);
 
     // Combine results
     return {

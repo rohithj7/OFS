@@ -621,7 +621,7 @@ app.get("/products/:id", async (req, res) => {
 // Apply authentication middleware to the routes
 app.post("/products", isAuthenticated, async (req, res) => {
   try {
-    console.log("Received product data:", req.body);
+    // console.log("Received product data:", req.body);
 
     const {
       categoryId,
@@ -636,19 +636,19 @@ app.post("/products", isAuthenticated, async (req, res) => {
       weight,
     } = req.body;
 
-    console.log("Extracted values:", {
-      // Debug log
-      categoryId,
-      productName,
-      productDescription,
-      brand,
-      pictureUrl,
-      quantity,
-      reorderLevel,
-      reorderQuantity,
-      price,
-      weight,
-    });
+    // console.log("Extracted values:", {
+    //   // Debug log
+    //   categoryId,
+    //   productName,
+    //   productDescription,
+    //   brand,
+    //   pictureUrl,
+    //   quantity,
+    //   reorderLevel,
+    //   reorderQuantity,
+    //   price,
+    //   weight,
+    // });
     // Create the product
     const newProduct = await createProduct(
       categoryId,
@@ -663,7 +663,7 @@ app.post("/products", isAuthenticated, async (req, res) => {
       weight
     );
 
-    console.log("Created product:", newProduct);
+    // console.log("Created product:", newProduct);
     res.status(201).json(newProduct);
   } catch (err) {
     console.error("Error creating product:", err);
@@ -1016,7 +1016,7 @@ app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
         enabled: true,
       },
     });
-    console.log("PaymentIntent created successfully:", paymentIntent.id);
+    // console.log("PaymentIntent created successfully:", paymentIntent.id);
 
     res.json({
       clientSecret: paymentIntent.client_secret,
@@ -1110,7 +1110,7 @@ app.get("/statistics", async (req, res) => {
 // Get ALL orders with details (for manager)
 app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
   try {
-    console.log("Fetching all orders for manager...");
+    // console.log("Fetching all orders for manager...");
     const orders = await getOrdersWithDetails();
     res.json(orders);
   } catch (err) {
@@ -1123,10 +1123,10 @@ app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
 app.get("/orders-with-details", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID; // Changed from req.user.loginId to req.user.ID
-    console.log("Fetching orders for login ID:", loginId);
+    // console.log("Fetching orders for login ID:", loginId);
 
     const orders = await getOrdersWithDetailsBySupplier(loginId);
-    console.log("Orders found:", orders);
+    // console.log("Orders found:", orders);
     res.json(orders);
   } catch (err) {
     console.error("Error fetching orders:", err);
@@ -1213,7 +1213,7 @@ app.post("/balance", async (req, res) => {
 app.put("/update-sale-status", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID;
-    console.log(loginId);
+    // console.log(loginId);
 
     // Fetch the saleId of the latest 'ONGOING' sale
     const saleId = await getLatestOngoingSaleId(loginId);
@@ -1268,12 +1268,12 @@ wss.on("connection", (ws, req) => {
   const role = parameters.get("role") || "customer";
   ws.role = role;
 
-  console.log("New client connected with role:", role);
+  // console.log("New client connected with role:", role);
 
   ws.on("message", (message) => {
     try {
       const parsedMessage = JSON.parse(message);
-      console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
+      // console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
       // Handle different message types if needed
     } catch (err) {
       console.error("Error parsing WebSocket message:", err);
@@ -1281,7 +1281,7 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
-    console.log("Client disconnected");
+    // console.log("Client disconnected");
   });
 });
 
@@ -1401,5 +1401,5 @@ app.use((err, req, res, next) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+  // console.log(`Server started on port ${PORT}`);
 });

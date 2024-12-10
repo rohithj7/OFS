@@ -55,7 +55,7 @@ export async function dispatchSales(saleIds = null) {
         
         // Get all 'STARTED' sales
         const [allStartedSales] = await connection.query(salesQuery, salesParams);
-        console.log(`allStartedSales: ${allStartedSales}`);
+        // console.log(`allStartedSales: ${allStartedSales}`);
         
         if (allStartedSales.length === 0) {
             await connection.commit();
@@ -66,7 +66,7 @@ export async function dispatchSales(saleIds = null) {
         const earliestSaleDate = moment(earliestSale.SALEDATE, 'YYYY-MM-DD HH:mm:ss');
         const now = moment();
         const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes');
-        console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
+        // console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
         
         // Check if earliest sale hit the 3-minute mark
         if (minutesSinceEarliestSale < TIME_LIMIT_MINUTES) {
@@ -78,11 +78,11 @@ export async function dispatchSales(saleIds = null) {
         const selectedSales = [];
         let currentWeight = 0;
 
-        console.log(`allStartedSales[0]: ${allStartedSales[0]}`);
-        console.log(`allStartedSales[1]: ${allStartedSales[1]}`);
+        // console.log(`allStartedSales[0]: ${allStartedSales[0]}`);
+        // console.log(`allStartedSales[1]: ${allStartedSales[1]}`);
         
         for (const sale of allStartedSales) {
-            console.log(`sale.ID: ${sale.ID}`);
+            // console.log(`sale.ID: ${sale.ID}`);
             // Get the weight of this individual sale
             const [thisSaleWeightResult] = await connection.query(
                 `SELECT SUM(SP.QUANTITY * P.WEIGHT) AS sale_weight
@@ -92,16 +92,16 @@ export async function dispatchSales(saleIds = null) {
                 [sale.ID]
             );
             const thisSaleWeight = Number(thisSaleWeightResult[0].sale_weight) || 0;
-            console.log(`thisSaleWeight: ${thisSaleWeight}`);
-            console.log(`currentWeight + thisSaleWeight: ${currentWeight + thisSaleWeight}`);
+            // console.log(`thisSaleWeight: ${thisSaleWeight}`);
+            // console.log(`currentWeight + thisSaleWeight: ${currentWeight + thisSaleWeight}`);
             
             // Check if adding this sale would exceed our constraints
             if (selectedSales.length < 10 && (currentWeight + thisSaleWeight) <= WEIGHT_LIMIT_LBS) {
                 selectedSales.push(sale);
-                console.log(`thisSaleWeight: ${thisSaleWeight}`);
+                // console.log(`thisSaleWeight: ${thisSaleWeight}`);
                 currentWeight += thisSaleWeight;
-                console.log(`selectedSales: ${selectedSales}`);
-                console.log(`currentWeight: ${currentWeight}`);
+                // console.log(`selectedSales: ${selectedSales}`);
+                // console.log(`currentWeight: ${currentWeight}`);
             } else {
                 // Don't break, just skip this sale and continue checking others
                 // Do nothing here, just let the loop continue
@@ -116,7 +116,7 @@ export async function dispatchSales(saleIds = null) {
         }
         
         const saleIdsToDispatch = selectedSales.map(sale => sale.ID);
-        console.log(`saleIdsToDispatch: ${saleIdsToDispatch}`);
+        // console.log(`saleIdsToDispatch: ${saleIdsToDispatch}`);
 
         // Update sales to 'ONGOING'
         await connection.query(
