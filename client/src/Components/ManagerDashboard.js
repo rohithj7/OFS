@@ -197,7 +197,7 @@ function ManagerDashboard() {
         return;
       }
       const response = await axios.post(
-        "/api/registerEmployee",
+        "http://localhost:8080/registerEmployee",
         {
           email: accountFormData.email,
           firstName: accountFormData.firstName,
@@ -237,7 +237,7 @@ function ManagerDashboard() {
         return;
       }
       const res = await axios.post(
-        "/api/registerSupplier",
+        "http://localhost:8080/registerSupplier",
         {
           email: accountFormData.email,
           supplierName: accountFormData.supplierName,
@@ -286,7 +286,7 @@ function ManagerDashboard() {
       }
       if (accountType === "supplier") {
         const res = await axios.post(
-          "/api/registerSupplier",
+          "http://localhost:8080/registerSupplier",
           {
             email: accountFormData.email,
             supplierName: accountFormData.supplierName,
@@ -299,7 +299,7 @@ function ManagerDashboard() {
         alert("Supplier added successfully!");
       } else {
         const response = await axios.post(
-          "/api/registerEmployee",
+          "http://localhost:8080/registerEmployee",
           {
             email: accountFormData.email,
             firstName: accountFormData.firstName,
@@ -384,7 +384,7 @@ function ManagerDashboard() {
       // console.log("Sending request to:", "http://localhost:8080/products");
 
       const response = await axios.post(
-        "/api/products",
+        "http://localhost:8080/products",
         productData,
         {
           withCredentials: true,
@@ -444,7 +444,7 @@ function ManagerDashboard() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("/api/products", {
+        const response = await axios.get("http://localhost:8080/products", {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
@@ -488,7 +488,7 @@ function ManagerDashboard() {
         }
 
         const response = await axios.delete(
-          `/api/products/${productId}`,
+          `http://localhost:8080/products/${productId}`,
           {
             withCredentials: true,
           }
@@ -553,7 +553,7 @@ function ManagerDashboard() {
       // console.log("Sending update with data:", formData); // Debug log
 
       const response = await axios.put(
-        `/api/products/${editingProduct.ID}`,
+        `http://localhost:8080/products/${editingProduct.ID}`,
         formData,
         {
           withCredentials: true,
@@ -612,7 +612,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchAllSales = async () => {
       try {
-        const response = await axios.get("/api/all_sales", {
+        const response = await axios.get("http://localhost:8080/all_sales", {
           withCredentials: true,
         });
         // Sort all sale orders by date (most recent first)
@@ -631,7 +631,7 @@ function ManagerDashboard() {
   const handleStatusUpdate = async (saleId, newStatus) => {
     try {
       const response = await axios.put(
-        `/api/sales/${saleId}/status`,
+        `http://localhost:8080/sales/${saleId}/status`,
         { newStatus },
         { withCredentials: true }
       );
@@ -654,7 +654,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get("/api/suppliers", {
+        const response = await axios.get("http://localhost:8080/suppliers", {
           withCredentials: true,
         });
         setSuppliers(response.data);
@@ -678,7 +678,7 @@ function ManagerDashboard() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "/api/admin/reorder-product",
+        "http://localhost:8080/admin/reorder-product",
         {
           productName: selectedProduct.PRODUCTNAME,
           supplierName: orderData.supplierName,
@@ -719,7 +719,7 @@ function ManagerDashboard() {
 
     try {
       const response = await axios.put(
-        "/api/admin/reset-password",
+        "http://localhost:8080/admin/reset-password",
         { newPassword },
         { withCredentials: true }
       );
@@ -735,7 +735,7 @@ function ManagerDashboard() {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get("/api/statistics", {
+        const response = await axios.get("http://localhost:8080/statistics", {
           withCredentials: true,
         });
         setStatistics(response.data);
@@ -750,7 +750,7 @@ function ManagerDashboard() {
   // Add this function to fetch orders
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("/api/all-orders", {
+      const response = await axios.get("http://localhost:8080/all-orders", {
         withCredentials: true,
       });
       setOrders(response.data);
@@ -2249,9 +2249,8 @@ function ManagerDashboard() {
                         <input
                           type="text"
                           className="form-control"
-                          minlength="1"
-                          maxlength="25"
                           value={editingProduct.PRODUCTNAME}
+                          maxlength="255"
                           onChange={(e) =>
                             setEditingProduct({
                               ...editingProduct,
@@ -2265,8 +2264,6 @@ function ManagerDashboard() {
                         <input
                           type="text"
                           className="form-control"
-                          minlength="1"
-                          maxlength="15"
                           value={editingProduct.BRAND}
                           onChange={(e) =>
                             setEditingProduct({
@@ -2312,8 +2309,6 @@ function ManagerDashboard() {
                         <input
                           type="number"
                           className="form-control"
-                          min="0"
-                          max="200"
                           value={editingProduct.QUANTITY}
                           onChange={(e) =>
                             setEditingProduct({
@@ -2332,8 +2327,6 @@ function ManagerDashboard() {
                       <input
                         type="number"
                         className="form-control"
-                        min="0"
-                        max="200"
                         value={editingProduct.REORDERLEVEL}
                         onChange={(e) =>
                           setEditingProduct({
@@ -2349,8 +2342,7 @@ function ManagerDashboard() {
                       <textarea
                         className="form-control"
                         rows="3"
-                        minlength="1"
-                        maxlength="100"
+                        maxlength="255"
                         value={editingProduct.PRODUCTDESCRIPTION}
                         onChange={(e) =>
                           setEditingProduct({
