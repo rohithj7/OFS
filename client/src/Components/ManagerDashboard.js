@@ -2249,8 +2249,9 @@ function ManagerDashboard() {
                         <input
                           type="text"
                           className="form-control"
+                          minlength="1"
+                          maxlength="25"
                           value={editingProduct.PRODUCTNAME}
-                          maxlength="255"
                           onChange={(e) =>
                             setEditingProduct({
                               ...editingProduct,
@@ -2264,6 +2265,8 @@ function ManagerDashboard() {
                         <input
                           type="text"
                           className="form-control"
+                          minlength="1"
+                          maxlength="15"
                           value={editingProduct.BRAND}
                           onChange={(e) =>
                             setEditingProduct({
@@ -2309,6 +2312,8 @@ function ManagerDashboard() {
                         <input
                           type="number"
                           className="form-control"
+                          min="0"
+                          max="200"
                           value={editingProduct.QUANTITY}
                           onChange={(e) =>
                             setEditingProduct({
@@ -2327,6 +2332,8 @@ function ManagerDashboard() {
                       <input
                         type="number"
                         className="form-control"
+                        min="0"
+                        max="200"
                         value={editingProduct.REORDERLEVEL}
                         onChange={(e) =>
                           setEditingProduct({
@@ -2342,7 +2349,8 @@ function ManagerDashboard() {
                       <textarea
                         className="form-control"
                         rows="3"
-                        maxlength="255"
+                        minlength="1"
+                        maxlength="100"
                         value={editingProduct.PRODUCTDESCRIPTION}
                         onChange={(e) =>
                           setEditingProduct({

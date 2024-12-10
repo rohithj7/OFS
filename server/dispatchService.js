@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import moment from 'moment';
 dotenv.config();
 
-const TIME_LIMIT_MINUTES = 5;
+const TIME_LIMIT_MINUTES = 3;
 const WEIGHT_LIMIT_LBS = 3200;
 const WAREHOUSE_LATITUDE = parseFloat(process.env.WAREHOUSE_LATITUDE);
 const WAREHOUSE_LONGITUDE = parseFloat(process.env.WAREHOUSE_LONGITUDE);
@@ -39,11 +39,10 @@ export async function dispatchSales(saleIds = null) {
             return;
         }
 
-        // **Corrected Query Construction**
         let salesQuery = `
-        SELECT ID, SALEDATE 
-        FROM SALES 
-        WHERE SALE_STATUS = 'STARTED'
+            SELECT ID, SALEDATE 
+            FROM SALES 
+            WHERE SALE_STATUS = 'STARTED'
         `;
         let salesParams = [];
         
@@ -56,17 +55,34 @@ export async function dispatchSales(saleIds = null) {
         
         // Get all 'STARTED' sales
         const [allStartedSales] = await connection.query(salesQuery, salesParams);
+        console.log(`allStartedSales: ${allStartedSales}`);
         
         if (allStartedSales.length === 0) {
             await connection.commit();
             return;
         }
+
+        const earliestSale = allStartedSales[0];
+        const earliestSaleDate = moment(earliestSale.SALEDATE, 'YYYY-MM-DD HH:mm:ss');
+        const now = moment();
+        const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes');
+        console.log(`minutesSinceEarliestSale: ${minutesSinceEarliestSale}`);
         
-        // Now we need to pick sales up to 10 or until total weight is 3200 lbs
+        // Check if earliest sale hit the 3-minute mark
+        if (minutesSinceEarliestSale < TIME_LIMIT_MINUTES) {
+          await connection.commit();
+          return;
+        }
+        
+        // Now we need to pick sales up to 10 or until total weight is 3200 ounces
         const selectedSales = [];
         let currentWeight = 0;
+
+        console.log(`allStartedSales[0]: ${allStartedSales[0]}`);
+        console.log(`allStartedSales[1]: ${allStartedSales[1]}`);
         
         for (const sale of allStartedSales) {
+            console.log(`sale.ID: ${sale.ID}`);
             // Get the weight of this individual sale
             const [thisSaleWeightResult] = await connection.query(
                 `SELECT SUM(SP.QUANTITY * P.WEIGHT) AS sale_weight
@@ -75,16 +91,22 @@ export async function dispatchSales(saleIds = null) {
                 WHERE SP.SALESID = ?`,
                 [sale.ID]
             );
-            const thisSaleWeight = thisSaleWeightResult[0].sale_weight || 0;
+            const thisSaleWeight = Number(thisSaleWeightResult[0].sale_weight) || 0;
+            console.log(`thisSaleWeight: ${thisSaleWeight}`);
+            console.log(`currentWeight + thisSaleWeight: ${currentWeight + thisSaleWeight}`);
             
             // Check if adding this sale would exceed our constraints
             if (selectedSales.length < 10 && (currentWeight + thisSaleWeight) <= WEIGHT_LIMIT_LBS) {
                 selectedSales.push(sale);
+                console.log(`thisSaleWeight: ${thisSaleWeight}`);
                 currentWeight += thisSaleWeight;
+                console.log(`selectedSales: ${selectedSales}`);
+                console.log(`currentWeight: ${currentWeight}`);
             } else {
-                // Either we reached 10 sales or adding this sale would exceed the weight limit
-                break;
-            }
+                // Don't break, just skip this sale and continue checking others
+                // Do nothing here, just let the loop continue
+                continue;
+            }            
         }
         
         // If no sales selected after filtering, just return
@@ -93,101 +115,87 @@ export async function dispatchSales(saleIds = null) {
             return;
         }
         
-        // Proceed with dispatch logic using selectedSales
-        // The earliestSale is now selectedSales[0]
-        const earliestSale = selectedSales[0];
-        const earliestSaleDate = moment(earliestSale.SALEDATE, 'YYYY-MM-DD HH:mm:ss');
-        const now = moment();
-        const minutesSinceEarliestSale = now.diff(earliestSaleDate, 'minutes');
-        
-        // Check dispatch criteria against selected sales and total weight
-        const shouldDispatch = minutesSinceEarliestSale >= TIME_LIMIT_MINUTES && currentWeight <= WEIGHT_LIMIT_LBS;
+        const saleIdsToDispatch = selectedSales.map(sale => sale.ID);
+        console.log(`saleIdsToDispatch: ${saleIdsToDispatch}`);
 
-        if (shouldDispatch) {
-            const saleIdsToDispatch = selectedSales.map(sale => sale.ID);
+        // Update sales to 'ONGOING'
+        await connection.query(
+            `UPDATE SALES SET SALE_STATUS = 'ONGOING' WHERE ID IN (?)`,
+            [saleIdsToDispatch]
+        );
+    
+        // Fetch customer coordinates for these specific sales
+        const [coordsResult] = await connection.query(
+            `SELECT S.ID AS SALE_ID, C.LATITUDE, C.LONGITUDE
+                FROM SALES S
+                JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
+                WHERE S.ID IN (?)`,
+            [saleIdsToDispatch]
+        );
 
-            // Update sales to 'ONGOING'
-            await connection.query(
-                `UPDATE SALES SET SALE_STATUS = 'ONGOING' WHERE ID IN (?)`,
-                [saleIdsToDispatch]
-            );
-        
-            // Fetch customer coordinates for these specific sales
-            const [coordsResult] = await connection.query(
-                `SELECT S.ID AS SALE_ID, C.LATITUDE, C.LONGITUDE
-                 FROM SALES S
-                 JOIN CUSTOMERS C ON S.CUSTOMERID = C.ID
-                 WHERE S.ID IN (?)`,
-                [saleIdsToDispatch]
-            );
+        // Map sale IDs to coordinates
+        const deliveryCoords = coordsResult.map(coord => ({
+            saleId: coord.SALE_ID,
+            latitude: coord.LATITUDE,
+            longitude: coord.LONGITUDE
+        }));
 
-            // Map sale IDs to coordinates
-            const deliveryCoords = coordsResult.map(coord => ({
-                saleId: coord.SALE_ID,
-                latitude: coord.LATITUDE,
-                longitude: coord.LONGITUDE
-            }));
+        // console.log('Fetched Delivery Coordinates:', deliveryCoords);
 
-            // console.log('Fetched Delivery Coordinates:', deliveryCoords);
+        // Validate coordinates
+        const coordsForRoute = deliveryCoords.map(coord => ({
+            latitude: coord.latitude,
+            longitude: coord.longitude
+        }));
 
-            // Validate coordinates
-            const coordsForRoute = deliveryCoords.map(coord => ({
-                latitude: coord.latitude,
-                longitude: coord.longitude
-            }));
+        // console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
+        // console.log('Coordinates for Route:', coordsForRoute);
 
-            // console.log('Route Start Coordinate:', { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE });
-            // console.log('Coordinates for Route:', coordsForRoute);
+        // Validate coordinates
+        coordsForRoute.forEach((coord, index) => {
+            if (
+                typeof coord.latitude !== 'number' ||
+                typeof coord.longitude !== 'number' ||
+                isNaN(coord.latitude) ||
+                isNaN(coord.longitude) ||
+                coord.latitude < -90 || coord.latitude > 90 ||
+                coord.longitude < -180 || coord.longitude > 180
+            ) {
+                throw new Error(`Invalid coordinates at index ${index}: Latitude=${coord.latitude}, Longitude=${coord.longitude}`);
+            }
+        });
 
-            // Validate coordinates
-            coordsForRoute.forEach((coord, index) => {
-                if (
-                    typeof coord.latitude !== 'number' ||
-                    typeof coord.longitude !== 'number' ||
-                    isNaN(coord.latitude) ||
-                    isNaN(coord.longitude) ||
-                    coord.latitude < -90 || coord.latitude > 90 ||
-                    coord.longitude < -180 || coord.longitude > 180
-                ) {
-                    throw new Error(`Invalid coordinates at index ${index}: Latitude=${coord.latitude}, Longitude=${coord.longitude}`);
-                }
-            });
+        // Warehouse coordinates
+        const startCoord = { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE };
 
-            // Warehouse coordinates
-            const startCoord = { latitude: WAREHOUSE_LATITUDE, longitude: WAREHOUSE_LONGITUDE };
+        // Get the optimized route
+        const routeData = await getOptimizedRoute(startCoord, coordsForRoute);
+        // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
 
-            // Get the optimized route
-            const routeData = await getOptimizedRoute(startCoord, coordsForRoute);
-            // console.log('Optimized Route Data:', JSON.stringify(routeData, null, 2));
+        // Store the modified routeData
+        const routeJson = JSON.stringify(routeData);
 
-            // Store the modified routeData
-            const routeJson = JSON.stringify(routeData);
+        const [routeInsertResult] = await connection.query(
+            `INSERT INTO ROUTES (ROUTE_DATA, START_TIME, STATUS) VALUES (?, NOW(), 'IN_PROGRESS')`,
+            [routeJson]
+        );
 
-            const [routeInsertResult] = await connection.query(
-                `INSERT INTO ROUTES (ROUTE_DATA, START_TIME, STATUS) VALUES (?, NOW(), 'IN_PROGRESS')`,
-                [routeJson]
-            );
+        const routeId = routeInsertResult.insertId;
 
-            const routeId = routeInsertResult.insertId;
+        // Update SALES table to set ROUTE_ID
+        await connection.query(
+            `UPDATE SALES SET ROUTE_ID = ? WHERE ID IN (?)`,
+            [routeId, saleIdsToDispatch]
+        );
 
-            // Update SALES table to set ROUTE_ID
-            await connection.query(
-                `UPDATE SALES SET ROUTE_ID = ? WHERE ID IN (?)`,
-                [routeId, saleIdsToDispatch]
-            );
+        await connection.commit();
 
-            await connection.commit();
+        // Broadcast the new route data via WebSocket
+        broadcastRouteData(routeData);
+        // console.log("Broadcast done.");
 
-            // Broadcast the new route data via WebSocket
-            broadcastRouteData(routeData);
-            // console.log("Broadcast done.");
-
-            simulateBotMovement(routeData, routeId, deliveryCoords);
-            // console.log("Simulation started.");
-        } else {
-            // console.log('Dispatching criteria not met. Skipping dispatch.');
-            await connection.commit();
-        }
+        simulateBotMovement(routeData, routeId, deliveryCoords);
+        // console.log("Simulation started.");
 
     } catch (err) {
         await connection.rollback();

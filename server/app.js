@@ -119,7 +119,6 @@ app.use(
     secret: process.env.SESSION_SECRET || "secret_key",
     resave: false,
     saveUninitialized: false,
-    store: sessionStore,
     cookie: {
       httpOnly: true,
       secure: false, // false for local dev with HTTP; true in production with HTTPS
