@@ -32,9 +32,9 @@ function SupplierDashboard() {
       setOrderError(null);
 
       try {
-        console.log("Starting orders fetch...");
+        // console.log("Starting orders fetch...");
         const response = await axios.get(
-          "http://localhost:8080/orders-with-details",
+          "/api/orders-with-details",
           {
             withCredentials: true,
             headers: {
@@ -44,7 +44,7 @@ function SupplierDashboard() {
           }
         );
 
-        console.log("Orders response:", response.data);
+        // console.log("Orders response:", response.data);
         setOrders(response.data);
       } catch (error) {
         console.error("Detailed fetch error:", {
@@ -70,7 +70,7 @@ function SupplierDashboard() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get("http://localhost:8080/products", {
+        const response = await axios.get("/api/products", {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
@@ -109,7 +109,7 @@ function SupplierDashboard() {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `http://localhost:8080/orders/${selectedOrderId}/status`,
+        `/api/orders/${selectedOrderId}/status`,
         { newStatus },
         { withCredentials: true }
       );

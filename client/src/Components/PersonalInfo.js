@@ -82,15 +82,25 @@ const PersonalInfo = () => {
     "WY",
   ];
 
-  const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   useEffect(() => {
     const isPhoneValid = formData.phone.replace(/[^\d]/g, "").length === 10;
     const isZipCodeValid = formData.zipCode.replace(/[^\d]/g, "").length === 5;
     const isStateValid = states.includes(formData.state);
     const isFirstNameValid = formData.firstName.trim() !== "";
     const isLastNameValid = formData.lastName.trim() !== "";
-    const isAddressFieldsValid = formData.addressLine.trim() !== "" && formData.city.trim() !== "" && formData.state.trim() !== "" && formData.country.trim() !== "";
-    setIsAddressValid(isPhoneValid && isZipCodeValid && isStateValid && isFirstNameValid && isLastNameValid && isAddressFieldsValid);
+    const isAddressFieldsValid =
+      formData.addressLine.trim() !== "" &&
+      formData.city.trim() !== "" &&
+      formData.state.trim() !== "" &&
+      formData.country.trim() !== "";
+    setIsAddressValid(
+      isPhoneValid &&
+        isZipCodeValid &&
+        isStateValid &&
+        isFirstNameValid &&
+        isLastNameValid &&
+        isAddressFieldsValid
+    );
   }, [formData]);
 
   const formatPhoneNumber = (value) => {
@@ -145,84 +155,22 @@ const PersonalInfo = () => {
       });
     }
   };
-  function normalizeAddressComponent(component) {
-    return component
-      .toLowerCase()
-      .replace(
-        /\b(dr|st|rd|ave|blvd|ln|ct|pl|sq|ter|pkwy|cir|apt|ste)\b/g,
-        (match) => {
-          switch (match) {
-            case "dr":
-              return "drive";
-            case "st":
-              return "street";
-            case "rd":
-              return "road";
-            case "ave":
-              return "avenue";
-            case "blvd":
-              return "boulevard";
-            case "ln":
-              return "lane";
-            case "ct":
-              return "court";
-            case "pl":
-              return "place";
-            case "sq":
-              return "square";
-            case "ter":
-              return "terrace";
-            case "pkwy":
-              return "parkway";
-            case "cir":
-              return "circle";
-            case "apt":
-              return "apartment";
-            case "ste":
-              return "suite";
-            default:
-              return match;
-          }
+
+  async function validateAddress(address) {
+    try {
+      const response = await axios.get(
+        `/api/validate-address`,
+        {
+          params: { address },
+          withCredentials: true,
         }
       );
-  }
 
-  function validateAddress(address, formData) {
-    const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      address
-    )}&key=${googleMapsApiKey}`;
-
-    return fetch(geocodingUrl)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Geocoding API response:", data);
-        if (data.status === "OK" && data.results.length > 0) {
-          const firstResult = data.results[0];
-          const addressComponents = firstResult.address_components;
-          const country = addressComponents.find(c => c.types.includes('country'))?.short_name === 'US';
-          const state = addressComponents.find(c => c.types.includes('administrative_area_level_1'))?.short_name === formData.state;
-          const city = addressComponents.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'))?.long_name.toLowerCase() === formData.city.toLowerCase();
-          const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
-          const addressLine = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine));
-
-          console.log('Validation results:', { country, state, city, postalCode, addressLine });
-
-          if (country && state && city && postalCode && addressLine ) {
-            console.log('Address is valid:', address);
-            return true;
-          } else {
-            console.log("Address may be invalid or ambiguous:", address);
-            return false;
-          }
-        } else {
-          console.log("Address not found:", address);
-          return false;
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching geocoding data:", error);
-        return false;
-      });
+      return response.data.isValid;
+    } catch (error) {
+      console.error("Error validating address:", error);
+      return false;
+    }
   }
 
   const getInvalidAddressComponents = () => {
@@ -268,12 +216,12 @@ const PersonalInfo = () => {
     // Concatenate address fields
     const fullAddress = `${formData.addressLine}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
 
-    // Validate address
-    const isAddressValid = await validateAddress(fullAddress, formData);
+    // Validate address using the new route
+    const isAddressValid = await validateAddress(fullAddress);
     if (!isAddressValid) {
       const invalidComponents = getInvalidAddressComponents();
       alert(
-        `Invalid address. Please review the following fields: ${invalidComponents.join(
+        `Invalid address. Please review the input fields: ${invalidComponents.join(
           ", "
         )}.`
       );
@@ -290,10 +238,10 @@ const PersonalInfo = () => {
         longitude: null,
       };
 
-      console.log("Sending data to server:", requestData);
+      // console.log("Sending data to server:", requestData);
 
       const response = await axios.put(
-        "http://localhost:8080/customerinfo",
+        "/api/customerinfo",
         requestData,
         {
           withCredentials: true,
@@ -304,7 +252,7 @@ const PersonalInfo = () => {
       );
 
       if (response.status === 200) {
-        navigate("/Home", {
+        navigate("/Login", {
           state: { firstName: formData.firstName, lastName: formData.lastName },
         });
       }
@@ -320,368 +268,217 @@ const PersonalInfo = () => {
         backgroundImage: `url("/Assets/assortedVegetablesForLogin.jpeg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        height: "100vh",
+        minHeight: "100vh",
         width: "100vw",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="bg-white p-4 rounded-4 w-25">
-          <h2 className="text-center">User Profile</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="firstName">
-                <strong>First Name</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter first name"
-                name="firstName"
-                className="form-control form-control-md rounded-2"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-            </div>
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          padding: "30px",
+          borderRadius: "8px",
+          width: "90%",
+          maxWidth: "500px",
+          boxSizing: "border-box",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <h2 className="text-center">User Profile</h2>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "15px",
+          }}
+        >
+          <div className="mb-3">
+            <label htmlFor="firstName">
+              <strong>First Name</strong> <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter first name"
+              name="firstName"
+              className="form-control form-control-md rounded-2"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="lastName">
-                <strong>Last Name</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter last name"
-                name="lastName"
-                className="form-control form-control-md rounded-2"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="mb-3">
+            <label htmlFor="lastName">
+              <strong>Last Name</strong> <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter last name"
+              name="lastName"
+              className="form-control form-control-md rounded-2"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="mb-3 position-relative">
-              <label htmlFor="phone">
-                <strong>Phone</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="tel"
-                placeholder="(xxx) xxx-xxxx"
-                name="phone"
-                className={`form-control form-control-md rounded-2 ${phoneError && phoneFocused ? "invalid-background" : ""}`}
-                value={formData.phone}
-                onChange={handleChange}
-                onFocus={() => {
-                  setShowPhoneTooltip(true);
-                  setPhoneFocused(true);
-                }}
-                onBlur={() => {
-                  setShowPhoneTooltip(false);
-                  setPhoneFocused(false);
-                }}
-                required
-              />
-              <Tooltip
-                messages={[
-                  { text: "Phone number must contain only 10 digits.", valid: formData.phone.replace(/[^\d]/g, "").length === 10 },
-                ]}
-                visible={showPhoneTooltip}
-              />
-            </div>
+          <div className="mb-3 position-relative">
+            <label htmlFor="phone">
+              <strong>Phone</strong> <span className="text-danger">*</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="(xxx) xxx-xxxx"
+              name="phone"
+              className={`form-control form-control-md rounded-2 ${
+                phoneError && phoneFocused ? "invalid-background" : ""
+              }`}
+              value={formData.phone}
+              onChange={handleChange}
+              onFocus={() => {
+                setShowPhoneTooltip(true);
+                setPhoneFocused(true);
+              }}
+              onBlur={() => {
+                setShowPhoneTooltip(false);
+                setPhoneFocused(false);
+              }}
+              required
+            />
+            <Tooltip
+              messages={[
+                {
+                  text: "Phone number must contain only 10 digits.",
+                  valid: formData.phone.replace(/[^\d]/g, "").length === 10,
+                },
+              ]}
+              visible={showPhoneTooltip}
+            />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="addressLine">
-                <strong>Address Line</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter address line"
-                name="addressLine"
-                className="form-control form-control-md rounded-2"
-                value={formData.addressLine}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="mb-3">
+            <label htmlFor="addressLine">
+              <strong>Address Line</strong>{" "}
+              <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter address line"
+              name="addressLine"
+              className="form-control form-control-md rounded-2"
+              value={formData.addressLine}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="city">
-                <strong>City</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter city"
-                name="city"
-                className="form-control form-control-md rounded-2"
-                value={formData.city}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="mb-3">
+            <label htmlFor="city">
+              <strong>City</strong> <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter city"
+              name="city"
+              className="form-control form-control-md rounded-2"
+              value={formData.city}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="mb-3 position-relative">
-              <label htmlFor="state">
-                <strong>State</strong> <span className="text-danger">*</span>
-              </label>
-              <select
-                name="state"
-                className={`form-control form-control-md rounded-2`}
-                value={formData.state}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select State</option>
-                {states.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="mb-3 position-relative">
+            <label htmlFor="state">
+              <strong>State</strong> <span className="text-danger">*</span>
+            </label>
+            <select
+              name="state"
+              className={`form-control form-control-md rounded-2`}
+              value={formData.state}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select State</option>
+              {states.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div className="mb-3 position-relative">
-              <label htmlFor="zipCode">
-                <strong>Zip Code</strong> <span className="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter zip code"
-                name="zipCode"
-                className={`form-control form-control-md rounded-2 ${zipCodeError && zipCodeFocused ? "invalid-background" : ""}`}
-                value={formData.zipCode}
-                onChange={handleChange}
-                onFocus={() => {
-                  setShowZipCodeTooltip(true);
-                  setZipCodeFocused(true);
-                }}
-                onBlur={() => {
-                  setShowZipCodeTooltip(false);
-                  setZipCodeFocused(false);
-                }}
-                required
-              />
-              <Tooltip
-                messages={[
-                  { text: "Zip code must contain only 5 digits.", valid: formData.zipCode.replace(/[^\d]/g, "").length === 5 },
-                ]}
-                visible={showZipCodeTooltip}
-              />
-            </div>
+          <div className="mb-3 position-relative">
+            <label htmlFor="zipCode">
+              <strong>Zip Code</strong> <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter zip code"
+              name="zipCode"
+              className={`form-control form-control-md rounded-2 ${
+                zipCodeError && zipCodeFocused ? "invalid-background" : ""
+              }`}
+              value={formData.zipCode}
+              onChange={handleChange}
+              onFocus={() => {
+                setShowZipCodeTooltip(true);
+                setZipCodeFocused(true);
+              }}
+              onBlur={() => {
+                setShowZipCodeTooltip(false);
+                setZipCodeFocused(false);
+              }}
+              required
+            />
+            <Tooltip
+              messages={[
+                {
+                  text: "Zip code must contain only 5 digits.",
+                  valid: formData.zipCode.replace(/[^\d]/g, "").length === 5,
+                },
+              ]}
+              visible={showZipCodeTooltip}
+            />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="country">
-                <strong>Country</strong> <span className="text-danger">*</span>
-              </label>
-              <select
-                name="country"
-                className="form-control form-control-md rounded-2"
-                value={formData.country}
-                onChange={handleChange}
-                required
-              >
-                <option value="US">United States</option>
-              </select>
-            </div>
+          <div className="mb-3">
+            <label htmlFor="country">
+              <strong>Country</strong> <span className="text-danger">*</span>
+            </label>
+            <select
+              name="country"
+              className="form-control form-control-md rounded-2"
+              value={formData.country}
+              onChange={handleChange}
+              required
+            >
+              <option value="US">United States</option>
+            </select>
+          </div>
 
-            <div className="mb-3 position-relative">
-              <Tooltip
-                messages={[
-                  { text: "Invalid address. Please enter a valid address.", valid: isAddressValid },
-                ]}
-                visible={showAddressTooltip}
-              />
-            </div>
+          <div className="mb-3 position-relative">
+            <Tooltip
+              messages={[
+                {
+                  text: "Invalid address. Please enter a valid address.",
+                  valid: isAddressValid,
+                },
+              ]}
+              visible={showAddressTooltip}
+            />
+          </div>
 
-            {errorMessage && <p className="text-danger">{errorMessage}</p>}
+          {errorMessage && <p className="text-danger">{errorMessage}</p>}
 
-            <button type="submit" className="btn btn-md btn-dark w-100 px-5">
-              <strong>Complete Registration</strong>
-            </button>
-          </form>
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="lastName">
-            <strong>Last Name</strong> <span className="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter last name"
-            name="lastName"
-            className="form-control form-control-md rounded-2"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="mb-3 position-relative">
-          <label htmlFor="phone">
-            <strong>Phone</strong> <span className="text-danger">*</span>
-          </label>
-          <input
-            type="tel"
-            placeholder="(xxx) xxx-xxxx"
-            name="phone"
-            className={`form-control form-control-md rounded-2 ${
-              phoneError && phoneFocused ? "invalid-background" : ""
-            }`}
-            value={formData.phone}
-            onChange={handleChange}
-            onFocus={() => {
-              setShowPhoneTooltip(true);
-              setPhoneFocused(true);
-            }}
-            onBlur={() => {
-              setShowPhoneTooltip(false);
-              setPhoneFocused(false);
-            }}
-            required
-          />
-          <Tooltip
-            messages={[
-              {
-                text: "Phone number must contain only 10 digits.",
-                valid: formData.phone.replace(/[^\d]/g, "").length === 10,
-              },
-            ]}
-            visible={showPhoneTooltip}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="addressLine1">
-            <strong>Address Line 1</strong>{" "}
-            <span className="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter address line 1"
-            name="addressLine1"
-            className="form-control form-control-md rounded-2"
-            value={formData.addressLine1}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="addressLine2">
-            <strong>Apt, Suite, etc.</strong>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter apt, suite, etc."
-            name="addressLine2"
-            className="form-control form-control-md rounded-2"
-            value={formData.addressLine2}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="city">
-            <strong>City</strong> <span className="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter city"
-            name="city"
-            className="form-control form-control-md rounded-2"
-            value={formData.city}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="mb-3 position-relative">
-          <label htmlFor="state">
-            <strong>State</strong> <span className="text-danger">*</span>
-          </label>
-          <select
-            name="state"
-            className={`form-control form-control-md rounded-2`}
-            value={formData.state}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select State</option>
-            {states.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-3 position-relative">
-          <label htmlFor="zipCode">
-            <strong>Zip Code</strong> <span className="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Enter zip code"
-            name="zipCode"
-            className={`form-control form-control-md rounded-2 ${
-              zipCodeError && zipCodeFocused ? "invalid-background" : ""
-            }`}
-            value={formData.zipCode}
-            onChange={handleChange}
-            onFocus={() => {
-              setShowZipCodeTooltip(true);
-              setZipCodeFocused(true);
-            }}
-            onBlur={() => {
-              setShowZipCodeTooltip(false);
-              setZipCodeFocused(false);
-            }}
-            required
-          />
-          <Tooltip
-            messages={[
-              {
-                text: "Zip code must contain only 5 digits.",
-                valid: formData.zipCode.replace(/[^\d]/g, "").length === 5,
-              },
-            ]}
-            visible={showZipCodeTooltip}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="country">
-            <strong>Country</strong> <span className="text-danger">*</span>
-          </label>
-          <select
-            name="country"
-            className="form-control form-control-md rounded-2"
-            value={formData.country}
-            onChange={handleChange}
-            required
-          >
-            <option value="US">United States</option>
-          </select>
-        </div>
-
-        <div className="mb-3 position-relative">
-          <Tooltip
-            messages={[
-              {
-                text: "Invalid address. Please enter a valid address.",
-                valid: isAddressValid,
-              },
-            ]}
-            visible={showAddressTooltip}
-          />
-        </div>
-
-        {errorMessage && <p className="text-danger">{errorMessage}</p>}
-
-        <button type="submit" className="btn btn-md btn-dark w-100 px-5">
-          <strong>Complete Registration</strong>
-        </button>
-      </form>
+          <button type="submit" className="btn btn-md btn-dark w-100 px-5">
+            <strong>Complete Registration</strong>
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

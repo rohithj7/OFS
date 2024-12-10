@@ -6,7 +6,9 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import cors from "cors";
 import Stripe from "stripe";
-import { WebSocketServer } from 'ws';
+import { WebSocketServer } from "ws";
+import axios from "axios";
+import MySQLStoreFactory from "express-mysql-session";
 
 dotenv.config();
 
@@ -65,7 +67,8 @@ import {
   updateSaleDeliveryFee,
   getCustomerLocationById,
   getLatestSaleStatus,
-  getLatestOngoingSaleId
+  getLatestOngoingSaleId,
+  calculateTotalWeight
 } from "./database.js";
 import {
   registerAdmin,
@@ -76,7 +79,9 @@ import {
   updatePassword,
 } from "./userController.js";
 
-import './dispatch.js';
+import "./dispatch.js";
+
+const MySQLStore = MySQLStoreFactory(session);
 
 const app = express();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -95,15 +100,29 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Session configuration
+const sessionStoreOptions = {
+  host: process.env.MYSQL_HOST || "mysql",   // Based on Docker service name
+  port: 3306,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  clearExpired: true,
+  checkExpirationInterval: 900000, // How frequently expired sessions will be cleared; in ms
+  expiration: 86400000, // The maximum age of a valid session; in ms (1 day)
+};
+
+const sessionStore = new MySQLStore(sessionStoreOptions);
+
+// Use session middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret_key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true, // prevent XSS attacks
+      httpOnly: true,
+      secure: false, // false for local dev with HTTP; true in production with HTTPS
+      sameSite: 'lax', // 'lax' allows cookies on same-origin requests
       maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
   })
@@ -269,7 +288,6 @@ app.get("/getUserRole", isAuthenticated, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -603,7 +621,7 @@ app.get("/products/:id", async (req, res) => {
 // Apply authentication middleware to the routes
 app.post("/products", isAuthenticated, async (req, res) => {
   try {
-    console.log("Received product data:", req.body);
+    // console.log("Received product data:", req.body);
 
     const {
       categoryId,
@@ -618,19 +636,19 @@ app.post("/products", isAuthenticated, async (req, res) => {
       weight,
     } = req.body;
 
-    console.log("Extracted values:", {
-      // Debug log
-      categoryId,
-      productName,
-      productDescription,
-      brand,
-      pictureUrl,
-      quantity,
-      reorderLevel,
-      reorderQuantity,
-      price,
-      weight,
-    });
+    // console.log("Extracted values:", {
+    //   // Debug log
+    //   categoryId,
+    //   productName,
+    //   productDescription,
+    //   brand,
+    //   pictureUrl,
+    //   quantity,
+    //   reorderLevel,
+    //   reorderQuantity,
+    //   price,
+    //   weight,
+    // });
     // Create the product
     const newProduct = await createProduct(
       categoryId,
@@ -645,7 +663,7 @@ app.post("/products", isAuthenticated, async (req, res) => {
       weight
     );
 
-    console.log("Created product:", newProduct);
+    // console.log("Created product:", newProduct);
     res.status(201).json(newProduct);
   } catch (err) {
     console.error("Error creating product:", err);
@@ -683,11 +701,12 @@ app.delete("/products/:id", isAuthenticated, async (req, res) => {
 app.get("/product-search", async (req, res) => {
   try {
     const searchTerm = req.query.q;
+    const categoryId = req.query.categoryId;
     if (!searchTerm) {
       return res.status(400).json({ message: "Search term is required." });
     }
 
-    const products = await searchProductsByName(searchTerm);
+    const products = await searchProductsByName(searchTerm, categoryId);
     res.json(products);
   } catch (error) {
     console.error("Error searching products:", error);
@@ -922,6 +941,16 @@ app.post("/checkout", isAuthenticated, async (req, res) => {
       });
     }
 
+    // Calculate the total weight
+    const totalWeight = await calculateTotalWeight(products);
+
+    if (totalWeight > 3200) {
+      return res.status(400).json({
+        message: "Total weight exceeds the limit. Sale needs to be under 200 lbs.",
+        totalWeight: `${totalWeight} ounces`,
+      });
+    }
+
     // All products are available
     res.json({ message: "All products are available." });
   } catch (error) {
@@ -987,7 +1016,7 @@ app.post("/create-payment-intent", isAuthenticated, async (req, res) => {
         enabled: true,
       },
     });
-    console.log("PaymentIntent created successfully:", paymentIntent.id);
+    // console.log("PaymentIntent created successfully:", paymentIntent.id);
 
     res.json({
       clientSecret: paymentIntent.client_secret,
@@ -1081,7 +1110,7 @@ app.get("/statistics", async (req, res) => {
 // Get ALL orders with details (for manager)
 app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
   try {
-    console.log("Fetching all orders for manager...");
+    // console.log("Fetching all orders for manager...");
     const orders = await getOrdersWithDetails();
     res.json(orders);
   } catch (err) {
@@ -1094,10 +1123,10 @@ app.get("/all-orders", isAdminOrEmployee, async (req, res) => {
 app.get("/orders-with-details", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID; // Changed from req.user.loginId to req.user.ID
-    console.log("Fetching orders for login ID:", loginId);
+    // console.log("Fetching orders for login ID:", loginId);
 
     const orders = await getOrdersWithDetailsBySupplier(loginId);
-    console.log("Orders found:", orders);
+    // console.log("Orders found:", orders);
     res.json(orders);
   } catch (err) {
     console.error("Error fetching orders:", err);
@@ -1184,26 +1213,33 @@ app.post("/balance", async (req, res) => {
 app.put("/update-sale-status", isAuthenticated, async (req, res) => {
   try {
     const loginId = req.user.ID;
-    console.log(loginId);
+    // console.log(loginId);
 
     // Fetch the saleId of the latest 'ONGOING' sale
     const saleId = await getLatestOngoingSaleId(loginId);
 
     if (!saleId) {
-      return res.status(404).json({ message: "No ongoing sales found to update." });
+      return res
+        .status(404)
+        .json({ message: "No ongoing sales found to update." });
     }
 
     // Call the database function to update the sale status
-    const updatedSale = await updateSaleStatus(saleId, 'COMPLETED');
+    const updatedSale = await updateSaleStatus(saleId, "COMPLETED");
 
     if (updatedSale) {
-      res.json({ message: "Sale status updated to 'COMPLETED' successfully.", saleId });
+      res.json({
+        message: "Sale status updated to 'COMPLETED' successfully.",
+        saleId,
+      });
     } else {
       res.status(404).json({ message: "Failed to update sale status." });
     }
   } catch (error) {
     console.error("Error updating sale status:", error);
-    res.status(500).json({ message: error.message || "Internal server error." });
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
   }
 });
 
@@ -1221,29 +1257,31 @@ app.get("/sale-status", isAuthenticated, async (req, res) => {
     }
   } catch (error) {
     console.error("Error fetching sale status:", error);
-    res.status(500).json({ message: error.message || "Internal server error." });
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
   }
 });
 
-wss.on('connection', (ws, req) => {
-  const parameters = new URLSearchParams(req.url.replace('/?', ''));
-  const role = parameters.get('role') || 'customer';
+wss.on("connection", (ws, req) => {
+  const parameters = new URLSearchParams(req.url.replace("/?", ""));
+  const role = parameters.get("role") || "customer";
   ws.role = role;
 
-  console.log('New client connected with role:', role);
+  // console.log("New client connected with role:", role);
 
-  ws.on('message', (message) => {
+  ws.on("message", (message) => {
     try {
       const parsedMessage = JSON.parse(message);
-      console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
+      // console.log(`Received message: ${parsedMessage.type}`, parsedMessage);
       // Handle different message types if needed
     } catch (err) {
-      console.error('Error parsing WebSocket message:', err);
+      console.error("Error parsing WebSocket message:", err);
     }
   });
 
-  ws.on('close', () => {
-    console.log('Client disconnected');
+  ws.on("close", () => {
+    // console.log("Client disconnected");
   });
 });
 
@@ -1251,7 +1289,7 @@ export function notifyClientsAboutNewRoute(routeId) {
   getRouteData(routeId)
     .then((routeData) => {
       if (!routeData || !routeData.points || !routeData.sales) {
-        console.error('Invalid route data:', routeData);
+        console.error("Invalid route data:", routeData);
         return;
       }
 
@@ -1259,11 +1297,11 @@ export function notifyClientsAboutNewRoute(routeId) {
         if (client.readyState === client.OPEN) {
           let dataToSend;
 
-          if (client.role === 'customer') {
+          if (client.role === "customer") {
             dataToSend = {
-              type: 'NEW_ROUTE',
+              type: "NEW_ROUTE",
               data: {
-                route: { ID: routeData.route?.ID || 'Unknown' }, // Fallback if ID is missing
+                route: { ID: routeData.route?.ID || "Unknown" }, // Fallback if ID is missing
                 points: routeData.points.map((point) => ({
                   latitude: point.LATITUDE,
                   longitude: point.LONGITUDE,
@@ -1277,7 +1315,7 @@ export function notifyClientsAboutNewRoute(routeId) {
             };
           } else {
             dataToSend = {
-              type: 'NEW_ROUTE',
+              type: "NEW_ROUTE",
               data: routeData,
             };
           }
@@ -1287,9 +1325,42 @@ export function notifyClientsAboutNewRoute(routeId) {
       });
     })
     .catch((error) => {
-      console.error('Error fetching route data:', error);
+      console.error("Error fetching route data:", error);
     });
 }
+
+app.get("/validate-address", isAuthenticated, async (req, res) => {
+  try {
+    const { address } = req.query;
+
+    if (!address) {
+      return res.status(400).json({ message: "Address is required." });
+    }
+
+    const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+      address
+    )}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
+
+    const response = await axios.get(mapboxUrl);
+
+    const features = response.data.features;
+
+    // Filter features for high relevance and address type
+    const validFeature = features.find(
+      (feature) =>
+        feature.place_type.includes("address") && feature.relevance == 1
+    );
+
+    if (validFeature) {
+      res.json({ isValid: true, place: validFeature.place_name });
+    } else {
+      res.json({ isValid: false });
+    }
+  } catch (error) {
+    console.error("Error validating address:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -1330,5 +1401,5 @@ app.use((err, req, res, next) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+  // console.log(`Server started on port ${PORT}`);
 });

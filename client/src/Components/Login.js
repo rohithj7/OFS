@@ -6,9 +6,15 @@ import { Link, useNavigate } from "react-router-dom";
 Login.propTypes = {
   setIsAuthenticated: PropTypes.func.isRequired,
   setUserRole: PropTypes.func.isRequired,
+  setFirstTimeLogin: PropTypes.func.isRequired,
 };
 
-export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
+export default function Login({
+  setIsAuthenticated,
+  setCart,
+  setUserRole,
+  setFirstTimeLogin,
+}) {
   const backgroundStyle = {
     backgroundImage: `url("https://github.com/rohithj7/OFS/blob/preethi/client/public/Assets/assortedVegetablesForLogin.jpeg?raw=true")`,
     backgroundSize: "cover",
@@ -27,7 +33,7 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/login",
+        "/api/login",
         { email, password },
         {
           withCredentials: true,
@@ -41,16 +47,17 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
       if (response.status === 200) {
         setIsAuthenticated(true);
         setUserRole(response.data.role);
+        setFirstTimeLogin(response.data.firstTimeLogin);
         setCart([]);
 
         // Handle first-time login for employees or suppliers
-        console.log("Response data:", response.data);
+        // console.log("Response data:", response.data);
         if (
           (response.data.role === "employee" ||
             response.data.role === "supplier") &&
           response.data.firstTimeLogin
         ) {
-          console.log("First-time login detected for employee");
+          // console.log("First-time login detected for employee");
           navigate("/update-password", {
             state: {
               email: email,
@@ -140,14 +147,6 @@ export default function Login({ setIsAuthenticated, setCart, setUserRole }) {
               Don't have an account?{" "}
               <Link to="/Signup" className="text-primary">
                 Sign Up
-              </Link>
-            </p>
-          </div>
-          <div className="text-center mt-3">
-            <p>
-              Are you an admin?{" "}
-              <Link to="/admin-register" className="text-primary">
-                Register here
               </Link>
             </p>
           </div>

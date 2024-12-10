@@ -32,7 +32,7 @@ const AdminDeliveryManagement = () => {
     const ws = new WebSocket('ws://localhost:8082');
 
     ws.onopen = () => {
-      console.log('WebSocket connected');
+      // console.log('WebSocket connected');
     };
 
     ws.onmessage = (event) => {
@@ -45,7 +45,7 @@ const AdminDeliveryManagement = () => {
     };
 
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
+      // console.log('WebSocket disconnected');
     };
 
     // Cleanup on component unmount

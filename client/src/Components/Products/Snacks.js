@@ -14,7 +14,7 @@ export default function Snacks({ addToCart }) {
   const [quantity, setQuantity] = useState(1); // State to track quantity
   const [searchTerm, setSearchTerm] = useState("");
 
-  console.log("categoryId from URL params:", categoryId);
+  // console.log("categoryId from URL params:", categoryId);
   // Define PropTypes for the component
   Snacks.propTypes = {
     addToCart: PropTypes.func.isRequired, // Specify that addToCart is required and must be a function
@@ -29,7 +29,7 @@ export default function Snacks({ addToCart }) {
 
   const incrementQuantity = () => {
     setQuantity((prev) => prev + 1);
-    console.log("Quantity incremented to:", quantity + 1); // Check if increment works
+    // console.log("Quantity incremented to:", quantity + 1); // Check if increment works
   };
   const decrementQuantity = () =>
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
@@ -45,19 +45,19 @@ export default function Snacks({ addToCart }) {
 
   // Modify the addToCart function call to include quantity
   const handleAddToCart = (product, quantity) => {
-    console.log("Adding to cart:", product, "Quantity:", quantity);
+    // console.log("Adding to cart:", product, "Quantity:", quantity);
     addToCart(product, quantity); // Ensure addToCart is using the quantity correctly
   };
 
   useEffect(() => {
-    console.log("categoryId from URL params:", categoryId);
+    // console.log("categoryId from URL params:", categoryId);
     if (!categoryId) return;
     axios
-      .get(`http://localhost:8080/products/category/${categoryId}`, {
+      .get(`/api/products/category/${categoryId}`, {
         withCredentials: true, // Keep this to maintain session
       })
       .then((res) => {
-        console.log("Products of Snacks:", res.data);
+        // console.log("Products of Snacks:", res.data);
         // Check if res.data is an array, if not assign the correct value
         /*
         The setData line checks whether res.data is already an array (Array.isArray(res.data)). 
@@ -80,8 +80,8 @@ export default function Snacks({ addToCart }) {
     e.preventDefault();
     if (searchTerm) {
       axios
-        .get(`http://localhost:8080/product-search`, {
-          params: { q: searchTerm },
+        .get(`/api/product-search`, {
+          params: { q: searchTerm, categoryId: categoryId },
           withCredentials: true,
         })
         .then((res) => {

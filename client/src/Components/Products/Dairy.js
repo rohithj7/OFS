@@ -14,7 +14,7 @@ export default function Dairy({ addToCart }) {
   const [quantity, setQuantity] = useState(1); // State to track quantity
   const [searchTerm, setSearchTerm] = useState("");
 
-  console.log("categoryId from URL params:", categoryId);
+  // console.log("categoryId from URL params:", categoryId);
   // Define PropTypes for the component
   Dairy.propTypes = {
     addToCart: PropTypes.func.isRequired, // Specify that addToCart is required and must be a function
@@ -29,7 +29,7 @@ export default function Dairy({ addToCart }) {
 
   const incrementQuantity = () => {
     setQuantity((prev) => prev + 1);
-    console.log("Quantity incremented to:", quantity + 1); // Check if increment works
+    // console.log("Quantity incremented to:", quantity + 1); // Check if increment works
   };
   const decrementQuantity = () =>
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
@@ -45,19 +45,19 @@ export default function Dairy({ addToCart }) {
 
   // Modify the addToCart function call to include quantity
   const handleAddToCart = (product, quantity) => {
-    console.log("Adding to cart:", product, "Quantity:", quantity);
+    // console.log("Adding to cart:", product, "Quantity:", quantity);
     addToCart(product, quantity); // Ensure addToCart is using the quantity correctly
   };
 
   useEffect(() => {
-    console.log("categoryId from URL params:", categoryId);
+    // console.log("categoryId from URL params:", categoryId);
     if (!categoryId) return;
     axios
-      .get(`http://localhost:8080/products/category/${categoryId}`, {
+      .get(`/api/products/category/${categoryId}`, {
         withCredentials: true, // Keep this to maintain session
       })
       .then((res) => {
-        console.log("Products of Dairy:", res.data);
+        // console.log("Products of Dairy:", res.data);
         // Check if res.data is an array, if not assign the correct value
         /*
         The setData line checks whether res.data is already an array (Array.isArray(res.data)). 
@@ -80,8 +80,8 @@ export default function Dairy({ addToCart }) {
     e.preventDefault();
     if (searchTerm) {
       axios
-        .get(`http://localhost:8080/product-search`, {
-          params: { q: searchTerm },
+        .get(`/api/product-search`, {
+          params: { q: searchTerm, categoryId: categoryId },
           withCredentials: true,
         })
         .then((res) => {
@@ -169,7 +169,7 @@ export default function Dairy({ addToCart }) {
                     onClick={() => toggleModal(product)} // Pass product to toggleModal
                     to="#"
                   >
-                   <div class="text-center">
+                    <div class="text-center">
                       <img
                         src={`${product.PICTURE_URL}`}
                         className="img-fluid rounded-circle"
@@ -283,9 +283,16 @@ export default function Dairy({ addToCart }) {
                                   className="alert alert-warning mb-3"
                                   role="alert"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-exclamation-triangle me-2 fs-5 align-middle" viewBox="0 0 16 16">
-                                    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
-                                    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    fill="currentColor"
+                                    class="bi bi-exclamation-triangle me-2 fs-5 align-middle"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z" />
+                                    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z" />
                                   </svg>
                                   Low Stock! Only {selectedProduct.QUANTITY}{" "}
                                   remaining

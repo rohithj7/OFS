@@ -90,54 +90,55 @@ Before you begin, ensure you have the following installed on your system:
    - **`docker-compose.yml`:** Create a file named `docker-compose.yml` in the `grocerygo` directory and paste the following content:
 
      ```yaml
-        version: '3.8'
-
-        services:
+      services:
         mysql:
-            image: wtpotu/grocerygo-mysql:latest
-            container_name: mysql_container
-            environment:
+          image: rohithj7/grocerygo-mysql:latest
+          container_name: mysql_container
+          environment:
             MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"      # Set via .env
             MYSQL_DATABASE: "${MYSQL_DATABASE}"          # Set via .env
-            ports:
+          ports:
             - "3307:3306"
-            networks:
+          networks:
             - ofs-network
-            healthcheck:
+          healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
             interval: 10s
             timeout: 5s
             retries: 5
-
+      
         backend:
-            image: wtpotu/grocerygo-backend:latest
-            container_name: backend_container
-            environment:
+          image: rohithj7/grocerygo-backend:latest
+          container_name: backend_container
+          environment:
             MYSQL_HOST: "mysql"                           # Service name for networking
             MYSQL_USER: "${MYSQL_USER}"                   # Set via .env
             MYSQL_PASSWORD: "${MYSQL_PASSWORD}"           # Set via .env
             MYSQL_DATABASE: "${MYSQL_DATABASE}"           # Set via .env
             SESSION_SECRET: "${SESSION_SECRET}"           # Set via .env
             PORT: "${PORT}"                               # Set via .env
-            ports:
+          ports:
             - "8080:8080"
-            depends_on:
+            - "8082:8082"
+          depends_on:
             mysql:
-                condition: service_healthy
-            networks:
+              condition: service_healthy
+          networks:
             - ofs-network
-
+      
         frontend:
-            image: wtpotu/grocerygo-frontend:latest
-            container_name: frontend_container
-            ports:
+          image: rohithj7/grocerygo-frontend:latest
+          container_name: frontend_container
+          depends_on:
+            - backend
+          ports:
             - "3000:80"
-            networks:
+          networks:
             - ofs-network
-
-        networks:
+      
+      networks:
         ofs-network:
-            driver: bridge
+          driver: bridge
      ```
 
    - **`.env` File:** Create a file named `.env` in the same directory and populate it with the necessary environment variables:
@@ -166,9 +167,9 @@ Before you begin, ensure you have the following installed on your system:
    Execute the following commands to pull the necessary Docker images:
 
    ```bash
-   docker pull wtpotu/grocerygo-mysql:latest
-   docker pull wtpotu/grocerygo-backend:latest
-   docker pull wtpotu/grocerygo-frontend:latest
+   docker pull rohithj7/grocerygo-mysql:latest
+   docker pull rohithj7/grocerygo-backend:latest
+   docker pull rohithj7/grocerygo-frontend:latest
    ```
 
 4. **Run Docker Compose**

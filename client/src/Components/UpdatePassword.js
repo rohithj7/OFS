@@ -57,7 +57,7 @@ function UpdatePassword() {
 
     try {
       const response = await axios.put(
-        "http://localhost:8080/update-password",
+        "/api/update-password",
         {
           email,
           newPassword,

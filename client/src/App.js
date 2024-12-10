@@ -51,6 +51,7 @@ const stripePromise = loadStripe(
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [firstTimeLogin, setFirstTimeLogin] = useState(false);
   const [loading, setLoading] = useState(true); // State for managing loading spinner
   const [showModal, setShowModal] = useState(false);
   const [redirectToCheckout, setRedirectToCheckout] = useState(false);
@@ -61,11 +62,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:8080/logout", {
+      await axios.get("/api/logout", {
         withCredentials: true,
       });
       setIsAuthenticated(false);
       setUserRole(null);
+      setFirstTimeLogin(false);
       setCart([]);
       navigate("/Login");
       alert("Logged out successfully");
@@ -76,12 +78,12 @@ function App() {
 
   // ProtectedRoute component
   const ProtectedRoute = ({ allowedRoles, children }) => {
-    console.log(
-      "ProtectedRoute: isAuthenticated =",
-      isAuthenticated,
-      "userRole =",
-      userRole
-    );
+    // console.log(
+    //   "ProtectedRoute: isAuthenticated =",
+    //   isAuthenticated,
+    //   "userRole =",
+    //   userRole
+    // );
 
     if (!isAuthenticated) {
       setShowModal(true);
@@ -108,23 +110,23 @@ function App() {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.ID === product.ID);
       if (existingProduct) {
-        console.log(
-          "Product already in cart. Current quantity:",
-          existingProduct.quantity
-        );
-        console.log("Adding quantity:", quantity);
+        // console.log(
+        //   "Product already in cart. Current quantity:",
+        //   existingProduct.quantity
+        // );
+        // console.log("Adding quantity:", quantity);
         return prevCart.map((item) =>
           item.ID === product.ID
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        console.log(
-          "Adding new product to cart:",
-          product,
-          "Quantity:",
-          quantity
-        );
+        // console.log(
+        //   "Adding new product to cart:",
+        //   product,
+        //   "Quantity:",
+        //   quantity
+        // );
         return [...prevCart, { ...product, quantity }];
       }
     });
@@ -188,7 +190,7 @@ function App() {
       quantity: item.quantity,
     }));
 
-    console.log("Products to checkout:", products);
+    // console.log("Products to checkout:", products);
 
     if (products.length === 0) {
       alert("Your cart is empty or contains invalid items.");
@@ -198,12 +200,12 @@ function App() {
     try {
       // Call the /checkout route first to verify availability
       const checkResponse = await axios.post(
-        "http://localhost:8080/checkout",
+        "/api/checkout",
         { products },
         { withCredentials: true }
       );
       if (checkResponse.status === 200) {
-        console.log("Ready to checkout");
+        // console.log("Ready to checkout");
         localStorage.setItem("deliveryFee", deliveryFee); // Store delivery fee
         // Close the sidebar
         const sidebar = sidebarRef.current;
@@ -263,8 +265,8 @@ function App() {
       0
     );
 
-    console.log("Total weight:", totalWeight); // test to make sure value stored in total weight var is a number
-    console.log(totalWeight < 320.0); // test to see if total weight value is < 320
+    // console.log("Total weight:", totalWeight); // test to make sure value stored in total weight var is a number
+    // console.log(totalWeight < 320.0); // test to see if total weight value is < 320
 
     if (totalWeight > 0 && totalWeight < 320.0) {
       // if totalWeight is < 320, then the alert banner will be displayed, and delivery fee will be $0
@@ -316,7 +318,7 @@ function App() {
   // Add this function to fetch current product quantities
   const fetchProductQuantities = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/products", {
+      const response = await axios.get("/api/products", {
         withCredentials: true,
       });
       const quantities = {};
@@ -356,6 +358,29 @@ function App() {
       });
     };
   }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("/api/getUserRole", {
+          withCredentials: true,
+        });
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+          setUserRole(response.data.role);
+        } else {
+          setIsAuthenticated(false);
+          setUserRole(null);
+        }
+      } catch (err) {
+        console.error("Error checking authentication:", err);
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    };
+  
+    checkAuth();
+  }, []);  
 
   return (
     <div>
@@ -537,9 +562,11 @@ function App() {
                     </svg>
                     Employee Mode
                   </span>
-                  <Link to="/EmployeeDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/EmployeeDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -566,9 +593,11 @@ function App() {
                     </svg>
                     Supplier Mode
                   </span>
-                  <Link to="/SupplierDashboard" className="btn me-2">
-                    Dashboard
-                  </Link>
+                  {!firstTimeLogin && (
+                    <Link to="/SupplierDashboard" className="btn me-2">
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     className="btn me-2"
                     type="button"
@@ -683,6 +712,7 @@ function App() {
             <Login
               setIsAuthenticated={setIsAuthenticated}
               setUserRole={setUserRole}
+              setFirstTimeLogin={setFirstTimeLogin}
               setCart={setCart}
             />
           }
@@ -1068,7 +1098,10 @@ function App() {
 
 function HomeWithProps() {
   const location = useLocation();
-  const { firstName, lastName } = location.state || { firstName: "", lastName: "" };
+  const { firstName, lastName } = location.state || {
+    firstName: "",
+    lastName: "",
+  };
   return <Home firstName={firstName} lastName={lastName} />;
 }
 

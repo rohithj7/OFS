@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   mysql:
-    image: wtpotu/grocerygo-mysql:latest
+    image: rohithj7/grocerygo-mysql:latest
     container_name: mysql_container
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"      # Set via .env
@@ -18,7 +16,7 @@ services:
       retries: 5
 
   backend:
-    image: wtpotu/grocerygo-backend:latest
+    image: rohithj7/grocerygo-backend:latest
     container_name: backend_container
     environment:
       MYSQL_HOST: "mysql"                           # Service name for networking
@@ -29,6 +27,7 @@ services:
       PORT: "${PORT}"                               # Set via .env
     ports:
       - "8080:8080"
+      - "8082:8082"
     depends_on:
       mysql:
         condition: service_healthy
@@ -36,8 +35,10 @@ services:
       - ofs-network
 
   frontend:
-    image: wtpotu/grocerygo-frontend:latest
+    image: rohithj7/grocerygo-frontend:latest
     container_name: frontend_container
+    depends_on:
+      - backend
     ports:
       - "3000:80"
     networks:

@@ -32,7 +32,7 @@ function validateAddress(address, formData) {
   return fetch(geocodingUrl)
     .then(response => response.json())
     .then(data => {
-      console.log('Geocoding API response:', data);
+      // console.log('Geocoding API response:', data);
       if (data.status === 'OK' && data.results.length > 0) {
         const firstResult = data.results[0];
         const addressComponents = firstResult.address_components;
@@ -43,17 +43,17 @@ function validateAddress(address, formData) {
         const postalCode = addressComponents.find(c => c.types.includes('postal_code'))?.short_name === formData.zipCode;
         const addressLine = normalizeAddressComponent(firstResult.formatted_address).includes(normalizeAddressComponent(formData.addressLine));
 
-        console.log('Validation results:', { country, state, city, postalCode, addressLine });
+        // console.log('Validation results:', { country, state, city, postalCode, addressLine });
 
         if (country && state && city && postalCode && addressLine ) {
-          console.log('Address is valid:', address);
+          // console.log('Address is valid:', address);
           return true;
         } else {
-          console.log('Address may be invalid or ambiguous:', address);
+          // console.log('Address may be invalid or ambiguous:', address);
           return false;
         }
       } else {
-        console.log('Address not found:', address);
+        // console.log('Address not found:', address);
         return false;
       }
     })
@@ -88,7 +88,7 @@ export default function NewAccount() {
   useEffect(() => {
     const fetchCustomerInfo = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
 
@@ -199,7 +199,7 @@ export default function NewAccount() {
       }
 
       const response = await axios.put(
-        "http://localhost:8080/customerinfo",
+        "/api/customerinfo",
         requestData,
         {
           withCredentials: true,

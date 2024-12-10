@@ -10,12 +10,13 @@ import {
 } from "@stripe/react-stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import Tooltip from "./Tooltip";
 
 // Load the publishable key from Stripe
 const stripePromise = loadStripe(
   "pk_test_51QLGHpBI56iyGeVwohOAeqeUa0OQQmSpCjT6xI2tagJujZdyrOHUIOIuDhBPk8Rq49PJkVJtKiElywf3zHoUjM8b00D3adN1kQ"
 );
-console.log("Stripe promise initialized:", stripePromise);
+// console.log("Stripe promise initialized:", stripePromise);
 
 // Create a wrapper component
 const CheckoutWrapper = ({ cart, setCart, deliveryFee }) => {
@@ -39,9 +40,34 @@ const PaymentForm = ({
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cardHolderName, setCardHolderName] = useState("");
+  const [showCardHolderNameTooltip, setShowCardHolderNameTooltip] = useState(false);
+  const [cardHolderNameFocused, setCardHolderNameFocused] = useState(false);
   const navigate = useNavigate();
+
+  const validateCardHolderName = (name) => {
+    const nameRegex = /^[A-Za-z\s]{3,}$/;
+    return nameRegex.test(name)
+      ? null
+      : "Card Holder Name must be at least 3 characters long and contain only letters and spaces.";
+  };
+
+  const handleCardHolderNameChange = (e) => {
+    const value = e.target.value;
+    const regex = /^[A-Za-z\s]*$/;
+    if (regex.test(value)) {
+      setCardHolderName(value);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const cardHolderNameError = validateCardHolderName(cardHolderName);
+    if (cardHolderNameError) {
+      setError(cardHolderNameError);
+      return;
+    }
 
     if (!stripe || !elements || !clientSecret) {
       setError("Payment system not initialized properly.");
@@ -58,7 +84,7 @@ const PaymentForm = ({
         return;
       }
 
-      console.log("Starting payment confirmation...");
+      // console.log("Starting payment confirmation...");
 
       const { error: paymentError, paymentIntent } =
         await stripe.confirmCardPayment(clientSecret, {
@@ -70,7 +96,7 @@ const PaymentForm = ({
           },
         });
 
-      console.log("Payment response:", { paymentError, paymentIntent });
+      // console.log("Payment response:", { paymentError, paymentIntent });
 
       if (paymentError) {
         console.error("Payment error:", paymentError);
@@ -82,7 +108,7 @@ const PaymentForm = ({
       }
 
       if (paymentIntent.status === "succeeded") {
-        console.log("Payment succeeded:", paymentIntent);
+        // console.log("Payment succeeded:", paymentIntent);
 
         // Add sale creation after successful payment
         try {
@@ -92,7 +118,7 @@ const PaymentForm = ({
           }));
 
           const saleResponse = await axios.post(
-            "http://localhost:8080/place-sale",
+            "/api/place-sale",
             {
               products,
               stripePaymentId: paymentIntent.id, // Add the paymentIntent ID here
@@ -103,7 +129,7 @@ const PaymentForm = ({
           if (saleResponse.status === 200) {
             // update the sale with delivery fee
             await axios.put(
-              `http://localhost:8080/sales/${saleResponse.data.saleId}/delivery-fee`,
+              `/api/sales/${saleResponse.data.saleId}/delivery-fee`,
               { deliveryFee },
               { withCredentials: true }
             );
@@ -132,15 +158,35 @@ const PaymentForm = ({
     }
   };
 
+  const isCardHolderNameValid = validateCardHolderName(cardHolderName) === null;
+
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-3">
+      <div className="mb-3 position-relative">
         <label className="form-label fw-bold">Card Holder Name</label>
         <input
           type="text"
-          className="form-control"
+          className={`form-control ${
+            cardHolderNameFocused && validateCardHolderName(cardHolderName) ? "invalid-background" : ""
+          }`}
           placeholder="Name on card"
+          value={cardHolderName}
+          onChange={handleCardHolderNameChange}
+          onFocus={() => {
+            setShowCardHolderNameTooltip(true);
+            setCardHolderNameFocused(true);
+          }}
+          onBlur={() => {
+            setShowCardHolderNameTooltip(false);
+            setCardHolderNameFocused(false);
+          }}
           required
+        />
+        <Tooltip
+          messages={[
+            { text: "Card Holder Name must be at least 3 characters long and contain only letters and spaces.", valid: !validateCardHolderName(cardHolderName) }
+          ]}
+          visible={showCardHolderNameTooltip}
         />
       </div>
       <div className="mb-4">
@@ -194,7 +240,7 @@ const PaymentForm = ({
       <button
         type="submit"
         className="btn btn-mint text-black w-100 mt-3 fw-bold"
-        disabled={!stripe || isProcessing || !clientSecret}
+        disabled={!stripe || isProcessing || !clientSecret || !isCardHolderNameValid}
       >
         {isProcessing ? (
           <span>
@@ -260,9 +306,9 @@ export default function Checkout({
   }, []);
 
   useEffect(() => {
-    console.log("Stripe object:", stripe);
-    console.log("Elements object:", elements);
-    console.log("Cart received in Checkout:", cart);
+    // console.log("Stripe object:", stripe);
+    // console.log("Elements object:", elements);
+    // console.log("Cart received in Checkout:", cart);
   }, [cart, stripe, elements]);
 
   const [customerInfo, setCustomerInfo] = useState({
@@ -275,7 +321,7 @@ export default function Checkout({
   useEffect(() => {
     const fetchShippingAddress = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/customerinfo", {
+        const response = await axios.get("/api/customerinfo", {
           withCredentials: true,
         });
         setShippingAddress(response.data.ADDRESS);
@@ -302,10 +348,10 @@ export default function Checkout({
           cart.reduce((total, item) => total + item.PRICE * item.quantity, 0) +
           deliveryFee;
 
-        console.log("Creating payment intent for amount:", totalPrice);
+        // console.log("Creating payment intent for amount:", totalPrice);
 
         const response = await axios.post(
-          "http://localhost:8080/create-payment-intent",
+          "/api/create-payment-intent",
           {
             amount: Math.round(totalPrice * 100), // In Stripe's implementation, the amount be cent to avoid issues with floating-point arithmetic
             currency: "usd",
@@ -313,7 +359,7 @@ export default function Checkout({
           { withCredentials: true }
         );
 
-        console.log("Payment intent created:", response.data);
+        // console.log("Payment intent created:", response.data);
         setClientSecret(response.data.clientSecret);
       } catch (err) {
         console.error("Error creating payment intent:", err);
