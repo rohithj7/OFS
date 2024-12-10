@@ -16,7 +16,7 @@ wss.on('connection', (ws, req) => {
   const role = parameters.get('role') || 'customer';
   ws.role = role;
 
-  console.log('Client connected with role:', role);
+  // console.log('Client connected with role:', role);
   clients.add(ws);
 
   // If there's an existing route, send it to the newly connected client
@@ -24,13 +24,13 @@ wss.on('connection', (ws, req) => {
     const message = JSON.stringify({ type: 'route_update', data: currentRoute });
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(message);
-      console.log(`Sent current route to new client: ${message}`);
+      // console.log(`Sent current route to new client: ${message}`);
     }
   }
 
   // Handle client disconnection
   ws.on('close', () => {
-    console.log('Client disconnected');
+    // console.log('Client disconnected');
     clients.delete(ws);
   });
 
@@ -52,7 +52,7 @@ export function broadcastRouteData(routeData) {
   for (const client of clients) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
-      console.log(`Message sent: ${message}`);
+      // console.log(`Message sent: ${message}`);
     }
   }
 }
@@ -64,9 +64,9 @@ export function broadcastBotPosition(position) {
     for (const client of clients) {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);
-            console.log(`Bot position sent to client: ${message}`);
+            // console.log(`Bot position sent to client: ${message}`);
         }
     }
 }
 
-console.log('WebSocket server is running on ws://localhost:8082');
+// console.log('WebSocket server is running on ws://localhost:8082');

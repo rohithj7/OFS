@@ -32,7 +32,7 @@ function SupplierDashboard() {
       setOrderError(null);
 
       try {
-        console.log("Starting orders fetch...");
+        // console.log("Starting orders fetch...");
         const response = await axios.get(
           "/api/orders-with-details",
           {
@@ -44,7 +44,7 @@ function SupplierDashboard() {
           }
         );
 
-        console.log("Orders response:", response.data);
+        // console.log("Orders response:", response.data);
         setOrders(response.data);
       } catch (error) {
         console.error("Detailed fetch error:", {

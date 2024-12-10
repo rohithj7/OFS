@@ -25,8 +25,8 @@ export function simulateBotMovement(routeData, routeId, deliveryCoords) {
       const currentPosition = coordinates[index];
       const longitude = parseFloat(currentPosition[0]);
       const latitude = parseFloat(currentPosition[1]);
-      console.log(`latitude check: ${latitude}`);
-      console.log(`longitude check: ${longitude}`);
+      // console.log(`latitude check: ${latitude}`);
+      // console.log(`longitude check: ${longitude}`);
 
       // Broadcast the current position to clients
       broadcastBotPosition(currentPosition);
@@ -38,13 +38,13 @@ export function simulateBotMovement(routeData, routeId, deliveryCoords) {
 
         const latDiff = Math.abs(latitude - sale.latitude);
         const lonDiff = Math.abs(longitude - sale.longitude);
-        console.log(`latDiff: ${latDiff}`);
-        console.log(`longDiff: ${lonDiff}`);
+        // console.log(`latDiff: ${latDiff}`);
+        // console.log(`longDiff: ${lonDiff}`);
 
         if (latDiff < PROXIMITY_THRESHOLD && lonDiff < PROXIMITY_THRESHOLD) {
           try {
             await updateSaleStatus(sale.saleId, 'COMPLETED');
-            console.log(`Sale ID ${sale.saleId} marked as COMPLETED.`);
+            // console.log(`Sale ID ${sale.saleId} marked as COMPLETED.`);
             completedSaleIds.add(sale.saleId);
           } catch (err) {
             console.error(`Failed to update status for Sale ID ${sale.saleId}:`, err);
@@ -55,10 +55,10 @@ export function simulateBotMovement(routeData, routeId, deliveryCoords) {
       index++;
     } else {
       clearInterval(interval);
-      console.log('Simulation complete.');
+      // console.log('Simulation complete.');
       try {
         await completeRoute(routeId);
-        console.log(`Route ID ${routeId} marked as COMPLETED.`);
+        // console.log(`Route ID ${routeId} marked as COMPLETED.`);
       } catch (err) {
         console.error(`Failed to complete Route ID ${routeId}:`, err);
       }
